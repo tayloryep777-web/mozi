@@ -56,19 +56,13 @@
 
 
     /*
-      kaom.net 查詢
-
-      使用 POST：
-
-      word   = 漢字
-      bianti = yes
-      page   = no
+      kaom.net 訓詁查詢
     */
     function searchKaom(word) {
       const form = document.createElement('form');
 
       form.method = 'post';
-      form.action = 'https://www.kaom.net/book_xungu8.php';
+      form.action = 'http://www.kaom.net/book_xungu8.php';
       form.target = '_blank';
 
       const input = document.createElement('input');
@@ -99,7 +93,7 @@
 
 
     /*
-      從 mozi.txt 載入資料
+      載入 mozi.txt
     */
     async function loadMozi() {
       try {
@@ -120,14 +114,16 @@
 
           return {
             character: columns[0] || '',
-            toolsText: columns[1] || '',
-            kaomText: columns[2] || ''
+            second: columns[1] || '',
+            third: columns[2] || ''
           };
         });
 
 
         /*
-          如果 localStorage 有資料、優先使用本機資料
+          讀取 localStorage
+
+          只有在 localStorage 有資料時才使用
         */
         const savedData = localStorage.getItem(STORAGE_KEY);
 
@@ -139,7 +135,7 @@
               moziRows = savedRows;
             }
           } catch (error) {
-            console.log('localStorage 資料格式錯誤、改用 mozi.txt');
+            console.log('localStorage 資料格式錯誤');
           }
         }
 
@@ -153,7 +149,7 @@
 
 
     /*
-      將目前資料保存到 localStorage
+      保存到 localStorage
     */
     function saveToLocalStorage() {
       localStorage.setItem(
@@ -164,7 +160,7 @@
 
 
     /*
-      顯示所有資料列
+      顯示資料
     */
     function renderRows() {
       const content = document.getElementById('content');
@@ -178,11 +174,17 @@
 
 
         /*
-          第一個連結：
+          第一列：普通漢字
+        */
+        const characterText = document.createTextNode(
+          item.character + ' '
+        );
 
-          普通文字 → zi.tools
 
-          顯示文字來自 mozi.txt 第二列
+        /*
+          第二列：固定顯示「字統」
+
+          連結目標是當前漢字
         */
         const toolsLink = document.createElement('a');
 
@@ -193,20 +195,18 @@
         toolsLink.target = '_blank';
         toolsLink.rel = 'noopener noreferrer';
 
-        toolsLink.textContent = item.toolsText;
+        toolsLink.textContent = '字統';
 
 
         /*
-          第二個連結：
+          第三列：固定顯示「訓詁」
 
-          kaom.net
-
-          顯示文字來自 mozi.txt 第三列
+          使用 kaom.net POST 查詢
         */
         const kaomLink = document.createElement('a');
 
         kaomLink.href = '#';
-        kaomLink.textContent = item.kaomText;
+        kaomLink.textContent = '訓詁';
 
         kaomLink.addEventListener('click', function(event) {
           event.preventDefault();
@@ -223,10 +223,10 @@
         const input1 = document.createElement('input');
 
         input1.type = 'text';
-        input1.value = item.toolsText;
+        input1.value = item.second;
 
         input1.addEventListener('input', function() {
-          moziRows[index].toolsText = input1.value;
+          moziRows[index].second = input1.value;
 
           saveToLocalStorage();
         });
@@ -240,10 +240,10 @@
         const input2 = document.createElement('input');
 
         input2.type = 'text';
-        input2.value = item.kaomText;
+        input2.value = item.third;
 
         input2.addEventListener('input', function() {
-          moziRows[index].kaomText = input2.value;
+          moziRows[index].third = input2.value;
 
           saveToLocalStorage();
         });
@@ -252,12 +252,10 @@
         /*
           顯示順序：
 
-          漢字　字統　訓詁　輸入框　輸入框
+          丈　字統　訓詁　[十又]　[丈]
         */
 
-        row.appendChild(
-          document.createTextNode(item.character + ' ')
-        );
+        row.appendChild(characterText);
 
         row.appendChild(toolsLink);
 
@@ -286,8 +284,8 @@
       const text = moziRows.map(function(item) {
         return [
           item.character,
-          item.toolsText,
-          item.kaomText
+          item.second,
+          item.third
         ].join('\t');
       }).join('\n');
 
@@ -318,8 +316,6 @@
 
     /*
       清除 localStorage
-
-      清除後重新讀取 mozi.txt
     */
     function clearLocalStorage() {
       localStorage.removeItem(STORAGE_KEY);
