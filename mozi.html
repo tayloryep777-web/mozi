@@ -9,22 +9,28 @@
   <style>
     .character-row {
       margin-bottom: 8px;
+      white-space: nowrap;
     }
 
     .character-row input {
-  margin-left: 8px;
-  box-sizing: border-box;
-}
+      font-size: 16px;
+      margin-left: 8px;
+      box-sizing: border-box;
+      padding: 2px 4px;
+    }
 
-/* 第一個輸入框：5 個漢字寬 */
-.character-row input:first-of-type {
-  width: 6em;
-}
+    /*
+      第一個輸入框：約 5 個漢字寬
+    */
+    .character-row input:first-of-type {
+      width: 8em;
+    }
 
-/* 第二個輸入框：2 個漢字寬 */
-.character-row input:last-of-type {
-  width: 3em;
-}
+    /*
+      第二個輸入框：約 2 個漢字寬
+    */
+    .character-row input:last-of-type {
+      width: 4em;
     }
 
     .toolbar {
@@ -61,36 +67,100 @@
 
 
   <script>
+    /*
+      所有資料儲存在這個陣列
+    */
     let moziRows = [];
 
+
+    /*
+      localStorage 使用的名稱
+    */
     const STORAGE_KEY = 'moziRows';
 
 
     /*
+      固定分頁名稱
+
+      字統永遠使用 zi_tools_tab
+      訓詁永遠使用 kaom_tab
+    */
+    const ZI_TOOLS_TAB = 'zi_tools_tab';
+    const KAOM_TAB = 'kaom_tab';
+
+
+    /*
+      開啟 zi.tools
+
+      如果已經有 zi_tools_tab 分頁、
+      就覆蓋該分頁。
+
+      如果沒有、就建立新分頁。
+    */
+    function openZiTools(character) {
+      const url =
+        'https://zi.tools/zi/' +
+        encodeURIComponent(character);
+
+      const tab = window.open('', ZI_TOOLS_TAB);
+
+      if (tab) {
+        tab.location.href = url;
+        tab.focus();
+      }
+    }
+
+
+    /*
       kaom.net 訓詁查詢
+
+      使用 POST 傳送漢字。
     */
     function searchKaom(word) {
       const form = document.createElement('form');
 
       form.method = 'post';
-      form.action = 'http://www.kaom.net/book_xungu8.php';
-      
-      form.target = '_self';
 
+      form.action =
+        'http://www.kaom.net/book_xungu8.php';
+
+      /*
+        固定使用 kaom_tab 分頁。
+
+        每次查詢都覆蓋同一個 kaom.net 分頁。
+      */
+      form.target = KAOM_TAB;
+
+
+      /*
+        word：查詢漢字
+      */
       const input = document.createElement('input');
+
       input.type = 'hidden';
       input.name = 'word';
       input.value = word;
 
+
+      /*
+        bianti：查詢簡繁、變體
+      */
       const bianti = document.createElement('input');
+
       bianti.type = 'hidden';
       bianti.name = 'bianti';
       bianti.value = 'yes';
 
+
+      /*
+        page：不顯示頁碼
+      */
       const page = document.createElement('input');
+
       page.type = 'hidden';
       page.name = 'page';
       page.value = 'no';
+
 
       form.appendChild(input);
       form.appendChild(bianti);
@@ -105,7 +175,7 @@
 
 
     /*
-      載入 mozi.txt
+      從 mozi.txt 載入資料
     */
     async function loadMozi() {
       try {
@@ -117,10 +187,26 @@
 
         const text = await response.text();
 
+
+        /*
+          每一行是一筆資料。
+
+          空白行會被忽略。
+        */
         const lines = text
           .split(/\r?\n/)
           .filter(line => line.trim() !== '');
 
+
+        /*
+          mozi.txt 格式：
+
+          第一列：漢字
+          第二列：第一個輸入框
+          第三列：第二個輸入框
+
+          三列之間使用 Tab 分隔。
+        */
         moziRows = lines.map(function(line) {
           const columns = line.split('\t');
 
@@ -133,11 +219,13 @@
 
 
         /*
-          讀取 localStorage
+          讀取 localStorage。
 
-          只有在 localStorage 有資料時才使用
+          如果之前修改過資料、
+          就使用本機保存的版本。
         */
-        const savedData = localStorage.getItem(STORAGE_KEY);
+        const savedData =
+          localStorage.getItem(STORAGE_KEY);
 
         if (savedData) {
           try {
@@ -146,10 +234,14 @@
             if (Array.isArray(savedRows)) {
               moziRows = savedRows;
             }
+
           } catch (error) {
-            console.log('localStorage 資料格式錯誤');
+            console.log(
+              'localStorage 資料格式錯誤、改用 mozi.txt'
+            );
           }
         }
+
 
         renderRows();
 
@@ -161,7 +253,7 @@
 
 
     /*
-      保存到 localStorage
+      保存目前資料到 localStorage
     */
     function saveToLocalStorage() {
       localStorage.setItem(
@@ -172,12 +264,14 @@
 
 
     /*
-      顯示資料
+      顯示所有漢字資料
     */
     function renderRows() {
-      const content = document.getElementById('content');
+      const content =
+        document.getElementById('content');
 
       content.innerHTML = '';
+
 
       moziRows.forEach(function(item, index) {
         const row = document.createElement('div');
@@ -186,44 +280,58 @@
 
 
         /*
-          第一列：普通漢字
+          第一部分：普通漢字
         */
-        const characterText = document.createTextNode(
-          item.character + ' '
+        const characterText =
+          document.createTextNode(
+            item.character + ' '
+          );
+
+
+        /*
+          第二部分：字統
+
+          固定顯示「字統」
+          點擊後開啟 zi.tools
+        */
+        const toolsLink =
+          document.createElement('a');
+
+        toolsLink.href = '#';
+
+        toolsLink.textContent = '字統';
+
+        toolsLink.addEventListener(
+          'click',
+          function(event) {
+            event.preventDefault();
+
+            openZiTools(item.character);
+          }
         );
 
 
         /*
-          第二列：固定顯示「字統」
+          第三部分：訓詁
 
-          連結目標是當前漢字
+          固定顯示「訓詁」
+          點擊後 POST 到 kaom.net
         */
-        const toolsLink = document.createElement('a');
-
-        toolsLink.href =
-          'https://zi.tools/zi/' +
-          encodeURIComponent(item.character);
-
-        toolsLink.target = '_self';
-
-        toolsLink.textContent = '字統';
-
-
-        /*
-          第三列：固定顯示「訓詁」
-
-          使用 kaom.net POST 查詢
-        */
-        const kaomLink = document.createElement('a');
+        const kaomLink =
+          document.createElement('a');
 
         kaomLink.href = '#';
+
         kaomLink.textContent = '訓詁';
 
-        kaomLink.addEventListener('click', function(event) {
-          event.preventDefault();
+        kaomLink.addEventListener(
+          'click',
+          function(event) {
+            event.preventDefault();
 
-          searchKaom(item.character);
-        });
+            searchKaom(item.character);
+          }
+        );
 
 
         /*
@@ -231,16 +339,22 @@
 
           對應 mozi.txt 第二列
         */
-        const input1 = document.createElement('input');
+        const input1 =
+          document.createElement('input');
 
         input1.type = 'text';
+
         input1.value = item.second;
 
-        input1.addEventListener('input', function() {
-          moziRows[index].second = input1.value;
+        input1.addEventListener(
+          'input',
+          function() {
+            moziRows[index].second =
+              input1.value;
 
-          saveToLocalStorage();
-        });
+            saveToLocalStorage();
+          }
+        );
 
 
         /*
@@ -248,16 +362,22 @@
 
           對應 mozi.txt 第三列
         */
-        const input2 = document.createElement('input');
+        const input2 =
+          document.createElement('input');
 
         input2.type = 'text';
+
         input2.value = item.third;
 
-        input2.addEventListener('input', function() {
-          moziRows[index].third = input2.value;
+        input2.addEventListener(
+          'input',
+          function() {
+            moziRows[index].third =
+              input2.value;
 
-          saveToLocalStorage();
-        });
+            saveToLocalStorage();
+          }
+        );
 
 
         /*
@@ -265,7 +385,6 @@
 
           丈　字統　訓詁　[十又]　[丈]
         */
-
         row.appendChild(characterText);
 
         row.appendChild(toolsLink);
@@ -281,6 +400,7 @@
         );
 
         row.appendChild(input1);
+
         row.appendChild(input2);
 
         content.appendChild(row);
@@ -292,27 +412,34 @@
       下載更新後的 mozi.txt
     */
     function downloadMozi() {
-      const text = moziRows.map(function(item) {
-        return [
-          item.character,
-          item.second,
-          item.third
-        ].join('\t');
-      }).join('\n');
+      const text =
+        moziRows.map(function(item) {
+          return [
+            item.character,
+            item.second,
+            item.third
+          ].join('\t');
+        }).join('\n');
 
 
-      const blob = new Blob(
-        [text],
-        {
-          type: 'text/plain;charset=utf-8'
-        }
-      );
+      const blob =
+        new Blob(
+          [text],
+          {
+            type: 'text/plain;charset=utf-8'
+          }
+        );
 
-      const url = URL.createObjectURL(blob);
 
-      const link = document.createElement('a');
+      const url =
+        URL.createObjectURL(blob);
+
+
+      const link =
+        document.createElement('a');
 
       link.href = url;
+
       link.download = 'mozi.txt';
 
       document.body.appendChild(link);
@@ -327,6 +454,8 @@
 
     /*
       清除 localStorage
+
+      清除後重新讀取 GitHub 上的 mozi.txt。
     */
     function clearLocalStorage() {
       localStorage.removeItem(STORAGE_KEY);
@@ -335,16 +464,31 @@
     }
 
 
+    /*
+      綁定下載按鈕
+    */
     document
       .getElementById('downloadButton')
-      .addEventListener('click', downloadMozi);
+      .addEventListener(
+        'click',
+        downloadMozi
+      );
 
 
+    /*
+      綁定清除按鈕
+    */
     document
       .getElementById('clearButton')
-      .addEventListener('click', clearLocalStorage);
+      .addEventListener(
+        'click',
+        clearLocalStorage
+      );
 
 
+    /*
+      啟動程式
+    */
     loadMozi();
   </script>
 
