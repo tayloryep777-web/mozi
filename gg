@@ -1,0 +1,22 @@
+function DEBUG_ZI_KEYS() {
+  var zi = "丁";
+
+  var url =
+    "https://zi.tools/api/zi/" +
+    encodeURIComponent(zi);
+
+  var response = UrlFetchApp.fetch(url, {
+    method: "get",
+    muteHttpExceptions: true,
+    headers: {
+      "Accept": "application/json",
+      "User-Agent": "Mozilla/5.0"
+    }
+  });
+
+  var data = JSON.parse(
+    response.getContentText("UTF-8")
+  );
+
+  console.log(Object.keys(data));
+}
