@@ -74,7 +74,8 @@
 
       form.method = 'post';
       form.action = 'http://www.kaom.net/book_xungu8.php';
-      form.target = '_blank';
+      
+      form.target = '_self';
 
       const input = document.createElement('input');
       input.type = 'hidden';
@@ -203,8 +204,7 @@
           'https://zi.tools/zi/' +
           encodeURIComponent(item.character);
 
-        toolsLink.target = '_blank';
-        toolsLink.rel = 'noopener noreferrer';
+        toolsLink.target = '_self';
 
         toolsLink.textContent = '字統';
 
