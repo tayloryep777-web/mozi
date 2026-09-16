@@ -7,22 +7,63 @@
   <title>文字表格</title>
 
   <style>
-    input {
+    .character-row {
+      margin-bottom: 8px;
+    }
+
+    .character-row input {
       width: 180px;
       margin-left: 8px;
     }
 
-    .character-row {
-      margin-bottom: 8px;
+    .toolbar {
+      margin-bottom: 15px;
+    }
+
+    button {
+      padding: 8px 14px;
+      margin-right: 8px;
+      cursor: pointer;
+    }
+
+    a {
+      margin-right: 8px;
     }
   </style>
 </head>
 
 <body>
 
-  <div id="content">正在載入 mozi.txt...</div>
+  <div class="toolbar">
+    <button id="downloadButton">
+      下載更新後的 mozi.txt
+    </button>
+
+    <button id="clearButton">
+      清除本機保存資料
+    </button>
+  </div>
+
+  <div id="content">
+    正在載入 mozi.txt...
+  </div>
+
 
   <script>
+    let moziRows = [];
+
+    const STORAGE_KEY = 'moziRows';
+
+
+    /*
+      kaom.net 查詢
+
+      使用 POST：
+
+      word   = 漢字
+      bianti = yes
+      page   = no
+    */
     function searchKaom(word) {
       const form = document.createElement('form');
 
@@ -50,11 +91,16 @@
       form.appendChild(page);
 
       document.body.appendChild(form);
+
       form.submit();
+
       form.remove();
     }
 
 
+    /*
+      從 mozi.txt 載入資料
+    */
     async function loadMozi() {
       try {
         const response = await fetch('mozi.txt');
@@ -69,84 +115,228 @@
           .split(/\r?\n/)
           .filter(line => line.trim() !== '');
 
-        const content = document.getElementById('content');
-
-        content.innerHTML = '';
-
-        lines.forEach(function(line) {
-          /*
-            mozi.txt 每行格式：
-
-            第一列    第二列    第三列
-
-            中間使用 Tab 分隔
-          */
-
+        moziRows = lines.map(function(line) {
           const columns = line.split('\t');
 
-          const character = columns[0] || '';
-          const secondColumn = columns[1] || '';
-          const thirdColumn = columns[2] || '';
-
-          const row = document.createElement('div');
-          row.className = 'character-row';
-
-          // 第一個連結：zi.tools
-          const ziLink = document.createElement('a');
-          ziLink.href =
-            'https://zi.tools/zi/' + encodeURIComponent(character);
-          ziLink.target = '_blank';
-          ziLink.textContent = character;
-
-          // 第二個連結：鄭張上古音
-          const soundLink = document.createElement('a');
-          soundLink.href =
-            'https://suzukish.sakura.ne.jp/search/zhengzhang/search_top.php?&zi='
-            + encodeURIComponent(character)
-            + '&page=0';
-          soundLink.target = '_blank';
-          soundLink.textContent = '音';
-
-          // 第三個連結：kaom.net 訓詁
-          const kaomLink = document.createElement('a');
-          kaomLink.href = '#';
-          kaomLink.textContent = '訓詁';
-
-          kaomLink.addEventListener('click', function(event) {
-            event.preventDefault();
-            searchKaom(character);
-          });
-
-          // 第一個輸入框：mozi.txt 第二列
-          const input1 = document.createElement('input');
-          input1.type = 'text';
-          input1.value = secondColumn;
-
-          // 第二個輸入框：mozi.txt 第三列
-          const input2 = document.createElement('input');
-          input2.type = 'text';
-          input2.value = thirdColumn;
-
-          row.appendChild(ziLink);
-          row.appendChild(document.createTextNode(' '));
-
-          row.appendChild(soundLink);
-          row.appendChild(document.createTextNode(' '));
-
-          row.appendChild(kaomLink);
-          row.appendChild(document.createTextNode(' '));
-
-          row.appendChild(input1);
-          row.appendChild(input2);
-
-          content.appendChild(row);
+          return {
+            character: columns[0] || '',
+            toolsText: columns[1] || '',
+            kaomText: columns[2] || ''
+          };
         });
+
+
+        /*
+          如果 localStorage 有資料、優先使用本機資料
+        */
+        const savedData = localStorage.getItem(STORAGE_KEY);
+
+        if (savedData) {
+          try {
+            const savedRows = JSON.parse(savedData);
+
+            if (Array.isArray(savedRows)) {
+              moziRows = savedRows;
+            }
+          } catch (error) {
+            console.log('localStorage 資料格式錯誤、改用 mozi.txt');
+          }
+        }
+
+        renderRows();
 
       } catch (error) {
         document.getElementById('content').textContent =
           '載入失敗：' + error.message;
       }
     }
+
+
+    /*
+      將目前資料保存到 localStorage
+    */
+    function saveToLocalStorage() {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(moziRows)
+      );
+    }
+
+
+    /*
+      顯示所有資料列
+    */
+    function renderRows() {
+      const content = document.getElementById('content');
+
+      content.innerHTML = '';
+
+      moziRows.forEach(function(item, index) {
+        const row = document.createElement('div');
+
+        row.className = 'character-row';
+
+
+        /*
+          第一個連結：
+
+          普通文字 → zi.tools
+
+          顯示文字來自 mozi.txt 第二列
+        */
+        const toolsLink = document.createElement('a');
+
+        toolsLink.href =
+          'https://zi.tools/zi/' +
+          encodeURIComponent(item.character);
+
+        toolsLink.target = '_blank';
+        toolsLink.rel = 'noopener noreferrer';
+
+        toolsLink.textContent = item.toolsText;
+
+
+        /*
+          第二個連結：
+
+          kaom.net
+
+          顯示文字來自 mozi.txt 第三列
+        */
+        const kaomLink = document.createElement('a');
+
+        kaomLink.href = '#';
+        kaomLink.textContent = item.kaomText;
+
+        kaomLink.addEventListener('click', function(event) {
+          event.preventDefault();
+
+          searchKaom(item.character);
+        });
+
+
+        /*
+          第一個輸入框：
+
+          對應 mozi.txt 第二列
+        */
+        const input1 = document.createElement('input');
+
+        input1.type = 'text';
+        input1.value = item.toolsText;
+
+        input1.addEventListener('input', function() {
+          moziRows[index].toolsText = input1.value;
+
+          saveToLocalStorage();
+        });
+
+
+        /*
+          第二個輸入框：
+
+          對應 mozi.txt 第三列
+        */
+        const input2 = document.createElement('input');
+
+        input2.type = 'text';
+        input2.value = item.kaomText;
+
+        input2.addEventListener('input', function() {
+          moziRows[index].kaomText = input2.value;
+
+          saveToLocalStorage();
+        });
+
+
+        /*
+          顯示順序：
+
+          漢字　字統　訓詁　輸入框　輸入框
+        */
+
+        row.appendChild(
+          document.createTextNode(item.character + ' ')
+        );
+
+        row.appendChild(toolsLink);
+
+        row.appendChild(
+          document.createTextNode(' ')
+        );
+
+        row.appendChild(kaomLink);
+
+        row.appendChild(
+          document.createTextNode(' ')
+        );
+
+        row.appendChild(input1);
+        row.appendChild(input2);
+
+        content.appendChild(row);
+      });
+    }
+
+
+    /*
+      下載更新後的 mozi.txt
+    */
+    function downloadMozi() {
+      const text = moziRows.map(function(item) {
+        return [
+          item.character,
+          item.toolsText,
+          item.kaomText
+        ].join('\t');
+      }).join('\n');
+
+
+      const blob = new Blob(
+        [text],
+        {
+          type: 'text/plain;charset=utf-8'
+        }
+      );
+
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+
+      link.href = url;
+      link.download = 'mozi.txt';
+
+      document.body.appendChild(link);
+
+      link.click();
+
+      link.remove();
+
+      URL.revokeObjectURL(url);
+    }
+
+
+    /*
+      清除 localStorage
+
+      清除後重新讀取 mozi.txt
+    */
+    function clearLocalStorage() {
+      localStorage.removeItem(STORAGE_KEY);
+
+      location.reload();
+    }
+
+
+    document
+      .getElementById('downloadButton')
+      .addEventListener('click', downloadMozi);
+
+
+    document
+      .getElementById('clearButton')
+      .addEventListener('click', clearLocalStorage);
+
 
     loadMozi();
   </script>
