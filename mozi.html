@@ -12,25 +12,33 @@
       white-space: nowrap;
     }
 
+    /*
+      第一個輸入框：8 個漢字左右
+      第二個輸入框：4 個漢字左右
+    */
     .character-row input {
       font-size: 16px;
       margin-left: 8px;
-      box-sizing: border-box;
       padding: 2px 4px;
+      box-sizing: border-box;
     }
 
-    /*
-      第一個輸入框：約 5 個漢字寬
-    */
     .character-row input:first-of-type {
       width: 8em;
     }
 
-    /*
-      第二個輸入框：約 2 個漢字寬
-    */
     .character-row input:last-of-type {
       width: 4em;
+    }
+
+    /*
+      漢字可以點擊
+    */
+    .character-link {
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      margin-right: 8px;
     }
 
     .toolbar {
@@ -41,10 +49,6 @@
       padding: 8px 14px;
       margin-right: 8px;
       cursor: pointer;
-    }
-
-    a {
-      margin-right: 8px;
     }
   </style>
 </head>
@@ -68,34 +72,26 @@
 
   <script>
     /*
-      所有資料儲存在這個陣列
+      所有資料
     */
     let moziRows = [];
 
 
     /*
-      localStorage 使用的名稱
+      localStorage 名稱
     */
     const STORAGE_KEY = 'moziRows';
 
 
     /*
       固定分頁名稱
-
-      字統永遠使用 zi_tools_tab
-      訓詁永遠使用 kaom_tab
     */
     const ZI_TOOLS_TAB = 'zi_tools_tab';
     const KAOM_TAB = 'kaom_tab';
 
 
     /*
-      開啟 zi.tools
-
-      如果已經有 zi_tools_tab 分頁、
-      就覆蓋該分頁。
-
-      如果沒有、就建立新分頁。
+      開啟或覆蓋 zi.tools 分頁
     */
     function openZiTools(character) {
       const url =
@@ -112,63 +108,81 @@
 
 
     /*
-      kaom.net 訓詁查詢
+      開啟或覆蓋 kaom.net 分頁
 
-      使用 POST 傳送漢字。
+      注意：這裡使用 http
     */
     function searchKaom(word) {
-  const form = document.createElement('form');
+      const form = document.createElement('form');
 
-  form.method = 'POST';
+      form.method = 'post';
 
-  form.action =
-    'http://www.kaom.net/book_xungu8.php';
+      form.action =
+        'http://www.kaom.net/book_xungu8.php';
 
-  form.target = 'kaom_tab';
-
-
-  // 漢字
-  const input = document.createElement('input');
-
-  input.type = 'hidden';
-  input.name = 'word';
-  input.value = word;
+      /*
+        固定使用 kaom_tab 分頁
+      */
+      form.target = KAOM_TAB;
 
 
-  // 簡繁、變體查詢
-  const bianti = document.createElement('input');
+      /*
+        查詢漢字
+      */
+      const input = document.createElement('input');
 
-  bianti.type = 'hidden';
-  bianti.name = 'bianti';
-  bianti.value = 'yes';
-
-
-  // 頁碼設定
-  const page = document.createElement('input');
-
-  page.type = 'hidden';
-  page.name = 'page';
-  page.value = 'no';
+      input.type = 'hidden';
+      input.name = 'word';
+      input.value = word;
 
 
-  form.appendChild(input);
-  form.appendChild(bianti);
-  form.appendChild(page);
+      /*
+        查詢簡繁、變體
+      */
+      const bianti = document.createElement('input');
 
-  document.body.appendChild(form);
+      bianti.type = 'hidden';
+      bianti.name = 'bianti';
+      bianti.value = 'yes';
 
 
-  // 自動提交表單
-  form.submit();
+      /*
+        不顯示頁碼
+      */
+      const page = document.createElement('input');
+
+      page.type = 'hidden';
+      page.name = 'page';
+      page.value = 'no';
 
 
-  // 移除暫時建立的表單
-  form.remove();
-}
+      form.appendChild(input);
+      form.appendChild(bianti);
+      form.appendChild(page);
+
+      document.body.appendChild(form);
+
+      form.submit();
+
+      form.remove();
+    }
 
 
     /*
-      從 mozi.txt 載入資料
+      點擊漢字時：
+
+      1. 開啟或覆蓋 zi.tools
+      2. 開啟或覆蓋 kaom.net
+    */
+    function openBothWebsites(character) {
+      openZiTools(character);
+
+      searchKaom(character);
+    }
+
+
+    /*
+      載入 mozi.txt
     */
     async function loadMozi() {
       try {
@@ -182,9 +196,7 @@
 
 
         /*
-          每一行是一筆資料。
-
-          空白行會被忽略。
+          每行一筆資料
         */
         const lines = text
           .split(/\r?\n/)
@@ -198,7 +210,7 @@
           第二列：第一個輸入框
           第三列：第二個輸入框
 
-          三列之間使用 Tab 分隔。
+          使用 Tab 分隔
         */
         moziRows = lines.map(function(line) {
           const columns = line.split('\t');
@@ -212,10 +224,9 @@
 
 
         /*
-          讀取 localStorage。
+          讀取 localStorage
 
-          如果之前修改過資料、
-          就使用本機保存的版本。
+          如果之前修改過、優先使用本機資料
         */
         const savedData =
           localStorage.getItem(STORAGE_KEY);
@@ -227,7 +238,6 @@
             if (Array.isArray(savedRows)) {
               moziRows = savedRows;
             }
-
           } catch (error) {
             console.log(
               'localStorage 資料格式錯誤、改用 mozi.txt'
@@ -246,7 +256,7 @@
 
 
     /*
-      保存目前資料到 localStorage
+      保存到 localStorage
     */
     function saveToLocalStorage() {
       localStorage.setItem(
@@ -257,7 +267,7 @@
 
 
     /*
-      顯示所有漢字資料
+      顯示所有資料列
     */
     function renderRows() {
       const content =
@@ -273,56 +283,30 @@
 
 
         /*
-          第一部分：普通漢字
+          最前面的漢字
+
+          點擊後同時開啟：
+
+          zi.tools
+          kaom.net
         */
-        const characterText =
-          document.createTextNode(
-            item.character + ' '
-          );
-
-
-        /*
-          第二部分：字統
-
-          固定顯示「字統」
-          點擊後開啟 zi.tools
-        */
-        const toolsLink =
+        const characterLink =
           document.createElement('a');
 
-        toolsLink.href = '#';
+        characterLink.href = '#';
 
-        toolsLink.textContent = '字統';
+        characterLink.className =
+          'character-link';
 
-        toolsLink.addEventListener(
+        characterLink.textContent =
+          item.character;
+
+        characterLink.addEventListener(
           'click',
           function(event) {
             event.preventDefault();
 
-            openZiTools(item.character);
-          }
-        );
-
-
-        /*
-          第三部分：訓詁
-
-          固定顯示「訓詁」
-          點擊後 POST 到 kaom.net
-        */
-        const kaomLink =
-          document.createElement('a');
-
-        kaomLink.href = '#';
-
-        kaomLink.textContent = '訓詁';
-
-        kaomLink.addEventListener(
-          'click',
-          function(event) {
-            event.preventDefault();
-
-            searchKaom(item.character);
+            openBothWebsites(item.character);
           }
         );
 
@@ -374,23 +358,11 @@
 
 
         /*
-          顯示順序：
+          顯示：
 
-          丈　字統　訓詁　[十又]　[丈]
+          丈 [第一個輸入框] [第二個輸入框]
         */
-        row.appendChild(characterText);
-
-        row.appendChild(toolsLink);
-
-        row.appendChild(
-          document.createTextNode(' ')
-        );
-
-        row.appendChild(kaomLink);
-
-        row.appendChild(
-          document.createTextNode(' ')
-        );
+        row.appendChild(characterLink);
 
         row.appendChild(input1);
 
@@ -448,7 +420,7 @@
     /*
       清除 localStorage
 
-      清除後重新讀取 GitHub 上的 mozi.txt。
+      清除後重新讀取 mozi.txt
     */
     function clearLocalStorage() {
       localStorage.removeItem(STORAGE_KEY);
@@ -480,7 +452,7 @@
 
 
     /*
-      啟動程式
+      啟動
     */
     loadMozi();
   </script>
