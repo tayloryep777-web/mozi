@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>文字表格</title>
+
+  <style>
+    input {
+      width: 180px;
+      margin-left: 8px;
+    }
+
+    .character-row {
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="content">正在載入 mozi.txt...</div>
+
+  <script>
+    function searchKaom(word) {
+      const form = document.createElement('form');
+
+      form.method = 'post';
+      form.action = 'https://www.kaom.net/book_xungu8.php';
+      form.target = '_blank';
+
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'word';
+      input.value = word;
+
+      const bianti = document.createElement('input');
+      bianti.type = 'hidden';
+      bianti.name = 'bianti';
+      bianti.value = 'yes';
+
+      const page = document.createElement('input');
+      page.type = 'hidden';
+      page.name = 'page';
+      page.value = 'no';
+
+      form.appendChild(input);
+      form.appendChild(bianti);
+      form.appendChild(page);
+
+      document.body.appendChild(form);
+      form.submit();
+      form.remove();
+    }
+
+
+    async function loadMozi() {
+      try {
+        const response = await fetch('mozi.txt');
+
+        if (!response.ok) {
+          throw new Error('找不到 mozi.txt');
+        }
+
+        const text = await response.text();
+
+        const lines = text
+          .split(/\r?\n/)
+          .filter(line => line.trim() !== '');
+
+        const content = document.getElementById('content');
+
+        content.innerHTML = '';
+
+        lines.forEach(function(line) {
+          /*
+            mozi.txt 每行格式：
+
+            第一列    第二列    第三列
+
+            中間使用 Tab 分隔
+          */
+
+          const columns = line.split('\t');
+
+          const character = columns[0] || '';
+          const secondColumn = columns[1] || '';
+          const thirdColumn = columns[2] || '';
+
+          const row = document.createElement('div');
+          row.className = 'character-row';
+
+          // 第一個連結：zi.tools
+          const ziLink = document.createElement('a');
+          ziLink.href =
+            'https://zi.tools/zi/' + encodeURIComponent(character);
+          ziLink.target = '_blank';
+          ziLink.textContent = character;
+
+          // 第二個連結：鄭張上古音
+          const soundLink = document.createElement('a');
+          soundLink.href =
+            'https://suzukish.sakura.ne.jp/search/zhengzhang/search_top.php?&zi='
+            + encodeURIComponent(character)
+            + '&page=0';
+          soundLink.target = '_blank';
+          soundLink.textContent = '音';
+
+          // 第三個連結：kaom.net 訓詁
+          const kaomLink = document.createElement('a');
+          kaomLink.href = '#';
+          kaomLink.textContent = '訓詁';
+
+          kaomLink.addEventListener('click', function(event) {
+            event.preventDefault();
+            searchKaom(character);
+          });
+
+          // 第一個輸入框：mozi.txt 第二列
+          const input1 = document.createElement('input');
+          input1.type = 'text';
+          input1.value = secondColumn;
+
+          // 第二個輸入框：mozi.txt 第三列
+          const input2 = document.createElement('input');
+          input2.type = 'text';
+          input2.value = thirdColumn;
+
+          row.appendChild(ziLink);
+          row.appendChild(document.createTextNode(' '));
+
+          row.appendChild(soundLink);
+          row.appendChild(document.createTextNode(' '));
+
+          row.appendChild(kaomLink);
+          row.appendChild(document.createTextNode(' '));
+
+          row.appendChild(input1);
+          row.appendChild(input2);
+
+          content.appendChild(row);
+        });
+
+      } catch (error) {
+        document.getElementById('content').textContent =
+          '載入失敗：' + error.message;
+      }
+    }
+
+    loadMozi();
+  </script>
+
+</body>
+</html>
