@@ -117,61 +117,54 @@
       使用 POST 傳送漢字。
     */
     function searchKaom(word) {
-      const form = document.createElement('form');
+  const form = document.createElement('form');
 
-      form.method = 'post';
+  form.method = 'POST';
 
-      form.action =
-        'http://www.kaom.net/book_xungu8.php';
+  form.action =
+    'http://www.kaom.net/book_xungu8.php';
 
-      /*
-        固定使用 kaom_tab 分頁。
-
-        每次查詢都覆蓋同一個 kaom.net 分頁。
-      */
-      form.target = KAOM_TAB;
+  form.target = 'kaom_tab';
 
 
-      /*
-        word：查詢漢字
-      */
-      const input = document.createElement('input');
+  // 漢字
+  const input = document.createElement('input');
 
-      input.type = 'hidden';
-      input.name = 'word';
-      input.value = word;
+  input.type = 'hidden';
+  input.name = 'word';
+  input.value = word;
 
 
-      /*
-        bianti：查詢簡繁、變體
-      */
-      const bianti = document.createElement('input');
+  // 簡繁、變體查詢
+  const bianti = document.createElement('input');
 
-      bianti.type = 'hidden';
-      bianti.name = 'bianti';
-      bianti.value = 'yes';
+  bianti.type = 'hidden';
+  bianti.name = 'bianti';
+  bianti.value = 'yes';
 
 
-      /*
-        page：不顯示頁碼
-      */
-      const page = document.createElement('input');
+  // 頁碼設定
+  const page = document.createElement('input');
 
-      page.type = 'hidden';
-      page.name = 'page';
-      page.value = 'no';
+  page.type = 'hidden';
+  page.name = 'page';
+  page.value = 'no';
 
 
-      form.appendChild(input);
-      form.appendChild(bianti);
-      form.appendChild(page);
+  form.appendChild(input);
+  form.appendChild(bianti);
+  form.appendChild(page);
 
-      document.body.appendChild(form);
+  document.body.appendChild(form);
 
-      form.submit();
 
-      form.remove();
-    }
+  // 自動提交表單
+  form.submit();
+
+
+  // 移除暫時建立的表單
+  form.remove();
+}
 
 
     /*
