@@ -57,6 +57,12 @@
       font-size: 15px;
     }
 
+    .github-settings p {
+      margin: 5px 0 0;
+      font-size: 13px;
+      color: #666666;
+    }
+
     button {
       padding: 8px 14px;
       margin-right: 8px;
@@ -64,8 +70,14 @@
       cursor: pointer;
     }
 
+    button:disabled {
+      cursor: wait;
+      opacity: 0.6;
+    }
+
     #status {
       margin-top: 10px;
+      margin-bottom: 15px;
       white-space: pre-wrap;
     }
   </style>
@@ -88,21 +100,13 @@
     >
 
     <p>
-      Token 只會暫存在目前頁面中、不會寫入 mozi.txt。
+      Token 會保存到目前網站的 Cookie、有效期 30 天。
     </p>
   </div>
 
   <div class="toolbar">
     <button id="githubSaveButton">
       儲存到 GitHub
-    </button>
-
-    <button id="downloadButton">
-      下載更新後的 mozi.txt
-    </button>
-
-    <button id="clearButton">
-      清除本機保存資料
     </button>
   </div>
 
@@ -117,6 +121,8 @@
 
     const STORAGE_KEY = 'moziRows';
 
+    const TOKEN_COOKIE_NAME = 'mozi_github_token';
+
     const GITHUB_OWNER = 'tayloryep777-web';
     const GITHUB_REPOSITORY = 'mozi';
     const GITHUB_BRANCH = 'mozi';
@@ -125,10 +131,54 @@
     const ZI_TOOLS_TAB = 'zi_tools_tab';
     const KAOM_TAB = 'kaom_tab';
 
+    /*
+     * 顯示狀態訊息
+     */
     function setStatus(message) {
-      document.getElementById('status').textContent = message;
+      document.getElementById('status').textContent =
+        message;
     }
 
+    /*
+     * 將 GitHub Token 保存到 Cookie
+     *
+     * max-age=2592000 代表保存 30 天
+     */
+    function saveTokenToCookie(token) {
+      document.cookie =
+        TOKEN_COOKIE_NAME +
+        '=' +
+        encodeURIComponent(token) +
+        '; max-age=2592000' +
+        '; path=/' +
+        '; SameSite=Lax';
+    }
+
+    /*
+     * 從 Cookie 讀取 GitHub Token
+     */
+    function loadTokenFromCookie() {
+      const cookies = document.cookie.split(';');
+
+      for (const cookie of cookies) {
+        const trimmedCookie = cookie.trim();
+
+        const prefix =
+          TOKEN_COOKIE_NAME + '=';
+
+        if (trimmedCookie.startsWith(prefix)) {
+          return decodeURIComponent(
+            trimmedCookie.substring(prefix.length)
+          );
+        }
+      }
+
+      return '';
+    }
+
+    /*
+     * 開啟 zi.tools
+     */
     function openZiTools(character) {
       const url =
         'https://zi.tools/zi/' +
@@ -142,24 +192,33 @@
       }
     }
 
+    /*
+     * 使用 POST 搜尋 kaom.net
+     */
     function searchKaom(word) {
       const form = document.createElement('form');
 
       form.method = 'post';
-      form.action = 'http://www.kaom.net/book_xungu8.php';
+
+      form.action =
+        'http://www.kaom.net/book_xungu8.php';
+
       form.target = KAOM_TAB;
 
       const input = document.createElement('input');
+
       input.type = 'hidden';
       input.name = 'word';
       input.value = word;
 
       const bianti = document.createElement('input');
+
       bianti.type = 'hidden';
       bianti.name = 'bianti';
       bianti.value = 'yes';
 
       const page = document.createElement('input');
+
       page.type = 'hidden';
       page.name = 'page';
       page.value = 'no';
@@ -175,24 +234,34 @@
       form.remove();
     }
 
+    /*
+     * 同時開啟兩個網站
+     */
     function openBothWebsites(character) {
       openZiTools(character);
       searchKaom(character);
     }
 
+    /*
+     * 從 mozi.txt 載入資料
+     */
     async function loadMozi() {
       try {
         const response = await fetch('mozi.txt');
 
         if (!response.ok) {
-          throw new Error('找不到 mozi.txt');
+          throw new Error(
+            '找不到 mozi.txt'
+          );
         }
 
         const text = await response.text();
 
         const lines = text
           .split(/\r?\n/)
-          .filter(line => line.trim() !== '');
+          .filter(function(line) {
+            return line.trim() !== '';
+          });
 
         moziRows = lines.map(function(line) {
           const columns = line.split('\t');
@@ -204,7 +273,12 @@
           };
         });
 
-        const savedData = localStorage.getItem(STORAGE_KEY);
+        /*
+         * 如果瀏覽器有保存修改內容
+         * 就優先使用 localStorage
+         */
+        const savedData =
+          localStorage.getItem(STORAGE_KEY);
 
         if (savedData) {
           try {
@@ -228,6 +302,9 @@
       }
     }
 
+    /*
+     * 保存表格修改內容
+     */
     function saveToLocalStorage() {
       localStorage.setItem(
         STORAGE_KEY,
@@ -235,8 +312,12 @@
       );
     }
 
+    /*
+     * 顯示所有漢字與輸入框
+     */
     function renderRows() {
-      const content = document.getElementById('content');
+      const content =
+        document.getElementById('content');
 
       content.innerHTML = '';
 
@@ -245,44 +326,68 @@
 
         row.className = 'character-row';
 
-        const characterLink = document.createElement('a');
+        /*
+         * 漢字連結
+         */
+        const characterLink =
+          document.createElement('a');
 
         characterLink.href = '#';
-        characterLink.className = 'character-link';
-        characterLink.textContent = item.character;
+
+        characterLink.className =
+          'character-link';
+
+        characterLink.textContent =
+          item.character;
 
         characterLink.addEventListener(
           'click',
           function(event) {
             event.preventDefault();
 
-            openBothWebsites(item.character);
+            openBothWebsites(
+              item.character
+            );
           }
         );
 
-        const input1 = document.createElement('input');
+        /*
+         * 第二欄輸入框
+         */
+        const input1 =
+          document.createElement('input');
 
         input1.type = 'text';
-        input1.value = item.second;
+
+        input1.value =
+          item.second;
 
         input1.addEventListener(
           'input',
           function() {
-            moziRows[index].second = input1.value;
+            moziRows[index].second =
+              input1.value;
 
             saveToLocalStorage();
           }
         );
 
-        const input2 = document.createElement('input');
+        /*
+         * 第三欄輸入框
+         */
+        const input2 =
+          document.createElement('input');
 
         input2.type = 'text';
-        input2.value = item.third;
+
+        input2.value =
+          item.third;
 
         input2.addEventListener(
           'input',
           function() {
-            moziRows[index].third = input2.value;
+            moziRows[index].third =
+              input2.value;
 
             saveToLocalStorage();
           }
@@ -296,6 +401,11 @@
       });
     }
 
+    /*
+     * 將目前表格轉成 mozi.txt 內容
+     *
+     * 每欄使用 Tab 分隔
+     */
     function createMoziText() {
       return moziRows
         .map(function(item) {
@@ -308,33 +418,18 @@
         .join('\n');
     }
 
-    function downloadMozi() {
-      const text = createMoziText();
-
-      const blob = new Blob(
-        [text],
-        {
-          type: 'text/plain;charset=utf-8'
-        }
-      );
-
-      const url = URL.createObjectURL(blob);
-
-      const link = document.createElement('a');
-
-      link.href = url;
-      link.download = 'mozi.txt';
-
-      document.body.appendChild(link);
-
-      link.click();
-
-      link.remove();
-
-      URL.revokeObjectURL(url);
-    }
-
+    /*
+     * 取得 GitHub 上 mozi.txt 的資訊
+     *
+     * 主要是取得 sha
+     * GitHub 更新檔案時需要 sha
+     */
     async function getGithubFile() {
+      const token =
+        document.getElementById('githubToken')
+          .value
+          .trim();
+
       const apiUrl =
         'https://api.github.com/repos/' +
         GITHUB_OWNER + '/' +
@@ -346,55 +441,87 @@
 
       const response = await fetch(apiUrl, {
         method: 'GET',
+
         headers: {
-          'Accept': 'application/vnd.github+json'
+          'Accept':
+            'application/vnd.github+json',
+
+          'Authorization':
+            'Bearer ' + token
         }
       });
 
+      const result =
+        await response.json();
+
       if (!response.ok) {
         throw new Error(
+          result.message ||
           '無法取得 GitHub 檔案、HTTP ' +
           response.status
         );
       }
 
-      return await response.json();
+      return result;
     }
 
+    /*
+     * 將目前內容儲存到 GitHub
+     */
     async function saveToGithub() {
       const token =
-        document.getElementById('githubToken').value.trim();
+        document.getElementById('githubToken')
+          .value
+          .trim();
 
       if (!token) {
-        setStatus('請先輸入 GitHub Token。');
+        setStatus(
+          '請先輸入 GitHub Token。'
+        );
+
         return;
       }
 
-      const confirmSave = confirm(
-        '確定要把目前內容儲存到 GitHub 的 mozi.txt 嗎？'
-      );
-
-      if (!confirmSave) {
-        return;
-      }
+      /*
+       * 自動保存 Token 到 Cookie
+       */
+      saveTokenToCookie(token);
 
       const button =
-        document.getElementById('githubSaveButton');
+        document.getElementById(
+          'githubSaveButton'
+        );
 
       button.disabled = true;
 
-      setStatus('正在取得 GitHub 原始檔案資訊...');
+      setStatus(
+        '正在取得 GitHub 原始檔案資訊...'
+      );
 
       try {
-        const githubFile = await getGithubFile();
+        /*
+         * 先取得目前 GitHub 檔案的 sha
+         */
+        const githubFile =
+          await getGithubFile();
 
-        const text = createMoziText();
+        /*
+         * 取得目前表格內容
+         */
+        const text =
+          createMoziText();
 
-        const encodedContent = btoa(
-          unescape(
-            encodeURIComponent(text)
-          )
-        );
+        /*
+         * 將 UTF-8 文字轉成 Base64
+         *
+         * btoa() 本身不能直接處理中文
+         */
+        const encodedContent =
+          btoa(
+            unescape(
+              encodeURIComponent(text)
+            )
+          );
 
         const apiUrl =
           'https://api.github.com/repos/' +
@@ -407,20 +534,33 @@
           method: 'PUT',
 
           headers: {
-            'Accept': 'application/vnd.github+json',
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token
+            'Accept':
+              'application/vnd.github+json',
+
+            'Content-Type':
+              'application/json',
+
+            'Authorization':
+              'Bearer ' + token
           },
 
           body: JSON.stringify({
-            message: 'Update mozi.txt from web editor',
-            content: encodedContent,
-            sha: githubFile.sha,
-            branch: GITHUB_BRANCH
+            message:
+              'Update mozi.txt from web editor',
+
+            content:
+              encodedContent,
+
+            sha:
+              githubFile.sha,
+
+            branch:
+              GITHUB_BRANCH
           })
         });
 
-        const result = await response.json();
+        const result =
+          await response.json();
 
         if (!response.ok) {
           throw new Error(
@@ -448,32 +588,54 @@
       }
     }
 
-    function clearLocalStorage() {
-      localStorage.removeItem(STORAGE_KEY);
+    /*
+     * 自動填入 Cookie 裡的 Token
+     */
+    function initializeToken() {
+      const savedToken =
+        loadTokenFromCookie();
 
-      location.reload();
+      if (savedToken) {
+        document.getElementById(
+          'githubToken'
+        ).value = savedToken;
+      }
+
+      /*
+       * 使用者手動修改 Token 時
+       * 立即更新 Cookie
+       */
+      document.getElementById(
+        'githubToken'
+      ).addEventListener(
+        'input',
+        function() {
+          const token =
+            document.getElementById(
+              'githubToken'
+            ).value.trim();
+
+          if (token) {
+            saveTokenToCookie(token);
+          }
+        }
+      );
     }
 
-    document
-      .getElementById('githubSaveButton')
-      .addEventListener(
-        'click',
-        saveToGithub
-      );
+    /*
+     * 綁定按鈕
+     */
+    document.getElementById(
+      'githubSaveButton'
+    ).addEventListener(
+      'click',
+      saveToGithub
+    );
 
-    document
-      .getElementById('downloadButton')
-      .addEventListener(
-        'click',
-        downloadMozi
-      );
-
-    document
-      .getElementById('clearButton')
-      .addEventListener(
-        'click',
-        clearLocalStorage
-      );
+    /*
+     * 初始化
+     */
+    initializeToken();
 
     loadMozi();
   </script>
