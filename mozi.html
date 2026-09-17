@@ -100,7 +100,7 @@
     >
 
     <p>
-      Token 會保存到目前網站的 Cookie、有效期 30 天。
+      Token 會保存到目前網站的 Cookie。
     </p>
   </div>
 
@@ -141,15 +141,13 @@
 
     /*
      * 將 GitHub Token 保存到 Cookie
-     *
-     * max-age=2592000 代表保存 30 天
      */
     function saveTokenToCookie(token) {
       document.cookie =
         TOKEN_COOKIE_NAME +
         '=' +
         encodeURIComponent(token) +
-        '; max-age=2592000' +
+        '; expires=Fri, 31 Dec 9999 23:59:59 GMT' +
         '; path=/' +
         '; SameSite=Lax';
     }
