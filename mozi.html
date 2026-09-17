@@ -1,128 +1,120 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
   <title>文字表格</title>
 
   <style>
+    body {
+      font-family: sans-serif;
+      font-size: 16px;
+      margin: 20px;
+    }
+
     .character-row {
       margin-bottom: 8px;
       white-space: nowrap;
     }
 
+    .character-link {
+      display: inline-block;
+      width: 2em;
+      font-size: 20px;
+      text-decoration: none;
+    }
+
     .character-row input {
       font-size: 16px;
       margin-left: 8px;
-      padding: 2px 4px;
-      box-sizing: border-box;
+      padding: 3px 5px;
     }
 
-    .character-row input:first-of-type {
+    .second-input {
       width: 8em;
     }
 
-    .character-row input:last-of-type {
+    .third-input {
       width: 4em;
     }
 
-    .character-link {
-      cursor: pointer;
-      text-decoration: none;
-      color: inherit;
-      margin-right: 8px;
-    }
-
-    .toolbar {
-      margin-bottom: 15px;
-    }
-
-    .github-settings {
-      max-width: 600px;
-      margin-bottom: 15px;
+    .github-box {
+      margin-bottom: 20px;
       padding: 12px;
       border: 1px solid #cccccc;
       border-radius: 8px;
+      max-width: 600px;
     }
 
-    .github-settings input {
-      display: block;
-      width: 100%;
-      max-width: 500px;
+    .github-box input {
       box-sizing: border-box;
-      margin-top: 6px;
-      margin-bottom: 10px;
+      width: 100%;
+      margin: 6px 0;
       padding: 8px;
-      font-size: 15px;
-    }
-
-    .github-settings p {
-      margin: 5px 0 0;
-      font-size: 13px;
-      color: #666666;
+      font-size: 16px;
     }
 
     button {
       padding: 8px 14px;
-      margin-right: 8px;
-      margin-bottom: 8px;
+      font-size: 16px;
       cursor: pointer;
     }
 
     button:disabled {
-      cursor: wait;
+      cursor: not-allowed;
       opacity: 0.6;
     }
 
     #status {
       margin-top: 10px;
-      margin-bottom: 15px;
       white-space: pre-wrap;
+      color: #333333;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="github-settings">
-    <strong>GitHub 設定</strong>
+  <div class="github-box">
+
+    <h2>GitHub 儲存設定</h2>
 
     <label for="githubToken">
-      GitHub Token：
+      GitHub Token
     </label>
 
     <input
       id="githubToken"
       type="password"
-      placeholder="貼上你的 GitHub Token"
+      placeholder="輸入 GitHub Fine-grained Token"
       autocomplete="off"
     >
 
-    <p>
-      Token 會保存到目前網站的 Cookie、沒有設定 Cookie 有效期限。
-    </p>
-  </div>
-
-  <div class="toolbar">
-    <button id="githubSaveButton">
+    <button
+      id="githubSaveButton"
+      type="button"
+    >
       儲存到 GitHub
     </button>
+
+    <div id="status"></div>
+
   </div>
 
-  <div id="status"></div>
 
-  <div id="content">
-    正在載入 mozi.txt...
-  </div>
+  <div id="table"></div>
+
 
   <script>
-    let moziRows = [];
-
-    const STORAGE_KEY = 'moziRows';
-
-    const TOKEN_COOKIE_NAME =
-      'mozi_github_token';
+    /*
+      GitHub 設定
+    */
 
     const GITHUB_OWNER =
       'tayloryep777-web';
@@ -136,29 +128,76 @@
     const GITHUB_FILE_PATH =
       'mozi.txt';
 
+
+    /*
+      本機資料設定
+    */
+
+    const STORAGE_KEY =
+      'moziRows';
+
+
+    /*
+      Cookie 設定
+    */
+
+    const TOKEN_COOKIE_NAME =
+      'mozi_github_token';
+
+
+    /*
+      固定分頁名稱
+    */
+
     const ZI_TOOLS_TAB =
       'zi_tools_tab';
 
     const KAOM_TAB =
       'kaom_tab';
 
-    /*
-     * 顯示狀態訊息
-     */
-    function setStatus(message) {
-      document.getElementById(
-        'status'
-      ).textContent = message;
-    }
 
     /*
-     * 將 Token 保存到 Cookie
-     *
-     * 不設定 max-age
-     * 不設定 expires
-     *
-     * 這代表 Cookie 沒有明確設定有效期限
-     */
+      全域資料
+    */
+
+    let moziRows = [];
+
+
+    /*
+      取得 DOM
+    */
+
+    const table =
+      document.getElementById('table');
+
+    const githubTokenInput =
+      document.getElementById('githubToken');
+
+    const githubSaveButton =
+      document.getElementById(
+        'githubSaveButton'
+      );
+
+    const status =
+      document.getElementById('status');
+
+
+    /*
+      顯示狀態
+    */
+
+    function setStatus(message) {
+      status.textContent = message;
+    }
+
+
+    /*
+      儲存 Token 到 Cookie
+
+      沒有設定 expires 或 max-age、
+      因此這是瀏覽器工作階段 Cookie。
+    */
+
     function saveTokenToCookie(token) {
       document.cookie =
         TOKEN_COOKIE_NAME +
@@ -168,26 +207,31 @@
         '; SameSite=Lax';
     }
 
+
     /*
-     * 從 Cookie 讀取 Token
-     */
+      從 Cookie 讀取 Token
+    */
+
     function loadTokenFromCookie() {
       const cookies =
         document.cookie.split(';');
 
-      const prefix =
-        TOKEN_COOKIE_NAME + '=';
-
-      for (const cookie of cookies) {
-        const trimmedCookie =
-          cookie.trim();
+      for (
+        let i = 0;
+        i < cookies.length;
+        i++
+      ) {
+        const cookie =
+          cookies[i].trim();
 
         if (
-          trimmedCookie.startsWith(prefix)
+          cookie.indexOf(
+            TOKEN_COOKIE_NAME + '='
+          ) === 0
         ) {
           return decodeURIComponent(
-            trimmedCookie.substring(
-              prefix.length
+            cookie.substring(
+              TOKEN_COOKIE_NAME.length + 1
             )
           );
         }
@@ -196,291 +240,58 @@
       return '';
     }
 
+
     /*
-     * 開啟 zi.tools
-     */
-    function openZiTools(character) {
-      const url =
-        'https://zi.tools/zi/' +
-        encodeURIComponent(character);
+      載入 Cookie 裡的 Token
+    */
 
-      const tab =
-        window.open(
-          '',
-          ZI_TOOLS_TAB
-        );
+    function loadToken() {
+      const token =
+        loadTokenFromCookie();
 
-      if (tab) {
-        tab.location.href = url;
-        tab.focus();
+      if (token) {
+        githubTokenInput.value =
+          token;
       }
     }
 
+
     /*
-     * 使用 POST 搜尋 kaom.net
-     */
-    function searchKaom(word) {
-      const form =
-        document.createElement('form');
+      解析 mozi.txt
 
-      form.method = 'post';
+      格式：
 
-      form.action =
-        'http://www.kaom.net/book_xungu8.php';
+      漢字    第二欄    第三欄
+    */
 
-      form.target =
-        KAOM_TAB;
+    function parseMoziText(text) {
+      return text
+        .split(/\r?\n/)
+        .filter(function(line) {
+          return line.trim() !== '';
+        })
+        .map(function(line) {
+          const columns =
+            line.split('\t');
 
-      const input =
-        document.createElement('input');
+          return {
+            character:
+              columns[0] || '',
 
-      input.type = 'hidden';
-      input.name = 'word';
-      input.value = word;
+            second:
+              columns[1] || '',
 
-      const bianti =
-        document.createElement('input');
-
-      bianti.type = 'hidden';
-      bianti.name = 'bianti';
-      bianti.value = 'yes';
-
-      const page =
-        document.createElement('input');
-
-      page.type = 'hidden';
-      page.name = 'page';
-      page.value = 'no';
-
-      form.appendChild(input);
-      form.appendChild(bianti);
-      form.appendChild(page);
-
-      document.body.appendChild(form);
-
-      form.submit();
-
-      form.remove();
+            third:
+              columns[2] || ''
+          };
+        });
     }
 
-    /*
-     * 同時開啟兩個網站
-     */
-    function openBothWebsites(character) {
-      openZiTools(character);
-      searchKaom(character);
-    }
 
     /*
-     * 載入 mozi.txt
-     */
-    async function loadMozi() {
-      try {
-        const response =
-          await fetch(
-            'mozi.txt?t=' + Date.now(),
-            {
-              cache: 'no-store'
-            }
-          );
+      將資料轉換成 mozi.txt 文字
+    */
 
-        if (!response.ok) {
-          throw new Error(
-            '找不到 mozi.txt'
-          );
-        }
-
-        const text =
-          await response.text();
-
-        const lines =
-          text
-            .split(/\r?\n/)
-            .filter(function(line) {
-              return line.trim() !== '';
-            });
-
-        moziRows =
-          lines.map(function(line) {
-            const columns =
-              line.split('\t');
-
-            return {
-              character:
-                columns[0] || '',
-
-              second:
-                columns[1] || '',
-
-              third:
-                columns[2] || ''
-            };
-          });
-
-        /*
-         * 優先使用瀏覽器本機保存的內容
-         */
-        const savedData =
-          localStorage.getItem(
-            STORAGE_KEY
-          );
-
-        if (savedData) {
-          try {
-            const savedRows =
-              JSON.parse(savedData);
-
-            if (
-              Array.isArray(savedRows)
-            ) {
-              moziRows = savedRows;
-            }
-          } catch (error) {
-            console.log(
-              'localStorage 資料格式錯誤、改用 mozi.txt'
-            );
-          }
-        }
-
-        renderRows();
-
-      } catch (error) {
-        document.getElementById(
-          'content'
-        ).textContent =
-          '載入失敗：' +
-          error.message;
-      }
-    }
-
-    /*
-     * 保存表格內容到 localStorage
-     */
-    function saveToLocalStorage() {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(moziRows)
-      );
-    }
-
-    /*
-     * 顯示表格
-     */
-    function renderRows() {
-      const content =
-        document.getElementById(
-          'content'
-        );
-
-      content.innerHTML = '';
-
-      moziRows.forEach(
-        function(item, index) {
-          const row =
-            document.createElement(
-              'div'
-            );
-
-          row.className =
-            'character-row';
-
-          /*
-           * 漢字連結
-           */
-          const characterLink =
-            document.createElement(
-              'a'
-            );
-
-          characterLink.href = '#';
-
-          characterLink.className =
-            'character-link';
-
-          characterLink.textContent =
-            item.character;
-
-          characterLink.addEventListener(
-            'click',
-            function(event) {
-              event.preventDefault();
-
-              openBothWebsites(
-                item.character
-              );
-            }
-          );
-
-          /*
-           * 第二欄輸入框
-           */
-          const input1 =
-            document.createElement(
-              'input'
-            );
-
-          input1.type = 'text';
-
-          input1.value =
-            item.second;
-
-          input1.addEventListener(
-            'input',
-            function() {
-              moziRows[index].second =
-                input1.value;
-
-              saveToLocalStorage();
-            }
-          );
-
-          /*
-           * 第三欄輸入框
-           */
-          const input2 =
-            document.createElement(
-              'input'
-            );
-
-          input2.type = 'text';
-
-          input2.value =
-            item.third;
-
-          input2.addEventListener(
-            'input',
-            function() {
-              moziRows[index].third =
-                input2.value;
-
-              saveToLocalStorage();
-            }
-          );
-
-          row.appendChild(
-            characterLink
-          );
-
-          row.appendChild(
-            input1
-          );
-
-          row.appendChild(
-            input2
-          );
-
-          content.appendChild(
-            row
-          );
-        }
-      );
-    }
-
-    /*
-     * 將表格轉換成 mozi.txt 格式
-     *
-     * 每一欄使用 Tab 分隔
-     */
     function createMoziText() {
       return moziRows
         .map(function(item) {
@@ -493,20 +304,306 @@
         .join('\n');
     }
 
+
     /*
-     * 取得 GitHub 上的最新檔案資訊
-     *
-     * 主要取得最新 sha
-     */
+      儲存資料到 localStorage
+    */
+
+    function saveToLocalStorage() {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(moziRows)
+      );
+    }
+
+
+    /*
+      從 localStorage 讀取資料
+    */
+
+    function loadFromLocalStorage() {
+      const saved =
+        localStorage.getItem(
+          STORAGE_KEY
+        );
+
+      if (!saved) {
+        return false;
+      }
+
+      try {
+        const parsed =
+          JSON.parse(saved);
+
+        if (
+          !Array.isArray(parsed)
+        ) {
+          return false;
+        }
+
+        moziRows =
+          parsed;
+
+        return true;
+
+      } catch (error) {
+        console.error(
+          '讀取本機資料失敗：',
+          error
+        );
+
+        return false;
+      }
+    }
+
+
+    /*
+      開啟 zi.tools
+
+      使用固定分頁、
+      不使用 setTimeout。
+    */
+
+    function openZiTools(character) {
+      const url =
+        'https://zi.tools/zi/' +
+        encodeURIComponent(character);
+
+      let tab =
+        window.open(
+          '',
+          ZI_TOOLS_TAB
+        );
+
+      if (!tab) {
+        tab =
+          window.open(
+            url,
+            ZI_TOOLS_TAB
+          );
+      } else {
+        tab.location.replace(url);
+        tab.focus();
+      }
+    }
+
+
+    /*
+      開啟 kaom.net
+
+      使用 POST、
+      使用固定分頁、
+      不使用 setTimeout。
+    */
+
+    function searchKaom(word) {
+      const form =
+        document.createElement('form');
+
+      form.method =
+        'post';
+
+      form.action =
+        'http://www.kaom.net/book_xungu8.php';
+
+      form.target =
+        KAOM_TAB;
+
+      form.style.display =
+        'none';
+
+
+      const wordInput =
+        document.createElement('input');
+
+      wordInput.type =
+        'hidden';
+
+      wordInput.name =
+        'word';
+
+      wordInput.value =
+        word;
+
+
+      const biantiInput =
+        document.createElement('input');
+
+      biantiInput.type =
+        'hidden';
+
+      biantiInput.name =
+        'bianti';
+
+      biantiInput.value =
+        'yes';
+
+
+      const pageInput =
+        document.createElement('input');
+
+      pageInput.type =
+        'hidden';
+
+      pageInput.name =
+        'page';
+
+      pageInput.value =
+        'no';
+
+
+      form.appendChild(
+        wordInput
+      );
+
+      form.appendChild(
+        biantiInput
+      );
+
+      form.appendChild(
+        pageInput
+      );
+
+      document.body.appendChild(
+        form
+      );
+
+      form.submit();
+
+      form.remove();
+    }
+
+
+    /*
+      同時開啟兩個網站
+    */
+
+    function openBothWebsites(character) {
+      openZiTools(character);
+
+      searchKaom(character);
+    }
+
+
+    /*
+      建立表格
+    */
+
+    function renderTable() {
+      table.innerHTML = '';
+
+      moziRows.forEach(
+        function(item, index) {
+          const row =
+            document.createElement('div');
+
+          row.className =
+            'character-row';
+
+
+          const characterLink =
+            document.createElement('a');
+
+          characterLink.className =
+            'character-link';
+
+          characterLink.href =
+            '#';
+
+          characterLink.textContent =
+            item.character;
+
+
+          characterLink.addEventListener(
+            'click',
+            function(event) {
+              event.preventDefault();
+
+              openBothWebsites(
+                item.character
+              );
+            }
+          );
+
+
+          const secondInput =
+            document.createElement('input');
+
+          secondInput.className =
+            'second-input';
+
+          secondInput.type =
+            'text';
+
+          secondInput.value =
+            item.second;
+
+          secondInput.addEventListener(
+            'input',
+            function(event) {
+              moziRows[index].second =
+                event.target.value;
+
+              saveToLocalStorage();
+            }
+          );
+
+
+          const thirdInput =
+            document.createElement('input');
+
+          thirdInput.className =
+            'third-input';
+
+          thirdInput.type =
+            'text';
+
+          thirdInput.value =
+            item.third;
+
+          thirdInput.addEventListener(
+            'input',
+            function(event) {
+              moziRows[index].third =
+                event.target.value;
+
+              saveToLocalStorage();
+            }
+          );
+
+
+          row.appendChild(
+            characterLink
+          );
+
+          row.appendChild(
+            secondInput
+          );
+
+          row.appendChild(
+            thirdInput
+          );
+
+          table.appendChild(
+            row
+          );
+        }
+      );
+    }
+
+
+    /*
+      取得 GitHub 最新檔案資訊
+    */
+
     async function getGithubFile() {
       const token =
-        document.getElementById(
-          'githubToken'
-        ).value.trim();
+        githubTokenInput.value.trim();
 
       const apiUrl =
         'https://api.github.com/repos/' +
-        GITHUB_OWNER + '/' +
+        GITHUB_OWNER +
+        '/' +
         GITHUB_REPOSITORY +
         '/contents/' +
         GITHUB_FILE_PATH +
@@ -517,11 +614,13 @@
         '&t=' +
         Date.now();
 
+
       const response =
         await fetch(
           apiUrl,
           {
             method: 'GET',
+
             cache: 'no-store',
 
             headers: {
@@ -534,8 +633,10 @@
           }
         );
 
+
       const result =
         await response.json();
+
 
       if (!response.ok) {
         throw new Error(
@@ -548,16 +649,15 @@
       return result;
     }
 
+
     /*
-     * 將目前內容儲存到 GitHub
-     *
-     * SHA 不一致時會自動重試一次
-     */
+      儲存到 GitHub
+    */
+
     async function saveToGithub() {
       const token =
-        document.getElementById(
-          'githubToken'
-        ).value.trim();
+        githubTokenInput.value.trim();
+
 
       if (!token) {
         setStatus(
@@ -567,25 +667,21 @@
         return;
       }
 
-      /*
-       * 自動保存 Token
-       */
-      saveTokenToCookie(token);
 
-      const button =
-        document.getElementById(
-          'githubSaveButton'
-        );
+      saveTokenToCookie(
+        token
+      );
 
-      button.disabled = true;
+
+      githubSaveButton.disabled =
+        true;
+
 
       try {
         const text =
           createMoziText();
 
-        /*
-         * 將 UTF-8 中文文字轉成 Base64
-         */
+
         const encodedContent =
           btoa(
             unescape(
@@ -595,26 +691,25 @@
             )
           );
 
+
         const apiUrl =
           'https://api.github.com/repos/' +
-          GITHUB_OWNER + '/' +
+          GITHUB_OWNER +
+          '/' +
           GITHUB_REPOSITORY +
           '/contents/' +
           GITHUB_FILE_PATH;
 
-        /*
-         * 第一次取得最新 SHA
-         */
+
         setStatus(
           '正在取得 GitHub 最新檔案資訊...'
         );
 
+
         let githubFile =
           await getGithubFile();
 
-        /*
-         * 最多嘗試兩次
-         */
+
         for (
           let attempt = 1;
           attempt <= 2;
@@ -626,6 +721,7 @@
             attempt +
             ' 次嘗試'
           );
+
 
           const response =
             await fetch(
@@ -660,12 +756,11 @@
               }
             );
 
+
           const result =
             await response.json();
 
-          /*
-           * 儲存成功
-           */
+
           if (response.ok) {
             setStatus(
               '儲存成功！\n' +
@@ -674,20 +769,21 @@
               result.commit.sha
             );
 
+
             /*
-             * 清除舊的 localStorage
-             * 讓下次重新載入 GitHub 最新內容
-             */
+              GitHub 儲存成功後、
+              清除本機暫存資料。
+            */
+
             localStorage.removeItem(
               STORAGE_KEY
             );
 
+
             return;
           }
 
-          /*
-           * SHA 不一致
-           */
+
           const isShaConflict =
             response.status === 409 ||
             (
@@ -697,19 +793,24 @@
               )
             );
 
+
           if (
             isShaConflict &&
             attempt === 1
           ) {
             setStatus(
-              '檔案剛剛被修改、正在取得最新 SHA 後重試...'
+              '檔案剛剛被修改、' +
+              '正在取得最新 SHA 後重試...'
             );
+
 
             githubFile =
               await getGithubFile();
 
+
             continue;
           }
+
 
           throw new Error(
             result.message ||
@@ -725,64 +826,98 @@
         );
 
       } finally {
-        button.disabled = false;
+        githubSaveButton.disabled =
+          false;
       }
     }
 
+
     /*
-     * 初始化 Token
-     */
-    function initializeToken() {
-      const savedToken =
-        loadTokenFromCookie();
+      從 GitHub 讀取 mozi.txt
+    */
 
-      if (savedToken) {
-        document.getElementById(
-          'githubToken'
-        ).value =
-          savedToken;
-      }
-
-      /*
-       * 使用者修改 Token 時
-       * 自動更新 Cookie
-       */
-      document.getElementById(
-        'githubToken'
-      ).addEventListener(
-        'input',
-        function() {
-          const token =
-            document.getElementById(
-              'githubToken'
-            ).value.trim();
-
-          if (token) {
-            saveTokenToCookie(
-              token
-            );
+    async function loadFromGithub() {
+      const response =
+        await fetch(
+          'mozi.txt?t=' +
+          Date.now(),
+          {
+            cache: 'no-store'
           }
-        }
-      );
+        );
+
+
+      if (!response.ok) {
+        throw new Error(
+          '無法讀取 mozi.txt、HTTP ' +
+          response.status
+        );
+      }
+
+
+      const text =
+        await response.text();
+
+
+      moziRows =
+        parseMoziText(text);
+
+      renderTable();
     }
 
+
     /*
-     * 綁定儲存按鈕
-     */
-    document.getElementById(
-      'githubSaveButton'
-    ).addEventListener(
+      初始化
+    */
+
+    async function init() {
+      loadToken();
+
+
+      const hasLocalData =
+        loadFromLocalStorage();
+
+
+      if (hasLocalData) {
+        renderTable();
+
+        setStatus(
+          '目前顯示的是本機暫存資料。'
+        );
+
+        return;
+      }
+
+
+      try {
+        await loadFromGithub();
+
+      } catch (error) {
+        setStatus(
+          '讀取 mozi.txt 失敗：\n' +
+          error.message
+        );
+      }
+    }
+
+
+    /*
+      綁定儲存按鈕
+    */
+
+    githubSaveButton.addEventListener(
       'click',
       saveToGithub
     );
 
-    /*
-     * 初始化
-     */
-    initializeToken();
 
-    loadMozi();
+    /*
+      啟動
+    */
+
+    init();
   </script>
 
 </body>
+
 </html>
