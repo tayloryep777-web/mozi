@@ -199,13 +199,21 @@
     */
 
     function saveTokenToCookie(token) {
-      document.cookie =
-        TOKEN_COOKIE_NAME +
-        '=' +
-        encodeURIComponent(token) +
-        '; path=/' +
-        '; SameSite=Lax';
-    }
+  const expires =
+    new Date(
+      Date.now() +
+      100 * 365 * 24 * 60 * 60 * 1000
+    ).toUTCString();
+
+  document.cookie =
+    TOKEN_COOKIE_NAME +
+    '=' +
+    encodeURIComponent(token) +
+    '; expires=' +
+    expires +
+    '; path=/' +
+    '; SameSite=Lax';
+}
 
 
     /*
