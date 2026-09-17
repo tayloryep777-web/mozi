@@ -12,10 +12,6 @@
       white-space: nowrap;
     }
 
-    /*
-      第一個輸入框：8 個漢字左右
-      第二個輸入框：4 個漢字左右
-    */
     .character-row input {
       font-size: 16px;
       margin-left: 8px;
@@ -31,9 +27,6 @@
       width: 4em;
     }
 
-    /*
-      漢字可以點擊
-    */
     .character-link {
       cursor: pointer;
       text-decoration: none;
@@ -45,51 +38,97 @@
       margin-bottom: 15px;
     }
 
+    .github-settings {
+      margin-bottom: 15px;
+      padding: 12px;
+      border: 1px solid #cccccc;
+      border-radius: 8px;
+      max-width: 600px;
+    }
+
+    .github-settings input {
+      display: block;
+      width: 100%;
+      max-width: 500px;
+      box-sizing: border-box;
+      margin-top: 6px;
+      margin-bottom: 10px;
+      padding: 8px;
+      font-size: 15px;
+    }
+
     button {
       padding: 8px 14px;
       margin-right: 8px;
+      margin-bottom: 8px;
       cursor: pointer;
+    }
+
+    #status {
+      margin-top: 10px;
+      white-space: pre-wrap;
     }
   </style>
 </head>
 
 <body>
 
+  <div class="github-settings">
+    <strong>GitHub 設定</strong>
+
+    <label for="githubToken">
+      GitHub Token：
+    </label>
+
+    <input
+      id="githubToken"
+      type="password"
+      placeholder="貼上你的 GitHub Token"
+      autocomplete="off"
+    >
+
+    <p>
+      Token 只會暫存在目前頁面中、不會寫入 mozi.txt。
+    </p>
+  </div>
+
   <div class="toolbar">
-    <button id="downloadButton">
-      下載
+    <button id="githubSaveButton">
+      儲存到 GitHub
     </button>
 
+    <button id="downloadButton">
+      下載更新後的 mozi.txt
+    </button>
+
+    <button id="clearButton">
+      清除本機保存資料
+    </button>
   </div>
+
+  <div id="status"></div>
 
   <div id="content">
     正在載入 mozi.txt...
   </div>
 
-
   <script>
-    /*
-      所有資料
-    */
     let moziRows = [];
 
-
-    /*
-      localStorage 名稱
-    */
     const STORAGE_KEY = 'moziRows';
 
+    const GITHUB_OWNER = 'tayloryep777-web';
+    const GITHUB_REPOSITORY = 'mozi';
+    const GITHUB_BRANCH = 'mozi';
+    const GITHUB_FILE_PATH = 'mozi.txt';
 
-    /*
-      固定分頁名稱
-    */
     const ZI_TOOLS_TAB = 'zi_tools_tab';
     const KAOM_TAB = 'kaom_tab';
 
+    function setStatus(message) {
+      document.getElementById('status').textContent = message;
+    }
 
-    /*
-      開啟或覆蓋 zi.tools 分頁
-    */
     function openZiTools(character) {
       const url =
         'https://zi.tools/zi/' +
@@ -103,55 +142,27 @@
       }
     }
 
-
-    /*
-      開啟或覆蓋 kaom.net 分頁
-
-      注意：這裡使用 http
-    */
     function searchKaom(word) {
       const form = document.createElement('form');
 
       form.method = 'post';
-
-      form.action =
-        'http://www.kaom.net/book_xungu8.php';
-
-      /*
-        固定使用 kaom_tab 分頁
-      */
+      form.action = 'http://www.kaom.net/book_xungu8.php';
       form.target = KAOM_TAB;
 
-
-      /*
-        查詢漢字
-      */
       const input = document.createElement('input');
-
       input.type = 'hidden';
       input.name = 'word';
       input.value = word;
 
-
-      /*
-        查詢簡繁、變體
-      */
       const bianti = document.createElement('input');
-
       bianti.type = 'hidden';
       bianti.name = 'bianti';
       bianti.value = 'yes';
 
-
-      /*
-        不顯示頁碼
-      */
       const page = document.createElement('input');
-
       page.type = 'hidden';
       page.name = 'page';
       page.value = 'no';
-
 
       form.appendChild(input);
       form.appendChild(bianti);
@@ -164,23 +175,11 @@
       form.remove();
     }
 
-
-    /*
-      點擊漢字時：
-
-      1. 開啟或覆蓋 zi.tools
-      2. 開啟或覆蓋 kaom.net
-    */
     function openBothWebsites(character) {
       openZiTools(character);
-
       searchKaom(character);
     }
 
-
-    /*
-      載入 mozi.txt
-    */
     async function loadMozi() {
       try {
         const response = await fetch('mozi.txt');
@@ -191,24 +190,10 @@
 
         const text = await response.text();
 
-
-        /*
-          每行一筆資料
-        */
         const lines = text
           .split(/\r?\n/)
           .filter(line => line.trim() !== '');
 
-
-        /*
-          mozi.txt 格式：
-
-          第一列：漢字
-          第二列：第一個輸入框
-          第三列：第二個輸入框
-
-          使用 Tab 分隔
-        */
         moziRows = lines.map(function(line) {
           const columns = line.split('\t');
 
@@ -219,14 +204,7 @@
           };
         });
 
-
-        /*
-          讀取 localStorage
-
-          如果之前修改過、優先使用本機資料
-        */
-        const savedData =
-          localStorage.getItem(STORAGE_KEY);
+        const savedData = localStorage.getItem(STORAGE_KEY);
 
         if (savedData) {
           try {
@@ -242,7 +220,6 @@
           }
         }
 
-
         renderRows();
 
       } catch (error) {
@@ -251,10 +228,6 @@
       }
     }
 
-
-    /*
-      保存到 localStorage
-    */
     function saveToLocalStorage() {
       localStorage.setItem(
         STORAGE_KEY,
@@ -262,41 +235,21 @@
       );
     }
 
-
-    /*
-      顯示所有資料列
-    */
     function renderRows() {
-      const content =
-        document.getElementById('content');
+      const content = document.getElementById('content');
 
       content.innerHTML = '';
-
 
       moziRows.forEach(function(item, index) {
         const row = document.createElement('div');
 
         row.className = 'character-row';
 
-
-        /*
-          最前面的漢字
-
-          點擊後同時開啟：
-
-          zi.tools
-          kaom.net
-        */
-        const characterLink =
-          document.createElement('a');
+        const characterLink = document.createElement('a');
 
         characterLink.href = '#';
-
-        characterLink.className =
-          'character-link';
-
-        characterLink.textContent =
-          item.character;
+        characterLink.className = 'character-link';
+        characterLink.textContent = item.character;
 
         characterLink.addEventListener(
           'click',
@@ -307,101 +260,69 @@
           }
         );
 
-
-        /*
-          第一個輸入框：
-
-          對應 mozi.txt 第二列
-        */
-        const input1 =
-          document.createElement('input');
+        const input1 = document.createElement('input');
 
         input1.type = 'text';
-
         input1.value = item.second;
 
         input1.addEventListener(
           'input',
           function() {
-            moziRows[index].second =
-              input1.value;
+            moziRows[index].second = input1.value;
 
             saveToLocalStorage();
           }
         );
 
-
-        /*
-          第二個輸入框：
-
-          對應 mozi.txt 第三列
-        */
-        const input2 =
-          document.createElement('input');
+        const input2 = document.createElement('input');
 
         input2.type = 'text';
-
         input2.value = item.third;
 
         input2.addEventListener(
           'input',
           function() {
-            moziRows[index].third =
-              input2.value;
+            moziRows[index].third = input2.value;
 
             saveToLocalStorage();
           }
         );
 
-
-        /*
-          顯示：
-
-          丈 [第一個輸入框] [第二個輸入框]
-        */
         row.appendChild(characterLink);
-
         row.appendChild(input1);
-
         row.appendChild(input2);
 
         content.appendChild(row);
       });
     }
 
-
-    /*
-      下載更新後的 mozi.txt
-    */
-    function downloadMozi() {
-      const text =
-        moziRows.map(function(item) {
+    function createMoziText() {
+      return moziRows
+        .map(function(item) {
           return [
             item.character,
             item.second,
             item.third
           ].join('\t');
-        }).join('\n');
+        })
+        .join('\n');
+    }
 
+    function downloadMozi() {
+      const text = createMoziText();
 
-      const blob =
-        new Blob(
-          [text],
-          {
-            type: 'text/plain;charset=utf-8'
-          }
-        );
+      const blob = new Blob(
+        [text],
+        {
+          type: 'text/plain;charset=utf-8'
+        }
+      );
 
+      const url = URL.createObjectURL(blob);
 
-      const url =
-        URL.createObjectURL(blob);
-
-
-      const link =
-        document.createElement('a');
+      const link = document.createElement('a');
 
       link.href = url;
-
       link.download = 'mozi.txt';
 
       document.body.appendChild(link);
@@ -413,22 +334,133 @@
       URL.revokeObjectURL(url);
     }
 
+    async function getGithubFile() {
+      const apiUrl =
+        'https://api.github.com/repos/' +
+        GITHUB_OWNER + '/' +
+        GITHUB_REPOSITORY +
+        '/contents/' +
+        GITHUB_FILE_PATH +
+        '?ref=' +
+        encodeURIComponent(GITHUB_BRANCH);
 
-    /*
-      清除 localStorage
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/vnd.github+json'
+        }
+      });
 
-      清除後重新讀取 mozi.txt
-    */
+      if (!response.ok) {
+        throw new Error(
+          '無法取得 GitHub 檔案、HTTP ' +
+          response.status
+        );
+      }
+
+      return await response.json();
+    }
+
+    async function saveToGithub() {
+      const token =
+        document.getElementById('githubToken').value.trim();
+
+      if (!token) {
+        setStatus('請先輸入 GitHub Token。');
+        return;
+      }
+
+      const confirmSave = confirm(
+        '確定要把目前內容儲存到 GitHub 的 mozi.txt 嗎？'
+      );
+
+      if (!confirmSave) {
+        return;
+      }
+
+      const button =
+        document.getElementById('githubSaveButton');
+
+      button.disabled = true;
+
+      setStatus('正在取得 GitHub 原始檔案資訊...');
+
+      try {
+        const githubFile = await getGithubFile();
+
+        const text = createMoziText();
+
+        const encodedContent = btoa(
+          unescape(
+            encodeURIComponent(text)
+          )
+        );
+
+        const apiUrl =
+          'https://api.github.com/repos/' +
+          GITHUB_OWNER + '/' +
+          GITHUB_REPOSITORY +
+          '/contents/' +
+          GITHUB_FILE_PATH;
+
+        const response = await fetch(apiUrl, {
+          method: 'PUT',
+
+          headers: {
+            'Accept': 'application/vnd.github+json',
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+
+          body: JSON.stringify({
+            message: 'Update mozi.txt from web editor',
+            content: encodedContent,
+            sha: githubFile.sha,
+            branch: GITHUB_BRANCH
+          })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            result.message ||
+            'GitHub 更新失敗、HTTP ' +
+            response.status
+          );
+        }
+
+        setStatus(
+          '儲存成功！\n' +
+          'GitHub 已更新 mozi.txt。\n' +
+          'Commit：' +
+          result.commit.sha
+        );
+
+      } catch (error) {
+        setStatus(
+          '儲存失敗：\n' +
+          error.message
+        );
+
+      } finally {
+        button.disabled = false;
+      }
+    }
+
     function clearLocalStorage() {
       localStorage.removeItem(STORAGE_KEY);
 
       location.reload();
     }
 
+    document
+      .getElementById('githubSaveButton')
+      .addEventListener(
+        'click',
+        saveToGithub
+      );
 
-    /*
-      綁定下載按鈕
-    */
     document
       .getElementById('downloadButton')
       .addEventListener(
@@ -436,10 +468,13 @@
         downloadMozi
       );
 
+    document
+      .getElementById('clearButton')
+      .addEventListener(
+        'click',
+        clearLocalStorage
+      );
 
-    /*
-      啟動
-    */
     loadMozi();
   </script>
 
