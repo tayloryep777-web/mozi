@@ -90,7 +90,6 @@
        table.appendChild(fragment);
        cfa.querySelectorAll('tr').forEach(r=>r.remove());
        let tail=lines.slice(9833).join('\n');
-       // 最後一個換行屬於檔案結尾、不是文字框的額外空白行。
        if(originalTrailingNewline&&tail.endsWith('\n'))tail=tail.slice(0,-1);
        mozi2.value=tail;cmozi2.textContent=tail;
        updateBg();loaded=true;dirty=false;status('已載入 mozi.txt');
