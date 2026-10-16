@@ -161,7 +161,7 @@ function loginDrive(prompt=''){
  }
  tokenClient.requestAccessToken({prompt});
 }
-window.loginDrive=loginDrive;
+$('login').onclick=()=>loginDrive('');
 $('pick').onclick=chooseFile;
 function waitForPicker(){
  if(window.gapi?.load){gapi.load('picker',()=>{pickerReady=true});return}
@@ -212,85 +212,9 @@ $('cs').onclick=async()=>{
  finally{$('cs').disabled=false}
 };
 window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
-</script>
-
-<script type="module">
-import { initializeApp } from
-"https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-
-import {
-    getAuth,
-    GoogleAuthProvider,
-    signInWithPopup,
-    setPersistence,
-    browserLocalPersistence,
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-
-const firebaseConfig = {
-    apiKey: "AIzaSyAuD7xjIlNaieb3CVjtHwIn4P3o2UZrIqw",
-    authDomain: "mozi-1ee6a.firebaseapp.com",
-    projectId: "mozi-1ee6a",
-    storageBucket: "mozi-1ee6a.firebasestorage.app",
-    messagingSenderId: "417980776056",
-    appId: "1:417980776056:web:6250f36ab6115f94d8f78d"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-
-await setPersistence(auth, browserLocalPersistence);
-
-const provider = new GoogleAuthProvider();
-
-let currentUser=null;
-let authReady=false;
-const loginButton=document.getElementById('login');
-
-loginButton.onclick=async()=>{
-    try {
-        if(!currentUser){
-            const result=await signInWithPopup(auth,provider);
-            currentUser=result.user;
-            console.log('Firebase 登入成功：',currentUser.email);
-        }
-        // 已登入 Firebase 時、使用者點擊即可重新請求 Drive 權限。
-        // 第一次登入後若瀏覽器阻止彈窗、再點一次即可。
-        window.loginDrive('');
-    } catch(error){
-        console.error('登入失敗：',error);
-        alert(error.message);
-    }
-};
-
-onAuthStateChanged(auth,user=>{
-    currentUser=user;
-    authReady=true;
-    if(user){
-        console.log('Firebase 已登入：',user.email);
-        loginButton.textContent='重新授權 Drive';
-        // 嘗試無提示取得 Drive Token；可能因瀏覽器政策失敗。
-        if(!window.driveAutoAttempted){
-            window.driveAutoAttempted=true;
-            let retries=0;
-            const attempt=()=>{
-                if(window.google?.accounts?.oauth2)window.loginDrive('');
-                else if(++retries<30)setTimeout(attempt,300);
-            };
-            attempt();
-        }
-    }else{
-        loginButton.textContent='Google 登入';
-        console.log('Firebase 尚未登入');
-    }
-});
-
-const apple = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-document.documentElement.style.setProperty(
-    '--shuowen', apple ? '"Shuo Wen SBIX"' : '"Shuo Wen CBDT"'
-);
-
+const apple=/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)||
+ (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+document.documentElement.style.setProperty('--shuowen',apple?'"Shuo Wen SBIX"':'"Shuo Wen CBDT"');
 </script>
 
 </body>
