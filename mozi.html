@@ -25,7 +25,7 @@ button,input{font:22pt "Jigmo","Jigmo2","Jigmo3"}
 <input id="cf" placeholder="搜尋" style="width:2ic">
 <button id="cfb1">搜尋1</button><button id="cfb2">搜尋2</button><button id="cfb3">搜尋3</button>
 <input id="cp" placeholder="取代" style="width:2ic"><button id="cpb">取代</button>
-<button id="login">Google 登入</button><button id="pick">授權選取檔案</button><button id="cs">儲存</button>
+<button id="reload">重新載入</button><button id="cs">儲存至 GitHub</button>
 <span id="status" role="status" style="font:14pt sans-serif;align-self:center"></span>
 <div style="flex-basis:100%;max-height:25vh;min-width:0;overflow:auto"><table id="cfa"><col><col><col><col><col><col><col></table></div>
 </header>
@@ -35,18 +35,15 @@ button,input{font:22pt "Jigmo","Jigmo2","Jigmo3"}
 <textarea id="mozi2" style="white-space:pre;overflow-x:hidden;overflow-y:auto;min-width:8ic;font:24pt 'TW-MOE-Std-Kai','Jigmo','Jigmo2','Jigmo3'"></textarea>
 <p id="bg" style="margin:0;overflow-x:hidden;overflow-y:auto;font:22pt 'Jigmo','Jigmo2','Jigmo3'"></p>
 </footer>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="https://apis.google.com/js/api.js" async defer></script>
 <script>
 'use strict';
-const CLIENT_ID='417980776056-v7au2ne2dbv2ir74he61jkou7eqm4oj2.apps.googleusercontent.com';
-const API_KEY='AIzaSyBG0kJgox2ZEkM59g8HDE5frivr9ocD-tI';
-const APP_ID='417980776056';
-const FILE_ID='1rl3lB4Tk3YzXsFnBvDHC4TmGFADhl1kh';
-const SCOPE='https://www.googleapis.com/auth/drive.file';
+const API='https://api.github.com/repos/tayloryep777-web/mozi/contents/mozi.txt';
+const BRANCH='mozi';
+const decode=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g,'')),c=>c.charCodeAt(0)));
+const encode=s=>{const bytes=new TextEncoder().encode(s);let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));return btoa(binary)};
 const $=id=>document.getElementById(id);
 const table=$('mozi'), cfa=$('cfa'), mozi2=$('mozi2'), cmozi2=$('cmozi2'), bg=$('bg');
-let token='', tokenClient=null, pickerReady=false, loaded=false, dirty=false, loading=false;
+let sha='', loaded=false, dirty=false, loading=false;
 let originalNewline='\n', originalBOM='', originalTrailingNewline=false;
 const status=message=>{$('status').textContent=message};
 const changed=()=>{dirty=true;status('尚未儲存')};
@@ -98,76 +95,26 @@ function render(text,sw){
  mozi2.value=tail;cmozi2.textContent=tail;
  updateBg();loaded=true;dirty=false;status('已載入 mozi.txt');
 }
-async function driveRequest(url,options={}){
- if(!token)throw Error('請先登入 Google');
- const headers={Authorization:'Bearer '+token,...(options.headers||{})};
- const r=await fetch(url,{...options,headers});
- if(!r.ok){
-  const detail=(await r.text()).slice(0,500);
-  throw Error('Google Drive HTTP '+r.status+'：'+detail);
- }
- return r;
-}
-async function readDrive(){
- const r=await driveRequest('https://www.googleapis.com/drive/v3/files/'+encodeURIComponent(FILE_ID)+'?alt=media');
- return r.text();
-}
-async function writeDrive(text){
- await driveRequest('https://www.googleapis.com/upload/drive/v3/files/'+encodeURIComponent(FILE_ID)+'?uploadType=media',{
-  method:'PATCH',headers:{'Content-Type':'text/plain;charset=utf-8'},body:text
- });
+async function github(options={}){
+ const r=await fetch(API+'?ref='+BRANCH,{cache:'no-store',...options,headers:{Accept:'application/vnd.github+json',...(options.headers||{})}});
+ if(!r.ok)throw Error('GitHub HTTP '+r.status+'：'+(await r.text()).slice(0,400));
+ return r.json();
 }
 async function loadData(){
- if(loading)return;
- if(dirty&&!confirm('目前有尚未儲存的修改、確定重新載入？'))return;
+ if(loading||dirty&&!confirm('有尚未儲存的修改、確定重新載入？'))return;
  loading=true;status('正在載入…');
  try{
-  const [text,sw]=await Promise.all([
-   readDrive(),
-   fetch('shuowen.txt').then(r=>{if(!r.ok)throw Error('shuowen.txt：HTTP '+r.status);return r.text()})
+  const [file,sw]=await Promise.all([
+   github(),
+   fetch('shuowen.txt').then(r=>{if(!r.ok)throw Error('shuowen.txt HTTP '+r.status);return r.text()})
   ]);
+  const text=decode(file.content);
   render(text,sw);
- }catch(e){console.error(e);status('載入失敗');alert(e.message+'\n若是 Drive 403 或 404、請先按「授權選取檔案」並選取指定的 mozi.txt。')}
+  sha=file.sha;
+ }catch(e){console.error(e);status('載入失敗');alert(e.message)}
  finally{loading=false}
 }
-function chooseFile(){
- if(!token){alert('請先登入 Google');return}
- if(!pickerReady){alert('Google Picker 尚未載入、請稍後重試');return}
- const view=new google.picker.DocsView().setMimeTypes('text/plain').setIncludeFolders(true);
- const picker=new google.picker.PickerBuilder()
-  .addView(view).setOAuthToken(token).setDeveloperKey(API_KEY).setAppId(APP_ID)
-  .setCallback(async data=>{
-   if(data.action!==google.picker.Action.PICKED)return;
-   const picked=data.docs?.[0];
-   if(!picked)return;
-   if(picked.id!==FILE_ID){alert('這不是指定的 mozi.txt、請選取正確的 Google Drive 檔案。');return}
-   await loadData();
-  }).build();
- picker.setVisible(true);
-}
-function loginDrive(prompt=''){
- if(!window.google?.accounts?.oauth2){status('Google OAuth 尚未載入');return}
- if(!tokenClient){
-  tokenClient=google.accounts.oauth2.initTokenClient({
-   client_id:CLIENT_ID,scope:SCOPE,
-   callback:async response=>{
-    if(response.error){status('Drive 授權需要重新操作');console.warn(response);return}
-    token=response.access_token;
-    status('Drive 已授權');
-    if(!loaded||!dirty)await loadData();
-   },
-   error_callback:error=>{console.warn('Drive OAuth：',error);status('請按「Google 登入」重新授權 Drive')}
-  });
- }
- tokenClient.requestAccessToken({prompt});
-}
-$('login').onclick=()=>loginDrive('');
-$('pick').onclick=chooseFile;
-function waitForPicker(){
- if(window.gapi?.load){gapi.load('picker',()=>{pickerReady=true});return}
- setTimeout(waitForPicker,250);
-}
-waitForPicker();
+$('reload').onclick=loadData;
 mozi2.oninput=()=>{cmozi2.textContent=mozi2.value;updateBg();changed()};
 mozi2.onscroll=()=>{cmozi2.scrollTop=mozi2.scrollTop;cmozi2.scrollLeft=mozi2.scrollLeft};
 cmozi2.onscroll=()=>{mozi2.scrollTop=cmozi2.scrollTop;mozi2.scrollLeft=cmozi2.scrollLeft};
@@ -201,21 +148,28 @@ $('cpb').onclick=()=>{
  if(any){updateBg();changed()}
 };
 $('cs').onclick=async()=>{
- if(!token||!loaded){alert('請先登入並載入 mozi.txt');return}
+ if(!loaded){alert('請先載入 mozi.txt');return}
  const head=[...table.rows].map(tr=>[tr.cells[2].textContent,tr.cells[3].textContent].join('\t')).join('\n');
  let content=head+'\n'+mozi2.value;
  if(originalTrailingNewline&&!content.endsWith('\n'))content+='\n';
  content=originalBOM+content.replace(/\n/g,originalNewline);
  $('cs').disabled=true;status('正在儲存…');
- try{await writeDrive(content);dirty=false;status('已儲存至 Google Drive')}
+ try{
+  const token=prompt('輸入 GitHub Fine-grained PAT（mozi 儲存庫 Contents: Read and write）。Token 不會儲存在網頁中：');
+  if(!token){status('已取消儲存');return}
+  const result=await github({method:'PUT',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({message:'更新 mozi.txt',content:encode(content),sha,branch:BRANCH})});
+  sha=result.content.sha;dirty=false;status('已提交至 GitHub mozi 分支');
+ }
  catch(e){console.error(e);status('儲存失敗');alert(e.message)}
  finally{$('cs').disabled=false}
 };
 window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
-const apple=/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)||
- (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-document.documentElement.style.setProperty('--shuowen',apple?'"Shuo Wen SBIX"':'"Shuo Wen CBDT"');
 </script>
 
+<script>
+const apple=/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+document.documentElement.style.setProperty('--shuowen',apple?'"Shuo Wen SBIX"':'"Shuo Wen CBDT"');
+loadData();
+</script>
 </body>
 </html>
