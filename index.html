@@ -163,9 +163,10 @@ function control(id){
 const getSearch=control('cf'),getReplace=control('cp');
 
 // 第 1 欄即時合併第 2、3、4 欄
+// 修正：尚未建立的儲存格視為空字串
 function updateFirst(tr){
  tr.cells[0].textContent=[1,2,3]
-  .map(i=>value(tr.cells[i])).join('');
+  .map(i=>tr.cells[i]?value(tr.cells[i]):'').join('');
 }
 
 // mozi2 資料行、不包含新增按鈕
