@@ -30,8 +30,7 @@ button{font:22pt "Jigmo","Jigmo2","Jigmo3"}
 
 #mozi2{border-collapse:collapse;align-self:flex-start}
 #mozi2 td{border:1px solid #aaa}
-#mozi2 td:nth-child(5) button{cursor:grab;touch-action:none}
-#mozi2 tr.dragging{opacity:.4}
+#mozi2 td:nth-child(n+5) button{cursor:pointer}
 #mozi2 tr:last-child td{text-align:center}
 #mozi2 tr:last-child button{display:block;width:100%}
 </style>
@@ -59,7 +58,7 @@ button{font:22pt "Jigmo","Jigmo2","Jigmo3"}
 </main>
 
 <footer style="height:25vh;flex-shrink:0;display:flex;overflow:auto">
- <table id="mozi2"><col><col><col><col><col></table>
+ <table id="mozi2"><col><col><col><col><col><col></table>
  <p id="bg" style="margin:0;overflow-x:hidden;overflow-y:auto;font:22pt 'Jigmo','Jigmo2','Jigmo3'"></p>
 </footer>
 
@@ -167,6 +166,7 @@ function updateFirst(tr){
   .map(i=>tr.cells[i]?value(tr.cells[i]):'').join('');
 }
 
+// mozi2 資料行
 function dataRows(){
  return [...mozi2.rows].filter(tr=>tr.dataset.add!=='1');
 }
@@ -197,66 +197,44 @@ function setCell(td,s,notify=false){
  }
 }
 
-// mozi2 資料行
+// mozi2 上移／下移
+function moveRow(tr,direction){
+ const rows=dataRows();
+ const index=rows.indexOf(tr);
+ const target=rows[index+direction];
+
+ if(!target)return;
+
+ if(direction<0){
+  target.parentNode.insertBefore(tr,target);
+ }else{
+  target.parentNode.insertBefore(target,tr);
+ }
+
+ changed();
+}
+
+// 建立 mozi2 資料行
 function addRow(s='',notify=true){
  const tr=document.createElement('tr');
- tr.draggable=false;
  tr.insertCell();
 
  const m=chars(s);
  for(let i=0;i<3;i++)
   setCell(tr.insertCell(),m[i]||'');
 
- const td=tr.insertCell();
- const handle=document.createElement('button');
- handle.type='button';
- handle.textContent='☰';
- handle.title='拖曳移動整行';
- td.appendChild(handle);
+ for(const [symbol,direction] of [['↑',-1],['↓',1]]){
+  const td=tr.insertCell();
+  const el=document.createElement('button');
+  el.type='button';
+  el.textContent=symbol;
+  el.title=direction<0?'上移一行':'下移一行';
+  el.onclick=()=>moveRow(tr,direction);
+  td.appendChild(el);
+ }
 
  const add=mozi2.querySelector('tr[data-add="1"]');
  add.parentNode.insertBefore(tr,add);
-
- let active=false,startY=0,moved=false;
-
- handle.onpointerdown=e=>{
-  if(e.button!==0)return;
-  active=true;
-  moved=false;
-  startY=e.clientY;
-  handle.setPointerCapture(e.pointerId);
- };
-
- handle.onpointermove=e=>{
-  if(!active)return;
-  if(Math.abs(e.clientY-startY)>5)moved=true;
-  if(!moved)return;
-
-  tr.classList.add('dragging');
-
-  const target=document.elementFromPoint(e.clientX,e.clientY)
-   ?.closest('#mozi2 tr');
-
-  if(!target||target===tr||target.dataset.add==='1')return;
-
-  const rect=target.getBoundingClientRect();
-  const before=e.clientY<rect.top+rect.height/2;
-  target.parentNode.insertBefore(tr,before?target:target.nextSibling);
- };
-
- const finish=()=>{
-  if(!active)return;
-  active=false;
-  tr.classList.remove('dragging');
-  if(moved){
-   updateBg();
-   changed();
-  }
- };
-
- handle.onpointerup=finish;
- handle.onpointercancel=finish;
- handle.onlostpointercapture=finish;
 
  if(notify){
   updateBg();
@@ -271,7 +249,7 @@ function addButton(){
  tr.dataset.add='1';
 
  const td=tr.insertCell();
- td.colSpan=5;
+ td.colSpan=6;
 
  const el=document.createElement('button');
  el.type='button';
@@ -281,6 +259,7 @@ function addButton(){
  td.appendChild(el);
 }
 
+// 建立主表與 mozi2
 function render(text,sw){
  originalBOM=text.startsWith('\uFEFF')?'\uFEFF':'';
  if(originalBOM)text=text.slice(1);
@@ -298,10 +277,13 @@ function render(text,sw){
   const m=chars(lines[i]).slice(0,3),s=seals[i].split('\t');
   const tr=document.createElement('tr');
   tr.insertCell();
+
   for(let j=0;j<3;j++)
    setCell(tr.insertCell(),m[j]||'');
+
   for(let j=0;j<3;j++)
    tr.insertCell().textContent=s[j]||'';
+
   fragment.appendChild(tr);
  }
 
