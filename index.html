@@ -2,455 +2,508 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>說文解字</title>
-  <style>
-    @font-face{font-family:"華瑞小篆體";src:url("華瑞小篆體.ttf")}
-    @font-face{font-family:"TW-MOE-Std-Kai";src:url("TW-MOE-Std-Kai.ttf")}
-    @font-face{font-family:"Shuo Wen SBIX";src:url("Shuo Wen SBIX.ttf") format("truetype")}
-    @font-face{font-family:"Shuo Wen CBDT";src:url("Shuo Wen CBDT.ttf") format("truetype")}
-    @font-face{font-family:"Jigmo";src:url("Jigmo.ttf")}
-    @font-face{font-family:"Jigmo2";src:url("Jigmo2.ttf")}
-    @font-face{font-family:"Jigmo3";src:url("Jigmo3.ttf")}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>說文解字</title>
+<style>
+@font-face{font-family:"華瑞小篆體";src:url("華瑞小篆體.ttf")}
+@font-face{font-family:"TW-MOE-Std-Kai";src:url("TW-MOE-Std-Kai.ttf")}
+@font-face{font-family:"Shuo Wen SBIX";src:url("Shuo Wen SBIX.ttf") format("truetype")}
+@font-face{font-family:"Shuo Wen CBDT";src:url("Shuo Wen CBDT.ttf") format("truetype")}
+@font-face{font-family:"Jigmo";src:url("Jigmo.ttf")}
+@font-face{font-family:"Jigmo2";src:url("Jigmo2.ttf")}
+@font-face{font-family:"Jigmo3";src:url("Jigmo3.ttf")}
 
-    :is(#mozi,#cfa) td:nth-child(1),
-    :is(#mozi,#cfa) td:nth-child(2){
-      font:26pt "華瑞小篆體","Jigmo","Jigmo2","Jigmo3";
-    }
-    :is(#mozi,#cfa) td:nth-child(3),
-    :is(#mozi,#cfa) td:nth-child(4){
-      font:24pt "TW-MOE-Std-Kai","Jigmo","Jigmo2","Jigmo3";
-    }
-    :is(#mozi,#cfa) td:nth-child(5){
-      font:26pt var(--shuowen),"Jigmo","Jigmo2","Jigmo3";
-    }
-    :is(#mozi,#cfa) td:nth-child(6),
-    :is(#mozi,#cfa) td:nth-child(7){
-      font:22pt "Jigmo","Jigmo2","Jigmo3";
-    }
-    :is(#mozi,#cfa) td:nth-child(-n+4){
-      white-space:pre;
-    }
-    button,input{
-      font:22pt "Jigmo","Jigmo2","Jigmo3";
-    }
-    #mozi td button{
-      font:inherit;
-      color:inherit;
-      background:transparent;
-      border:0;
-      padding:0;
-      min-width:1ic;
-      min-height:1em;
-      cursor:pointer;
-    }
-    :is(#mozi,#cfa) td{
-      cursor:pointer;
-    }
-  </style>
+:is(#mozi,#cfa) td:nth-child(1),
+:is(#mozi,#cfa) td:nth-child(2){
+ font:26pt "華瑞小篆體","Jigmo","Jigmo2","Jigmo3"
+}
+:is(#mozi,#cfa) td:nth-child(3),
+:is(#mozi,#cfa) td:nth-child(4){
+ font:24pt "TW-MOE-Std-Kai","Jigmo","Jigmo2","Jigmo3"
+}
+:is(#mozi,#cfa) td:nth-child(5){
+ font:26pt var(--shuowen),"Jigmo","Jigmo2","Jigmo3"
+}
+:is(#mozi,#cfa) td:nth-child(6),
+:is(#mozi,#cfa) td:nth-child(7){
+ font:22pt "Jigmo","Jigmo2","Jigmo3"
+}
+:is(#mozi,#cfa) td:nth-child(-n+4){white-space:pre}
+button,input{font:22pt "Jigmo","Jigmo2","Jigmo3"}
+
+#mozi td:nth-child(3) button,
+#mozi td:nth-child(4) button{
+ font:inherit;
+ border:0;
+ padding:0;
+ margin:0;
+ background:transparent;
+ cursor:pointer;
+ touch-action:manipulation;
+}
+
+#mozi td:nth-child(3) button:active,
+#mozi td:nth-child(4) button:active{
+ background:#ddd;
+}
+
+#mozi td:nth-child(3),
+#mozi td:nth-child(4){
+ min-width:2ic;
+}
+
+#cfa tr{cursor:pointer}
+</style>
 </head>
 
 <body style="margin:0;height:100vh;display:flex;flex-direction:column;overflow:hidden">
-
-  <header style="flex-shrink:0;display:flex;flex-wrap:wrap">
-    <input id="cf" placeholder="搜尋" style="width:2ic">
-    <button id="cfb1">搜尋1</button>
-    <button id="cfb2">搜尋2</button>
-    <button id="cfb3">搜尋3</button>
-    <input id="cp" placeholder="取代" style="width:2ic">
-    <button id="cpb">取代</button>
-    <button id="reload">重新載入</button>
-    <button id="cs">儲存至 GitHub</button>
-    <span id="status" role="status" style="font:14pt sans-serif;align-self:center"></span>
-
-    <div style="flex-basis:100%;max-height:25vh;min-width:0;overflow:auto">
-      <table id="cfa">
-        <col><col><col><col><col><col><col>
-      </table>
-    </div>
-  </header>
-
-  <main style="flex:1;min-height:0;overflow:auto">
-    <table id="mozi">
-      <col><col><col><col><col><col><col>
-    </table>
-  </main>
-
-  <footer style="height:25vh;flex-shrink:0;display:flex">
-    <p id="cmozi2" style="margin:0;white-space:pre;overflow-x:hidden;overflow-y:auto;min-width:8ic;font:26pt '華瑞小篆體','Jigmo','Jigmo2','Jigmo3'"></p>
-
-    <textarea id="mozi2" style="white-space:pre;overflow-x:hidden;overflow-y:auto;min-width:8ic;font:24pt 'TW-MOE-Std-Kai','Jigmo','Jigmo2','Jigmo3'"></textarea>
-
-    <p id="bg" style="margin:0;overflow-x:hidden;overflow-y:auto;font:22pt 'Jigmo','Jigmo2','Jigmo3'"></p>
-  </footer>
-
-  <script>
-    'use strict';
-
-    const API='https://api.github.com/repos/tayloryep777-web/mozi/contents/mozi.txt';
-    const BRANCH='mozi';
-
-    const decode=s=>new TextDecoder().decode(
-      Uint8Array.from(atob(s.replace(/\s/g,'')),c=>c.charCodeAt(0))
-    );
-
-    const encode=s=>{
-      const bytes=new TextEncoder().encode(s);
-      let binary='';
-      for(let i=0;i<bytes.length;i+=8192)
-        binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
-      return btoa(binary);
-    };
-
-    const $=id=>document.getElementById(id);
-    const table=$('mozi');
-    const cfa=$('cfa');
-    const mozi2=$('mozi2');
-    const cmozi2=$('cmozi2');
-    const bg=$('bg');
-
-    let sha='',loaded=false,dirty=false,loading=false;
-    let originalNewline='\n',originalBOM='',originalTrailingNewline=false;
-
-    const status=message=>{$('status').textContent=message};
-    const changed=()=>{dirty=true;status('尚未儲存')};
-
-    // 複製文字
-    async function copyText(text){
-      if(!text)return;
-      try{
-        await navigator.clipboard.writeText(text);
-      }catch(e){
-        console.error(e);
-        status('複製失敗：請使用 HTTPS 或 localhost');
-      }
-    }
-
-    // 更新差異
-    function updateBg(){
-      const rows=[...table.rows];
-      const lines=mozi2.value.split('\n').map(s=>s.split('\t'));
-
-      const a=rows.map(r=>r.cells[3].textContent).join('')
-        +lines.map(r=>r[1]||'').join('');
-
-      const b=rows.map(r=>r.cells[2].textContent).join('')
-        +lines.map(r=>r[0]||'').join('');
-
-      bg.textContent=[...new Set(a)]
-        .filter(c=>!b.includes(c)).join('');
-    }
-
-    // 同步按鈕內容
-    function setButton(button,tr,value){
-      const td=button.closest('td');
-      if(button.textContent===value)return;
-
-      button.textContent=value;
-      tr.cells[td.cellIndex-2].textContent=value;
-      updateBg();
-      changed();
-    }
-
-    // 第 3、4 欄改為按鈕
-    function editable(td,tr){
-      const button=document.createElement('button');
-      button.type='button';
-      button.textContent=td.textContent;
-      td.replaceChildren(button);
-
-      let timer;
-
-      button.onclick=()=>{
-        clearTimeout(timer);
-
-        timer=setTimeout(async()=>{
-          if(button.textContent){
-            await copyText(button.textContent);
-          }else{
-            try{
-              const text=(await navigator.clipboard.readText())
-                .replace(/[\t\r\n]/g,'');
-
-              if(text)setButton(button,tr,text);
-            }catch(e){
-              console.error(e);
-              status('貼上失敗：請允許讀取剪貼簿');
-            }
-          }
-        },250);
-      };
-
-      button.ondblclick=()=>{
-        clearTimeout(timer);
-        setButton(button,tr,'');
-      };
-    }
-
-    // 點擊任意普通儲存格複製文字
-    document.addEventListener('click',e=>{
-      const td=e.target.closest('td');
-      if(!td||!td.closest('#mozi,#cfa'))return;
-      if(e.target.closest('button'))return;
-
-      copyText(td.textContent);
-    });
-
-    // 渲染資料
-    function render(text,sw){
-      originalBOM=text.startsWith('\uFEFF')?'\uFEFF':'';
-      if(originalBOM)text=text.slice(1);
-
-      originalNewline=text.includes('\r\n')?'\r\n':'\n';
-      originalTrailingNewline=/\r?\n$/.test(text);
-
-      const lines=text.replace(/\r\n/g,'\n').split('\n');
-      const seals=sw.replace(/\r\n/g,'\n').split('\n');
-
-      if(lines.length<9833||seals.length<9833)
-        throw Error('資料不足 9833 行');
-
-      const fragment=document.createDocumentFragment();
-
-      for(let i=0;i<9833;i++){
-        const m=lines[i].split('\t');
-        const s=seals[i].split('\t');
-        const tr=document.createElement('tr');
-
-        [
-          m[0]||'',
-          m[1]||'',
-          m[0]||'',
-          m[1]||'',
-          s[0]||'',
-          s[1]||'',
-          s[2]||''
-        ].forEach((v,j)=>{
-          const td=tr.insertCell();
-          td.textContent=v;
-          if(j===2||j===3)editable(td,tr);
-        });
-
-        fragment.appendChild(tr);
-      }
-
-      table.querySelectorAll('tr').forEach(r=>r.remove());
-      table.appendChild(fragment);
-
-      cfa.querySelectorAll('tr').forEach(r=>r.remove());
-
-      let tail=lines.slice(9833).join('\n');
-      if(originalTrailingNewline&&tail.endsWith('\n'))
-        tail=tail.slice(0,-1);
-
-      mozi2.value=tail;
-      cmozi2.textContent=tail;
-
-      updateBg();
-      loaded=true;
-      dirty=false;
-      status('已載入 mozi.txt');
-    }
-
-    // GitHub API
-    async function github(options={}){
-      const r=await fetch(API+'?ref='+BRANCH,{
-        cache:'no-store',
-        ...options,
-        headers:{
-          Accept:'application/vnd.github+json',
-          ...(options.headers||{})
-        }
-      });
-
-      if(!r.ok)
-        throw Error('GitHub HTTP '+r.status+'：'
-          +(await r.text()).slice(0,400));
-
-      return r.json();
-    }
-
-    // 載入
-    async function loadData(){
-      if(loading||dirty&&!confirm('有尚未儲存的修改、確定重新載入？'))
-        return;
-
-      loading=true;
-      status('正在載入…');
-
-      try{
-        const [file,sw]=await Promise.all([
-          github(),
-          fetch('shuowen.txt').then(r=>{
-            if(!r.ok)throw Error('shuowen.txt HTTP '+r.status);
-            return r.text();
-          })
-        ]);
-
-        render(decode(file.content),sw);
-        sha=file.sha;
-      }catch(e){
-        console.error(e);
-        status('載入失敗');
-        alert(e.message);
-      }finally{
-        loading=false;
-      }
-    }
-
-    $('reload').onclick=loadData;
-
-    // 底部文字同步
-    mozi2.oninput=()=>{
-      cmozi2.textContent=mozi2.value;
-      updateBg();
-      changed();
-    };
-
-    mozi2.onscroll=()=>{
-      cmozi2.scrollTop=mozi2.scrollTop;
-      cmozi2.scrollLeft=mozi2.scrollLeft;
-    };
-
-    cmozi2.onscroll=()=>{
-      mozi2.scrollTop=cmozi2.scrollTop;
-      mozi2.scrollLeft=cmozi2.scrollLeft;
-    };
-
-    // 搜尋
-    function searchColumn(n){
-      cfa.querySelectorAll('tr').forEach(r=>r.remove());
-
-      const q=$('cf').value;
-      if(!q)return;
-
-      const fragment=document.createDocumentFragment();
-
-      [...table.rows].forEach(tr=>{
-        if(!tr.cells[n-1].textContent.includes(q))return;
-
-        const row=document.createElement('tr');
-
-        [...tr.cells].forEach(td=>{
-          row.insertCell().textContent=td.textContent;
-        });
-
-        row.onclick=()=>{
-          tr.scrollIntoView({behavior:'smooth',block:'center'});
-        };
-
-        fragment.appendChild(row);
-      });
-
-      cfa.appendChild(fragment);
-    }
-
-    $('cfb1').onclick=()=>searchColumn(3);
-    $('cfb2').onclick=()=>searchColumn(4);
-    $('cfb3').onclick=()=>searchColumn(6);
-
-    // 取代
-    $('cpb').onclick=()=>{
-      const q=$('cf').value;
-      if(!q)return;
-
-      const replacement=$('cp').value.replace(/[\t\r\n]/g,'');
-      let any=false;
-
-      [...table.rows].forEach(tr=>{
-        for(const j of [2,3]){
-          const button=tr.cells[j].querySelector('button');
-
-          if(button.textContent.includes(q)){
-            const value=button.textContent.replaceAll(q,replacement);
-            setButton(button,tr,value);
-            any=true;
-          }
-        }
-      });
-
-      if(any){
-        updateBg();
-        changed();
-      }
-    };
-
-    // 儲存至 GitHub
-    $('cs').onclick=async()=>{
-      if(!loaded){
-        alert('請先載入 mozi.txt');
-        return;
-      }
-
-      const head=[...table.rows].map(tr=>[
-        tr.cells[2].textContent,
-        tr.cells[3].textContent
-      ].join('\t')).join('\n');
-
-      let content=head+'\n'+mozi2.value;
-
-      if(originalTrailingNewline&&!content.endsWith('\n'))
-        content+='\n';
-
-      content=originalBOM+content.replace(/\n/g,originalNewline);
-
-      $('cs').disabled=true;
-      status('正在儲存…');
-
-      try{
-        const token=prompt(
-          '輸入 GitHub Fine-grained PAT（mozi 儲存庫 Contents: Read and write）。Token 不會儲存在網頁中：'
-        );
-
-        if(!token){
-          status('已取消儲存');
-          return;
-        }
-
-        const result=await github({
-          method:'PUT',
-          headers:{
-            Authorization:'Bearer '+token,
-            'Content-Type':'application/json'
-          },
-          body:JSON.stringify({
-            message:'更新 mozi.txt',
-            content:encode(content),
-            sha,
-            branch:BRANCH
-          })
-        });
-
-        sha=result.content.sha;
-        dirty=false;
-        status('已提交至 GitHub mozi 分支');
-      }catch(e){
-        console.error(e);
-        status('儲存失敗');
-        alert(e.message);
-      }finally{
-        $('cs').disabled=false;
-      }
-    };
-
-    window.addEventListener('beforeunload',e=>{
-      if(dirty){
-        e.preventDefault();
-        e.returnValue='';
-      }
-    });
-
-    // Apple 使用 SBIX、其他平台使用 CBDT
-    const apple=/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)
-      ||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-
-    document.documentElement.style.setProperty(
-      '--shuowen',
-      apple?'"Shuo Wen SBIX"':'"Shuo Wen CBDT"'
-    );
-
-    loadData();
-  </script>
+<header style="flex-shrink:0;display:flex;flex-wrap:wrap">
+ <input id="cf" placeholder="搜尋" style="width:2ic">
+ <button id="cfb1">搜尋1</button>
+ <button id="cfb2">搜尋2</button>
+ <button id="cfb3">搜尋3</button>
+ <input id="cp" placeholder="取代" style="width:2ic">
+ <button id="cpb">取代</button>
+ <button id="reload">重新載入</button>
+ <button id="cs">儲存至 GitHub</button>
+ <span id="status" role="status" style="font:14pt sans-serif;align-self:center"></span>
+ <div style="flex-basis:100%;max-height:25vh;min-width:0;overflow:auto">
+  <table id="cfa"><col><col><col><col><col><col><col></table>
+ </div>
+</header>
+
+<main style="flex:1;min-height:0;overflow:auto">
+ <table id="mozi"><col><col><col><col><col><col><col></table>
+</main>
+
+<footer style="height:25vh;flex-shrink:0;display:flex">
+ <p id="cmozi2" style="margin:0;white-space:pre;overflow-x:hidden;overflow-y:auto;min-width:8ic;font:26pt '華瑞小篆體','Jigmo','Jigmo2','Jigmo3'"></p>
+ <textarea id="mozi2" style="white-space:pre;overflow-x:hidden;overflow-y:auto;min-width:8ic;font:24pt 'TW-MOE-Std-Kai','Jigmo','Jigmo2','Jigmo3'"></textarea>
+ <p id="bg" style="margin:0;overflow-x:hidden;overflow-y:auto;font:22pt 'Jigmo','Jigmo2','Jigmo3'"></p>
+</footer>
+
+<script>
+'use strict';
+
+const API='https://api.github.com/repos/tayloryep777-web/mozi/contents/mozi.txt';
+const BRANCH='mozi';
+
+const decode=s=>new TextDecoder().decode(
+ Uint8Array.from(atob(s.replace(/\s/g,'')),c=>c.charCodeAt(0))
+);
+
+const encode=s=>{
+ const bytes=new TextEncoder().encode(s);
+ let binary='';
+ for(let i=0;i<bytes.length;i+=8192)
+  binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
+ return btoa(binary);
+};
+
+const $=id=>document.getElementById(id);
+const table=$('mozi'),cfa=$('cfa');
+const mozi2=$('mozi2'),cmozi2=$('cmozi2'),bg=$('bg');
+
+let sha='',loaded=false,dirty=false,loading=false;
+let originalNewline='\n',originalBOM='',originalTrailingNewline=false;
+
+const status=message=>{$('status').textContent=message};
+const changed=()=>{dirty=true;status('尚未儲存')};
+
+async function copyText(s){
+ if(!s)return;
+ try{
+  await navigator.clipboard.writeText(s);
+  status('已複製：'+s.slice(0,20));
+ }catch(e){
+  console.error(e);
+  status('複製失敗：請檢查剪貼簿權限');
+ }
+}
+
+async function pasteText(){
+ try{
+  return (await navigator.clipboard.readText()).replace(/[\t\r\n]/g,'');
+ }catch(e){
+  console.error(e);
+  status('無法讀取剪貼簿：請檢查權限');
+  return null;
+ }
+}
+
+function getValue(td){
+ return td.dataset.value??td.textContent;
+}
+
+function updateBg(){
+ const rows=[...table.rows];
+ const lines=mozi2.value.split('\n').map(s=>s.split('\t'));
+ const a=rows.map(r=>getValue(r.cells[3])).join('')+
+         lines.map(r=>r[1]||'').join('');
+ const b=rows.map(r=>getValue(r.cells[2])).join('')+
+         lines.map(r=>r[0]||'').join('');
+ bg.textContent=[...new Set(a)].filter(c=>!b.includes(c)).join('');
+}
+
+function setValue(td,value){
+ value=value.replace(/[\t\r\n]/g,'');
+ td.dataset.value=value;
+ td.replaceChildren();
+
+ const tr=td.parentElement;
+ tr.cells[td.cellIndex-2].textContent=value;
+
+ // 每個 Unicode 字元各自成為一個按鈕
+ const chars=Array.from(value);
+ if(!chars.length)chars.push('');
+
+ chars.forEach((char,index)=>{
+  const button=document.createElement('button');
+  button.type='button';
+  button.textContent=char||'＋';
+  button.title=char?'點擊複製、長按清空':'點擊貼上';
+  button.dataset.index=index;
+
+  let timer=null;
+  let longPressed=false;
+  let startX=0,startY=0;
+
+  const clearTimer=()=>{
+   if(timer!==null){
+    clearTimeout(timer);
+    timer=null;
+   }
+  };
+
+  button.addEventListener('pointerdown',e=>{
+   if(e.button!==0)return;
+   longPressed=false;
+   startX=e.clientX;
+   startY=e.clientY;
+   clearTimer();
+
+   if(char){
+    timer=setTimeout(()=>{
+     timer=null;
+     longPressed=true;
+     const current=Array.from(getValue(td));
+     current.splice(index,1);
+     setValue(td,current.join(''));
+     updateBg();
+     changed();
+     status('已清空字元');
+    },600);
+   }
+  });
+
+  button.addEventListener('pointermove',e=>{
+   if(Math.hypot(e.clientX-startX,e.clientY-startY)>10)
+    clearTimer();
+  });
+
+  button.addEventListener('pointerup',clearTimer);
+  button.addEventListener('pointercancel',clearTimer);
+  button.addEventListener('pointerleave',clearTimer);
+
+  button.addEventListener('contextmenu',e=>{
+   e.preventDefault();
+  });
+
+  button.addEventListener('click',async()=>{
+   if(longPressed){
+    longPressed=false;
+    return;
+   }
+
+   if(char){
+    await copyText(char);
+   }else{
+    const s=await pasteText();
+    if(s===null||!s)return;
+    setValue(td,s);
+    updateBg();
+    changed();
+   }
+  });
+
+  td.appendChild(button);
+ });
+}
+
+function render(text,sw){
+ originalBOM=text.startsWith('\uFEFF')?'\uFEFF':'';
+ if(originalBOM)text=text.slice(1);
+
+ originalNewline=text.includes('\r\n')?'\r\n':'\n';
+ originalTrailingNewline=/\r?\n$/.test(text);
+
+ const lines=text.replace(/\r\n/g,'\n').split('\n');
+ const seals=sw.replace(/\r\n/g,'\n').split('\n');
+
+ if(lines.length<9833||seals.length<9833)
+  throw Error('資料不足 9833 行');
+
+ const fragment=document.createDocumentFragment();
+
+ for(let i=0;i<9833;i++){
+  const m=lines[i].split('\t');
+  const s=seals[i].split('\t');
+  const tr=document.createElement('tr');
+
+  [m[0]||'',m[1]||'',m[0]||'',m[1]||'',
+   s[0]||'',s[1]||'',s[2]||''].forEach((v,j)=>{
+   const td=tr.insertCell();
+   if(j===2||j===3)setValue(td,v);
+   else td.textContent=v;
+  });
+
+  fragment.appendChild(tr);
+ }
+
+ table.querySelectorAll('tr').forEach(r=>r.remove());
+ table.appendChild(fragment);
+ cfa.querySelectorAll('tr').forEach(r=>r.remove());
+
+ let tail=lines.slice(9833).join('\n');
+ if(originalTrailingNewline&&tail.endsWith('\n'))
+  tail=tail.slice(0,-1);
+
+ mozi2.value=tail;
+ cmozi2.textContent=tail;
+
+ updateBg();
+ loaded=true;
+ dirty=false;
+ status('已載入 mozi.txt');
+}
+
+async function github(options={}){
+ const r=await fetch(API+'?ref='+BRANCH,{
+  cache:'no-store',
+  ...options,
+  headers:{
+   Accept:'application/vnd.github+json',
+   ...(options.headers||{})
+  }
+ });
+ if(!r.ok)
+  throw Error('GitHub HTTP '+r.status+'：'+(await r.text()).slice(0,400));
+ return r.json();
+}
+
+async function loadData(){
+ if(loading||dirty&&!confirm('有尚未儲存的修改、確定重新載入？'))
+  return;
+
+ loading=true;
+ status('正在載入…');
+
+ try{
+  const [file,sw]=await Promise.all([
+   github(),
+   fetch('shuowen.txt').then(r=>{
+    if(!r.ok)throw Error('shuowen.txt HTTP '+r.status);
+    return r.text();
+   })
+  ]);
+
+  const text=decode(file.content);
+  render(text,sw);
+  sha=file.sha;
+ }catch(e){
+  console.error(e);
+  status('載入失敗');
+  alert(e.message);
+ }finally{
+  loading=false;
+ }
+}
+
+$('reload').onclick=loadData;
+
+mozi2.oninput=()=>{
+ cmozi2.textContent=mozi2.value;
+ updateBg();
+ changed();
+};
+
+mozi2.onscroll=()=>{
+ cmozi2.scrollTop=mozi2.scrollTop;
+ cmozi2.scrollLeft=mozi2.scrollLeft;
+};
+
+cmozi2.onscroll=()=>{
+ mozi2.scrollTop=cmozi2.scrollTop;
+ mozi2.scrollLeft=cmozi2.scrollLeft;
+};
+
+// 點擊普通文字複製所點擊的 Unicode 字元
+document.addEventListener('click',async e=>{
+ if(e.target.closest('button,input,textarea,[contenteditable]'))return;
+ const el=e.target.closest('td,p,span');
+ if(!el)return;
+ const s=el.textContent;
+ if(!s)return;
+
+ const selection=window.getSelection();
+ if(selection&&!selection.isCollapsed)return;
+
+ // 使用滑鼠點擊位置定位文字
+ let char='';
+ if(document.caretPositionFromPoint){
+  const pos=document.caretPositionFromPoint(e.clientX,e.clientY);
+  if(pos&&pos.offsetNode.nodeType===Node.TEXT_NODE){
+   const str=pos.offsetNode.textContent;
+   const offset=pos.offset;
+   const points=Array.from(str);
+   let i=0,unit=0;
+   while(i<points.length&&unit<offset){
+    unit+=points[i].length;
+    i++;
+   }
+   char=points[Math.min(i,points.length-1)]||'';
+  }
+ }else if(document.caretRangeFromPoint){
+  const range=document.caretRangeFromPoint(e.clientX,e.clientY);
+  if(range&&range.startContainer.nodeType===Node.TEXT_NODE){
+   const str=range.startContainer.textContent;
+   const offset=range.startOffset;
+   char=Array.from(str.slice(offset))[0]||
+        Array.from(str.slice(0,offset)).pop()||'';
+  }
+ }
+
+ if(char)await copyText(char);
+});
+
+function searchColumn(n){
+ cfa.querySelectorAll('tr').forEach(r=>r.remove());
+ const q=$('cf').value;
+ if(!q)return;
+
+ const fragment=document.createDocumentFragment();
+
+ [...table.rows].forEach(tr=>{
+  if(!getValue(tr.cells[n-1]).includes(q))return;
+
+  const row=document.createElement('tr');
+
+  [...tr.cells].forEach(td=>{
+   row.insertCell().textContent=getValue(td);
+  });
+
+  row.onclick=e=>{
+   if(e.target.closest('button'))return;
+   tr.scrollIntoView({behavior:'smooth',block:'center'});
+  };
+
+  fragment.appendChild(row);
+ });
+
+ cfa.appendChild(fragment);
+}
+
+$('cfb1').onclick=()=>searchColumn(3);
+$('cfb2').onclick=()=>searchColumn(4);
+$('cfb3').onclick=()=>searchColumn(6);
+
+$('cpb').onclick=()=>{
+ const q=$('cf').value;
+ if(!q)return;
+
+ const replacement=$('cp').value.replace(/[\t\r\n]/g,'');
+ let any=false;
+
+ [...table.rows].forEach(tr=>{
+  for(const j of [2,3]){
+   const td=tr.cells[j];
+   const value=getValue(td);
+   if(value.includes(q)){
+    setValue(td,value.replaceAll(q,replacement));
+    any=true;
+   }
+  }
+ });
+
+ if(any){
+  updateBg();
+  changed();
+ }
+};
+
+$('cs').onclick=async()=>{
+ if(!loaded){
+  alert('請先載入 mozi.txt');
+  return;
+ }
+
+ const head=[...table.rows].map(tr=>[
+  getValue(tr.cells[2]),
+  getValue(tr.cells[3])
+ ].join('\t')).join('\n');
+
+ let content=head+'\n'+mozi2.value;
+
+ if(originalTrailingNewline&&!content.endsWith('\n'))
+  content+='\n';
+
+ content=originalBOM+content.replace(/\n/g,originalNewline);
+
+ $('cs').disabled=true;
+ status('正在儲存…');
+
+ try{
+  const token=prompt(
+   '輸入 GitHub Fine-grained PAT（mozi 儲存庫 Contents: Read and write）。Token 不會儲存在網頁中：'
+  );
+  if(!token){
+   status('已取消儲存');
+   return;
+  }
+
+  const result=await github({
+   method:'PUT',
+   headers:{
+    Authorization:'Bearer '+token,
+    'Content-Type':'application/json'
+   },
+   body:JSON.stringify({
+    message:'更新 mozi.txt',
+    content:encode(content),
+    sha,
+    branch:BRANCH
+   })
+  });
+
+  sha=result.content.sha;
+  dirty=false;
+  status('已提交至 GitHub mozi 分支');
+ }catch(e){
+  console.error(e);
+  status('儲存失敗');
+  alert(e.message);
+ }finally{
+  $('cs').disabled=false;
+ }
+};
+
+window.addEventListener('beforeunload',e=>{
+ if(dirty){
+  e.preventDefault();
+  e.returnValue='';
+ }
+});
+
+const apple=/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)||
+ (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+
+document.documentElement.style.setProperty(
+ '--shuowen',
+ apple?'"Shuo Wen SBIX"':'"Shuo Wen CBDT"'
+);
+
+loadData();
+</script>
 </body>
 </html>
