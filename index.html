@@ -60,7 +60,7 @@ button{font:22pt "Jigmo","Jigmo2","Jigmo3"}
 
 <footer style="height:25vh;flex-shrink:0;display:flex;overflow:auto">
  <table id="mozi2"><col><col><col><col><col></table>
- <p id="bg" style="font:22pt 'Jigmo','Jigmo2','Jigmo3'"></p>
+ <p id="bg" style="margin:0;overflow-x:hidden;overflow-y:auto;font:22pt 'Jigmo','Jigmo2','Jigmo3'"></p>
 </footer>
 
 <script>
@@ -147,7 +147,6 @@ function button(el,get,set){
  };
 }
 
-// 搜尋與取代控制
 function control(id){
  const el=$(id);
  let s='';
@@ -162,19 +161,17 @@ function control(id){
 
 const getSearch=control('cf'),getReplace=control('cp');
 
-// 第 1 欄即時合併第 2、3、4 欄
-// 修正：尚未建立的儲存格視為空字串
+// 第 1 欄合併第 2～4 欄
 function updateFirst(tr){
  tr.cells[0].textContent=[1,2,3]
   .map(i=>tr.cells[i]?value(tr.cells[i]):'').join('');
 }
 
-// mozi2 資料行、不包含新增按鈕
 function dataRows(){
  return [...mozi2.rows].filter(tr=>tr.dataset.add!=='1');
 }
 
-// bg：兩個表格第 3、4 欄有、第 2 欄沒有的字元
+// bg：兩表第 3、4 欄有、第 2 欄沒有的字元
 function updateBg(){
  const rows=[...table.rows,...dataRows()];
  const a=new Set(chars(rows.map(r=>value(r.cells[1])).join('')));
@@ -182,7 +179,6 @@ function updateBg(){
  bg.textContent=[...b].filter(c=>!a.has(c)).join('');
 }
 
-// 建立單字儲存格
 function setCell(td,s,notify=false){
  s=first(s);
  td.dataset.value=s;
@@ -201,7 +197,7 @@ function setCell(td,s,notify=false){
  }
 }
 
-// 建立 mozi2 資料行
+// mozi2 資料行
 function addRow(s='',notify=true){
  const tr=document.createElement('tr');
  tr.draggable=false;
@@ -219,7 +215,7 @@ function addRow(s='',notify=true){
  td.appendChild(handle);
 
  const add=mozi2.querySelector('tr[data-add="1"]');
- mozi2.insertBefore(tr,add);
+ add.parentNode.insertBefore(tr,add);
 
  let active=false,startY=0,moved=false;
 
@@ -245,7 +241,7 @@ function addRow(s='',notify=true){
 
   const rect=target.getBoundingClientRect();
   const before=e.clientY<rect.top+rect.height/2;
-  mozi2.insertBefore(tr,before?target:target.nextSibling);
+  target.parentNode.insertBefore(tr,before?target:target.nextSibling);
  };
 
  const finish=()=>{
@@ -269,7 +265,7 @@ function addRow(s='',notify=true){
  return tr;
 }
 
-// 最下方橫跨五欄的新增行按鈕
+// 底部新增行按鈕
 function addButton(){
  const tr=mozi2.insertRow();
  tr.dataset.add='1';
@@ -285,7 +281,6 @@ function addButton(){
  td.appendChild(el);
 }
 
-// 建立主表與 mozi2
 function render(text,sw){
  originalBOM=text.startsWith('\uFEFF')?'\uFEFF':'';
  if(originalBOM)text=text.slice(1);
@@ -356,14 +351,13 @@ async function loadData(){
   sha=file.sha;
  }catch(e){
   console.error(e);
-  status('載入失敗');
-  alert(e.message);
+  status('載入失敗：'+e.message);
  }finally{loading=false}
 }
 
 $('reload').onclick=loadData;
 
-// 點擊其他文字複製單一 Unicode 字元
+// 點擊其他文字複製 Unicode 字元
 document.addEventListener('click',async e=>{
  if(e.target.closest('button,input,textarea,[contenteditable]'))return;
  const el=e.target.closest('td,p,span');
@@ -409,7 +403,7 @@ $('cfb1').onclick=()=>searchColumn([2]);
 $('cfb2').onclick=()=>searchColumn([3,4]);
 $('cfb3').onclick=()=>searchColumn([6]);
 
-// 取代主表與 mozi2 的第 2、3、4 欄
+// 取代兩個表格的第 2～4 欄
 $('cpb').onclick=()=>{
  const q=getSearch();
  if(!q)return;
@@ -463,10 +457,11 @@ $('cs').onclick=async()=>{
   sha=result.content.sha;
   dirty=false;
   status('已提交至 GitHub mozi 分支');
-}catch(e){
- console.error(e);
- status('載入失敗：'+e.message);
-}finally{loading=false}
+ }catch(e){
+  console.error(e);
+  status('儲存失敗');
+  alert(e.message);
+ }finally{$('cs').disabled=false}
 };
 
 window.addEventListener('beforeunload',e=>{
