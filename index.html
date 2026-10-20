@@ -14,6 +14,12 @@
 @font-face{font-family:"Jigmo2";src:url("Jigmo2.ttf")}
 @font-face{font-family:"Jigmo3";src:url("Jigmo3.ttf")}
 
+body{margin:0;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+header{flex-shrink:0;display:flex;flex-wrap:wrap;align-items:center}
+main{flex:1;min-height:0;overflow:auto}
+footer{height:25vh;flex-shrink:0;display:flex;overflow:auto}
+#results{flex-basis:100%;max-height:25vh;min-width:0;overflow:auto}
+
 :is(#mozi,#mozi2,#cfa) td:nth-child(1){font:26pt "華瑞小篆體","Jigmo","Jigmo2","Jigmo3"}
 :is(#mozi,#mozi2,#cfa) td:nth-child(2){font:24pt "TW-MOE-Std-Kai","Jigmo","Jigmo2","Jigmo3"}
 :is(#mozi,#mozi2,#cfa) td:nth-child(3){font:24pt "TW-MOE-Std-Kai","Jigmo","Jigmo2","Jigmo3"}
@@ -41,42 +47,44 @@ button{font:22pt "Jigmo","Jigmo2","Jigmo3"}
 .char:hover{background:#ddd}
 .char:active{background:#ccc}
 
+#cf,#cp{min-width:2ic}
 #cfa tr{cursor:pointer}
 #mozi2{border-collapse:collapse;align-self:flex-start}
 #mozi2 td{border:1px solid #aaa}
 #mozi2 td:nth-child(n+5) button{cursor:pointer}
 #mozi2 tr:last-child td{text-align:center}
 #mozi2 tr:last-child button{display:block;width:100%}
+#bg{margin:0;overflow-x:hidden;overflow-y:auto;font:22pt "Jigmo","Jigmo2","Jigmo3"}
 #token{font:14pt sans-serif;width:220px;box-sizing:border-box}
 #status{font:14pt sans-serif;align-self:center;overflow-wrap:anywhere}
 </style>
 </head>
 
-<body style="margin:0;height:100vh;display:flex;flex-direction:column;overflow:hidden">
+<body>
 
-<header style="flex-shrink:0;display:flex;flex-wrap:wrap;align-items:center">
- <button id="cf" class="char" style="min-width:2ic"></button>
+<header>
+ <button id="cf" class="char"></button>
  <button id="cfb1">搜尋1</button>
  <button id="cfb2">搜尋2</button>
  <button id="cfb3">搜尋3</button>
- <button id="cp" class="char" style="min-width:2ic"></button>
+ <button id="cp" class="char"></button>
  <button id="cpb">取代</button>
  <button id="reload">重新載入</button>
  <input id="token" type="password" placeholder="GitHub Token" autocomplete="off" aria-label="GitHub Token">
  <button id="cs">儲存至 GitHub</button>
  <span id="status" role="status"></span>
- <div style="flex-basis:100%;max-height:25vh;min-width:0;overflow:auto">
+ <div id="results">
   <table id="cfa"><col><col><col><col><col><col><col></table>
  </div>
 </header>
 
-<main style="flex:1;min-height:0;overflow:auto">
+<main>
  <table id="mozi"><col><col><col><col><col><col><col></table>
 </main>
 
-<footer style="height:25vh;flex-shrink:0;display:flex;overflow:auto">
+<footer>
  <table id="mozi2"><col><col><col><col><col><col></table>
- <p id="bg" style="margin:0;overflow-x:hidden;overflow-y:auto;font:22pt 'Jigmo','Jigmo2','Jigmo3'"></p>
+ <p id="bg"></p>
 </footer>
 
 <script>
@@ -88,12 +96,13 @@ const $=id=>document.getElementById(id);
 const table=$('mozi'),cfa=$('cfa'),mozi2=$('mozi2'),bg=$('bg');
 const tokenInput=$('token');
 const chars=s=>Array.from(s);
-const first=s=>chars(s).find(c=>!/\s/u.test(c))||'';
+const first=s=>chars(s).find(c=>!(/[\p{White_Space}\p{Cc}\p{Cf}]/u.test(c)))||'';
 const value=el=>el.dataset.value??el.textContent;
 const status=s=>{$('status').textContent=s};
 const changed=()=>{dirty=true;status('尚未儲存')};
 
 let sha='',loaded=false,dirty=false,loading=false,saving=false;
+let clipboard='';
 let originalNewline='\n',originalBOM='',originalTrailingNewline=false;
 
 // GitHub Token 本機保存
@@ -126,25 +135,28 @@ const encode=s=>{
 
 async function copy(s){
  if(!s)return;
+ clipboard=s;
+
  try{
   await navigator.clipboard.writeText(s);
-  status('已複製：'+s);
  }catch(e){
   console.error(e);
-  status('複製失敗');
  }
+
+ status('已複製：'+s);
 }
 
 async function paste(){
- try{return first(await navigator.clipboard.readText())}
- catch(e){
+ try{
+  return first(await navigator.clipboard.readText());
+ }catch(e){
   console.error(e);
-  status('無法讀取剪貼簿');
+  status('無法讀取系統剪貼簿');
   return null;
  }
 }
 
-// 一般文字：每個字元建立一個複製按鈕
+// 每個字元建立獨立複製按鈕
 function charButtons(el,s){
  el.replaceChildren();
 
@@ -158,7 +170,8 @@ function charButtons(el,s){
  }
 }
 
-// 可編輯字元：單擊複製／貼上、長按清空
+// 單擊有字複製、空白貼上內部字元
+// 長按有字清空、空白貼上系統剪貼簿
 function button(el,get,set){
  let timer,long=false,x=0,y=0;
  const stop=()=>clearTimeout(timer);
@@ -168,15 +181,22 @@ function button(el,get,set){
 
  el.onpointerdown=e=>{
   if(e.button!==0)return;
+
   long=false;
   x=e.clientX;
   y=e.clientY;
   stop();
 
-  if(get())timer=setTimeout(()=>{
+  timer=setTimeout(async()=>{
    long=true;
-   set('');
-   status('已清空');
+
+   if(get()){
+    set('');
+    status('已清空');
+   }else{
+    const s=await paste();
+    if(s)set(s);
+   }
   },600);
  };
 
@@ -188,11 +208,17 @@ function button(el,get,set){
  el.oncontextmenu=e=>e.preventDefault();
 
  el.onclick=async()=>{
-  if(long){long=false;return}
-  if(get())await copy(get());
-  else{
-   const s=await paste();
-   if(s)set(s);
+  if(long){
+   long=false;
+   return;
+  }
+
+  if(get()){
+   await copy(get());
+  }else if(clipboard){
+   set(first(clipboard));
+  }else{
+   status('網頁內部剪貼簿為空');
   }
  };
 }
@@ -221,7 +247,6 @@ function updateFirst(tr){
  charButtons(tr.cells[0],s);
 }
 
-// mozi2 資料行
 function dataRows(){
  return [...mozi2.rows].filter(tr=>tr.dataset.add!=='1');
 }
@@ -470,7 +495,7 @@ $('cpb').onclick=()=>{
  }
 };
 
-// 儲存 GitHub：Token 從 header 輸入框取得
+// 儲存 GitHub
 $('cs').onclick=async()=>{
  if(saving||loading)return;
 
