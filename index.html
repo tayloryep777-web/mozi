@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -13,32 +12,28 @@
 @font-face{font-family:"Jigmo";src:url("Jigmo.ttf")}
 @font-face{font-family:"Jigmo2";src:url("Jigmo2.ttf")}
 @font-face{font-family:"Jigmo3";src:url("Jigmo3.ttf")}
-
 :is(#mozi,#mozi2,#cfa) td:nth-child(1){font:26pt "華瑞小篆體","Jigmo","Jigmo2","Jigmo3"}
-:is(#mozi,#mozi2,#cfa) td:nth-child(2){font:24pt "TW-MOE-Std-Kai","Jigmo","Jigmo2","Jigmo3"}
-:is(#mozi,#mozi2,#cfa) td:nth-child(3){font:24pt "TW-MOE-Std-Kai","Jigmo","Jigmo2","Jigmo3"}
-:is(#mozi,#mozi2,#cfa) td:nth-child(4){font:24pt "TW-MOE-Std-Kai","Jigmo","Jigmo2","Jigmo3"}
+:is(#mozi,#mozi2,#cfa) td:nth-child(2),:is(#mozi,#mozi2,#cfa) td:nth-child(3),:is(#mozi,#mozi2,#cfa) td:nth-child(4){font:24pt "TW-MOE-Std-Kai","Jigmo","Jigmo2","Jigmo3"}
 :is(#mozi,#cfa) td:nth-child(5){font:26pt var(--shuowen),"Jigmo","Jigmo2","Jigmo3"}
-:is(#mozi,#cfa) td:nth-child(6){font:22pt "Jigmo","Jigmo2","Jigmo3"}
-:is(#mozi,#cfa) td:nth-child(7){font:22pt "Jigmo","Jigmo2","Jigmo3"}
+:is(#mozi,#cfa) td:nth-child(6),:is(#mozi,#cfa) td:nth-child(7){font:22pt "Jigmo","Jigmo2","Jigmo3"}
 :is(#mozi,#mozi2,#cfa) td:nth-child(-n+4){white-space:pre}
-
 button{font:22pt "Jigmo","Jigmo2","Jigmo3"}
 .char{font:inherit;border:0;padding:0;margin:0;background:transparent;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;min-width:1ic;min-height:1em}
 .char:active{background:#ddd}
 #cfa tr{cursor:pointer}
-
-#mozi2{border-collapse:collapse;align-self:flex-start}
+footer{min-height:0;overflow:hidden}
+#mozi2-scroll{flex:1;min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain}
+#mozi2{border-collapse:collapse;width:max-content;min-width:100%}
 #mozi2 td{border:1px solid #aaa}
-#mozi2 td:nth-child(5) button{cursor:grab;touch-action:none}
-#mozi2 tr.dragging{opacity:.4}
-#mozi2 tr:last-child td{text-align:center}
-#mozi2 tr:last-child button{display:block;width:100%}
+#mozi2 td:nth-child(5) button{cursor:grab;touch-action:none;user-select:none}
+#mozi2 tr.dragging{opacity:.5}
+#mozi2 tr.dragging td:nth-child(5) button{cursor:grabbing}
+#mozi2 tr[data-add="1"] td{text-align:center}
+#mozi2 tr[data-add="1"] button{display:block;width:100%}
+#bg{flex:1;min-width:0;min-height:0;overflow-y:auto!important;overflow-x:auto;overscroll-behavior:contain;white-space:pre-wrap;overflow-wrap:anywhere}
 </style>
 </head>
-
 <body style="margin:0;height:100vh;display:flex;flex-direction:column;overflow:hidden">
-
 <header style="flex-shrink:0;display:flex;flex-wrap:wrap;align-items:center">
  <button id="cf" class="char" style="min-width:2ic"></button>
  <button id="cfb1">搜尋1</button>
@@ -53,319 +48,188 @@ button{font:22pt "Jigmo","Jigmo2","Jigmo3"}
   <table id="cfa"><col><col><col><col><col><col><col></table>
  </div>
 </header>
-
 <main style="flex:1;min-height:0;overflow:auto">
  <table id="mozi"><col><col><col><col><col><col><col></table>
 </main>
-
-<footer style="height:25vh;flex-shrink:0;display:flex;overflow:auto">
+<footer style="height:25vh;flex-shrink:0;display:flex">
  <table id="mozi2"><col><col><col><col><col></table>
- <p id="bg" style="font:22pt 'Jigmo','Jigmo2','Jigmo3'"></p>
+ <p id="bg" style="margin:0;overflow-x:hidden;overflow-y:auto;font:22pt 'Jigmo','Jigmo2','Jigmo3'"></p>
 </footer>
-
 <script>
 'use strict';
-
 const API='https://api.github.com/repos/tayloryep777-web/mozi/contents/mozi.txt';
 const BRANCH='mozi';
 const $=id=>document.getElementById(id);
 const table=$('mozi'),cfa=$('cfa'),mozi2=$('mozi2'),bg=$('bg');
+const scroll=document.createElement('div');
+scroll.id='mozi2-scroll';
+mozi2.before(scroll);
+scroll.append(mozi2);
 const chars=s=>Array.from(s);
-const first=s=>chars(s).find(c=>!/\s/u.test(c))||'';
-const value=el=>el.dataset.value??el.textContent;
+const first=s=>chars(s).find(c=>!(/\s/u).test(c))||'';
+const value=el=>el?.dataset.value??el?.textContent??'';
 const status=s=>{$('status').textContent=s};
 const changed=()=>{dirty=true;status('尚未儲存')};
-
 let sha='',loaded=false,dirty=false,loading=false;
 let originalNewline='\n',originalBOM='',originalTrailingNewline=false;
-
-const decode=s=>new TextDecoder().decode(
- Uint8Array.from(atob(s.replace(/\s/g,'')),c=>c.charCodeAt(0))
-);
-
+const decode=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g,'')),c=>c.charCodeAt(0)));
 const encode=s=>{
  const bytes=new TextEncoder().encode(s);
  let binary='';
- for(let i=0;i<bytes.length;i+=8192)
-  binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
+ for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
  return btoa(binary);
 };
-
 async function copy(s){
  if(!s)return;
- try{
-  await navigator.clipboard.writeText(s);
-  status('已複製：'+s);
- }catch(e){
-  console.error(e);
-  status('複製失敗');
- }
+ try{await navigator.clipboard.writeText(s);status('已複製：'+s)}
+ catch(e){console.error(e);status('複製失敗')}
 }
-
 async function paste(){
  try{return first(await navigator.clipboard.readText())}
- catch(e){
-  console.error(e);
-  status('無法讀取剪貼簿');
-  return null;
- }
+ catch(e){console.error(e);status('無法讀取剪貼簿');return null}
 }
-
-// 單擊複製／貼上、長按清空
 function button(el,get,set){
  let timer,long=false,x=0,y=0;
  const stop=()=>clearTimeout(timer);
-
- el.classList.add('char');
- el.type='button';
-
+ el.classList.add('char');el.type='button';
  el.onpointerdown=e=>{
   if(e.button!==0)return;
-  long=false;x=e.clientX;y=e.clientY;
-  stop();
-  if(get())timer=setTimeout(()=>{
-   long=true;
-   set('');
-   status('已清空');
-  },600);
+  long=false;x=e.clientX;y=e.clientY;stop();
+  if(get())timer=setTimeout(()=>{long=true;set('');status('已清空')},600);
  };
-
- el.onpointermove=e=>{
-  if(Math.hypot(e.clientX-x,e.clientY-y)>10)stop();
- };
-
+ el.onpointermove=e=>{if(Math.hypot(e.clientX-x,e.clientY-y)>10)stop()};
  el.onpointerup=el.onpointercancel=el.onpointerleave=stop;
  el.oncontextmenu=e=>e.preventDefault();
-
  el.onclick=async()=>{
   if(long){long=false;return}
   if(get())await copy(get());
-  else{
-   const s=await paste();
-   if(s)set(s);
-  }
+  else{const s=await paste();if(s)set(s)}
  };
 }
-
 function control(id){
- const el=$(id);
- let s='';
- const set=v=>{
-  s=v;
-  el.textContent=v;
-  el.dataset.value=v;
- };
+ const el=$(id);let s='';
+ const set=v=>{s=v;el.textContent=v;el.dataset.value=v};
  button(el,()=>s,set);
  return ()=>s;
 }
-
 const getSearch=control('cf'),getReplace=control('cp');
-
-// 第 1 欄合併第 2～4 欄
 function updateFirst(tr){
- tr.cells[0].textContent=[1,2,3]
-  .map(i=>tr.cells[i]?value(tr.cells[i]):'').join('');
+ tr.cells[0].textContent=[1,2,3].map(i=>value(tr.cells[i])).join('');
 }
-
-function dataRows(){
- return [...mozi2.rows].filter(tr=>tr.dataset.add!=='1');
-}
-
-// bg：兩表第 3、4 欄有、第 2 欄沒有的字元
+function dataRows(){return [...mozi2.rows].filter(tr=>tr.dataset.add!=='1')}
 function updateBg(){
  const rows=[...table.rows,...dataRows()];
  const a=new Set(chars(rows.map(r=>value(r.cells[1])).join('')));
  const b=new Set(chars(rows.map(r=>value(r.cells[2])+value(r.cells[3])).join('')));
  bg.textContent=[...b].filter(c=>!a.has(c)).join('');
 }
-
 function setCell(td,s,notify=false){
- s=first(s);
- td.dataset.value=s;
- td.replaceChildren();
-
- const el=document.createElement('button');
- el.textContent=s;
- td.appendChild(el);
-
+ s=first(s);td.dataset.value=s;td.replaceChildren();
+ const el=document.createElement('button');el.textContent=s;td.append(el);
  button(el,()=>value(td),v=>setCell(td,v,true));
  updateFirst(td.parentElement);
-
- if(notify){
-  updateBg();
-  changed();
- }
+ if(notify){updateBg();changed()}
 }
-
-// mozi2 資料行
 function addRow(s='',notify=true){
- const tr=document.createElement('tr');
- tr.draggable=false;
- tr.insertCell();
-
+ const tr=document.createElement('tr');tr.insertCell();
  const m=chars(s);
- for(let i=0;i<3;i++)
-  setCell(tr.insertCell(),m[i]||'');
-
- const td=tr.insertCell();
- const handle=document.createElement('button');
- handle.type='button';
- handle.textContent='☰';
- handle.title='拖曳移動整行';
- td.appendChild(handle);
-
+ for(let i=0;i<3;i++)setCell(tr.insertCell(),m[i]||'');
+ const td=tr.insertCell(),handle=document.createElement('button');
+ handle.type='button';handle.textContent='☰';handle.title='拖曳移動整行';
+ td.append(handle);
  const add=mozi2.querySelector('tr[data-add="1"]');
  add.parentNode.insertBefore(tr,add);
-
- let active=false,startY=0,moved=false;
-
+ let active=false,moved=false,startY=0,originalIndex=0;
  handle.onpointerdown=e=>{
   if(e.button!==0)return;
-  active=true;
-  moved=false;
-  startY=e.clientY;
+  active=true;moved=false;startY=e.clientY;
+  originalIndex=dataRows().indexOf(tr);
   handle.setPointerCapture(e.pointerId);
+  e.preventDefault();
  };
-
  handle.onpointermove=e=>{
   if(!active)return;
-  if(Math.abs(e.clientY-startY)>5)moved=true;
-  if(!moved)return;
-
-  tr.classList.add('dragging');
-
-  const target=document.elementFromPoint(e.clientX,e.clientY)
-   ?.closest('#mozi2 tr');
-
-  if(!target||target===tr||target.dataset.add==='1')return;
-
-  const rect=target.getBoundingClientRect();
-  const before=e.clientY<rect.top+rect.height/2;
-  target.parentNode.insertBefore(tr,before?target:target.nextSibling);
+  if(!moved&&Math.abs(e.clientY-startY)<=5)return;
+  moved=true;tr.classList.add('dragging');
+  const rect=scroll.getBoundingClientRect();
+  if(e.clientY<rect.top+24)scroll.scrollTop-=Math.min(22,rect.top+24-e.clientY);
+  else if(e.clientY>rect.bottom-24)scroll.scrollTop+=Math.min(22,e.clientY-(rect.bottom-24));
+  const rows=dataRows().filter(r=>r!==tr);
+  const target=rows.find(r=>{
+   const box=r.getBoundingClientRect();
+   return e.clientY<box.top+box.height/2;
+  });
+  const parent=add.parentNode;
+  parent.insertBefore(tr,target||add);
  };
-
  const finish=()=>{
   if(!active)return;
-  active=false;
-  tr.classList.remove('dragging');
-  if(moved){
-   updateBg();
-   changed();
-  }
+  active=false;tr.classList.remove('dragging');
+  if(moved&&dataRows().indexOf(tr)!==originalIndex){updateBg();changed()}
  };
-
  handle.onpointerup=finish;
  handle.onpointercancel=finish;
  handle.onlostpointercapture=finish;
-
- if(notify){
-  updateBg();
-  changed();
- }
+ if(notify){updateBg();changed()}
  return tr;
 }
-
-// 底部新增行按鈕
 function addButton(){
- const tr=mozi2.insertRow();
- tr.dataset.add='1';
-
- const td=tr.insertCell();
- td.colSpan=5;
-
+ const tr=mozi2.insertRow();tr.dataset.add='1';
+ const td=tr.insertCell();td.colSpan=5;
  const el=document.createElement('button');
- el.type='button';
- el.textContent='＋';
- el.title='新增一行';
- el.onclick=()=>addRow();
- td.appendChild(el);
+ el.type='button';el.textContent='＋';el.title='新增一行';
+ el.onclick=()=>{const tr=addRow();tr.scrollIntoView({block:'nearest'})};
+ td.append(el);
 }
-
 function render(text,sw){
  originalBOM=text.startsWith('\uFEFF')?'\uFEFF':'';
  if(originalBOM)text=text.slice(1);
  originalNewline=text.includes('\r\n')?'\r\n':'\n';
  originalTrailingNewline=/\r?\n$/.test(text);
-
  const lines=text.replace(/\r\n/g,'\n').split('\n');
  const seals=sw.replace(/\r\n/g,'\n').split('\n');
- if(lines.length<9833||seals.length<9833)
-  throw Error('資料不足 9833 行');
-
+ if(lines.length<9833||seals.length<9833)throw Error('資料不足 9833 行');
  const fragment=document.createDocumentFragment();
-
  for(let i=0;i<9833;i++){
   const m=chars(lines[i]).slice(0,3),s=seals[i].split('\t');
-  const tr=document.createElement('tr');
-  tr.insertCell();
-  for(let j=0;j<3;j++)
-   setCell(tr.insertCell(),m[j]||'');
-  for(let j=0;j<3;j++)
-   tr.insertCell().textContent=s[j]||'';
-  fragment.appendChild(tr);
+  const tr=document.createElement('tr');tr.insertCell();
+  for(let j=0;j<3;j++)setCell(tr.insertCell(),m[j]||'');
+  for(let j=0;j<3;j++)tr.insertCell().textContent=s[j]||'';
+  fragment.append(tr);
  }
-
- table.replaceChildren(fragment);
- cfa.replaceChildren();
- mozi2.replaceChildren();
-
+ table.replaceChildren(fragment);cfa.replaceChildren();
+ mozi2.querySelectorAll('tr').forEach(tr=>tr.remove());
  addButton();
-
  const tail=lines.slice(9833);
  if(originalTrailingNewline&&tail.at(-1)==='')tail.pop();
  for(const line of tail)addRow(line,false);
-
- updateBg();
- loaded=true;
- dirty=false;
- status('已載入 mozi.txt');
+ updateBg();loaded=true;dirty=false;status('已載入 mozi.txt');
 }
-
 async function github(options={}){
  const r=await fetch(API+'?ref='+BRANCH,{
   cache:'no-store',...options,
-  headers:{
-   Accept:'application/vnd.github+json',
-   ...(options.headers||{})
-  }
+  headers:{Accept:'application/vnd.github+json',...(options.headers||{})}
  });
- if(!r.ok)
-  throw Error('GitHub HTTP '+r.status+'：'+(await r.text()).slice(0,400));
+ if(!r.ok)throw Error('GitHub HTTP '+r.status+'：'+(await r.text()).slice(0,400));
  return r.json();
 }
-
 async function loadData(){
  if(loading||(dirty&&!confirm('有尚未儲存的修改、確定重新載入？')))return;
- loading=true;
- status('正在載入…');
-
+ loading=true;status('正在載入…');
  try{
   const [file,sw]=await Promise.all([
    github(),
-   fetch('shuowen.txt').then(r=>{
-    if(!r.ok)throw Error('shuowen.txt HTTP '+r.status);
-    return r.text();
-   })
+   fetch('shuowen.txt').then(r=>{if(!r.ok)throw Error('shuowen.txt HTTP '+r.status);return r.text()})
   ]);
-  render(decode(file.content),sw);
-  sha=file.sha;
- }catch(e){
-  console.error(e);
-  status('載入失敗：'+e.message);
- }finally{loading=false}
+  render(decode(file.content),sw);sha=file.sha;
+ }catch(e){console.error(e);status('載入失敗：'+e.message)}
+ finally{loading=false}
 }
-
 $('reload').onclick=loadData;
-
-// 點擊其他文字複製 Unicode 字元
 document.addEventListener('click',async e=>{
  if(e.target.closest('button,input,textarea,[contenteditable]'))return;
- const el=e.target.closest('td,p,span');
- if(!el)return;
-
- const selection=window.getSelection();
- if(selection&&!selection.isCollapsed)return;
-
+ const el=e.target.closest('td,p,span');if(!el)return;
+ const selection=window.getSelection();if(selection&&!selection.isCollapsed)return;
  let node,offset;
  if(document.caretPositionFromPoint){
   const p=document.caretPositionFromPoint(e.clientX,e.clientY);
@@ -375,107 +239,60 @@ document.addEventListener('click',async e=>{
   if(p){node=p.startContainer;offset=p.startOffset}
  }
  if(!node||node.nodeType!==Node.TEXT_NODE||!el.contains(node))return;
-
- const s=node.textContent;
- const n=chars(s.slice(0,offset)).length;
+ const s=node.textContent,n=chars(s.slice(0,offset)).length;
  const c=chars(s)[n]||chars(s)[n-1]||'';
  if(c)await copy(c);
 });
-
-// 搜尋指定欄位
 function searchColumn(columns){
- cfa.replaceChildren();
- const q=getSearch();
- if(!q)return;
-
+ cfa.querySelectorAll('tr').forEach(r=>r.remove());
+ const q=getSearch();if(!q)return;
  const fragment=document.createDocumentFragment();
  [...table.rows].forEach(tr=>{
   if(!columns.some(n=>value(tr.cells[n-1]).includes(q)))return;
   const row=document.createElement('tr');
   [...tr.cells].forEach(td=>row.insertCell().textContent=value(td));
   row.onclick=()=>tr.scrollIntoView({behavior:'smooth',block:'center'});
-  fragment.appendChild(row);
+  fragment.append(row);
  });
- cfa.appendChild(fragment);
+ cfa.append(fragment);
 }
-
 $('cfb1').onclick=()=>searchColumn([2]);
 $('cfb2').onclick=()=>searchColumn([3,4]);
 $('cfb3').onclick=()=>searchColumn([6]);
-
-// 取代兩個表格的第 2～4 欄
 $('cpb').onclick=()=>{
- const q=getSearch();
- if(!q)return;
- const replacement=getReplace();
- let any=false;
-
+ const q=getSearch();if(!q)return;
+ const replacement=getReplace();let any=false;
  for(const tr of [...table.rows,...dataRows()]){
   for(const j of [1,2,3]){
    const td=tr.cells[j],old=value(td);
-   if(old.includes(q)){
-    setCell(td,old.replaceAll(q,replacement));
-    any=true;
-   }
+   if(old.includes(q)){setCell(td,old.replaceAll(q,replacement));any=true}
   }
  }
  if(any){updateBg();changed()}
 };
-
-// 儲存 GitHub
 $('cs').onclick=async()=>{
  if(!loaded){alert('請先載入 mozi.txt');return}
-
  const serialize=tr=>[1,2,3].map(j=>value(tr.cells[j])).join('');
- const head=[...table.rows].map(serialize);
- const tail=dataRows().map(serialize);
-
+ const head=[...table.rows].map(serialize),tail=dataRows().map(serialize);
  let content=[...head,...tail].join('\n');
  if(originalTrailingNewline)content+='\n';
  content=originalBOM+content.replace(/\n/g,originalNewline);
-
  const token=prompt('輸入 GitHub Fine-grained PAT（mozi 儲存庫 Contents: Read and write）。Token 不會儲存在網頁中：');
  if(!token){status('已取消儲存');return}
-
- $('cs').disabled=true;
- status('正在儲存…');
-
+ $('cs').disabled=true;status('正在儲存…');
  try{
   const result=await github({
    method:'PUT',
-   headers:{
-    Authorization:'Bearer '+token,
-    'Content-Type':'application/json'
-   },
-   body:JSON.stringify({
-    message:'更新 mozi.txt',
-    content:encode(content),
-    sha,
-    branch:BRANCH
-   })
+   headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+   body:JSON.stringify({message:'更新 mozi.txt',content:encode(content),sha,branch:BRANCH})
   });
-  sha=result.content.sha;
-  dirty=false;
-  status('已提交至 GitHub mozi 分支');
- }catch(e){
-  console.error(e);
-  status('儲存失敗');
-  alert(e.message);
- }finally{$('cs').disabled=false}
+  sha=result.content.sha;dirty=false;status('已提交至 GitHub mozi 分支');
+ }catch(e){console.error(e);status('儲存失敗：'+e.message);alert(e.message)}
+ finally{$('cs').disabled=false}
 };
-
-window.addEventListener('beforeunload',e=>{
- if(dirty){e.preventDefault();e.returnValue=''}
-});
-
-const apple=/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)
- ||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-
-document.documentElement.style.setProperty(
- '--shuowen',
- apple?'"Shuo Wen SBIX"':'"Shuo Wen CBDT"'
-);
-
+window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
+const apple=/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+document.documentElement.style.setProperty('--shuowen',apple?'"Shuo Wen SBIX"':'"Shuo Wen CBDT"');
 loadData();
 </script>
 </body>
