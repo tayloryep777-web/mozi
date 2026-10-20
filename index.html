@@ -24,7 +24,19 @@
 :is(#mozi,#mozi2,#cfa) td:nth-child(-n+4){white-space:pre}
 
 button{font:22pt "Jigmo","Jigmo2","Jigmo3"}
-.char{font:inherit;border:0;padding:0;margin:0;background:transparent;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;min-width:1ic;min-height:1em}
+.char{
+ font:inherit;
+ border:0;
+ padding:0;
+ margin:0;
+ background:transparent;
+ cursor:pointer;
+ touch-action:manipulation;
+ user-select:none;
+ -webkit-user-select:none;
+ min-width:1ic;
+ min-height:1em
+}
 .char:active{background:#ddd}
 #cfa tr{cursor:pointer}
 
@@ -33,6 +45,17 @@ button{font:22pt "Jigmo","Jigmo2","Jigmo3"}
 #mozi2 td:nth-child(n+5) button{cursor:pointer}
 #mozi2 tr:last-child td{text-align:center}
 #mozi2 tr:last-child button{display:block;width:100%}
+
+#token{
+ font:14pt sans-serif;
+ width:220px;
+ box-sizing:border-box;
+}
+#status{
+ font:14pt sans-serif;
+ align-self:center;
+ overflow-wrap:anywhere;
+}
 </style>
 </head>
 
@@ -46,8 +69,9 @@ button{font:22pt "Jigmo","Jigmo2","Jigmo3"}
  <button id="cp" class="char" style="min-width:2ic"></button>
  <button id="cpb">取代</button>
  <button id="reload">重新載入</button>
+ <input id="token" type="password" placeholder="GitHub Token" autocomplete="off" aria-label="GitHub Token">
  <button id="cs">儲存至 GitHub</button>
- <span id="status" role="status" style="font:14pt sans-serif;align-self:center"></span>
+ <span id="status" role="status"></span>
  <div style="flex-basis:100%;max-height:25vh;min-width:0;overflow:auto">
   <table id="cfa"><col><col><col><col><col><col><col></table>
  </div>
@@ -69,14 +93,31 @@ const API='https://api.github.com/repos/tayloryep777-web/mozi/contents/mozi.txt'
 const BRANCH='mozi';
 const $=id=>document.getElementById(id);
 const table=$('mozi'),cfa=$('cfa'),mozi2=$('mozi2'),bg=$('bg');
+const tokenInput=$('token');
 const chars=s=>Array.from(s);
 const first=s=>chars(s).find(c=>!/\s/u.test(c))||'';
 const value=el=>el.dataset.value??el.textContent;
 const status=s=>{$('status').textContent=s};
 const changed=()=>{dirty=true;status('尚未儲存')};
 
-let sha='',loaded=false,dirty=false,loading=false;
+let sha='',loaded=false,dirty=false,loading=false,saving=false;
 let originalNewline='\n',originalBOM='',originalTrailingNewline=false;
+
+// GitHub Token 本機保存
+try{
+ tokenInput.value=localStorage.getItem('mozi-github-token')||'';
+}catch(e){
+ console.error('無法讀取 Token',e);
+}
+
+tokenInput.addEventListener('input',()=>{
+ try{
+  localStorage.setItem('mozi-github-token',tokenInput.value);
+ }catch(e){
+  console.error('無法儲存 Token',e);
+  status('瀏覽器無法儲存 Token');
+ }
+});
 
 const decode=s=>new TextDecoder().decode(
  Uint8Array.from(atob(s.replace(/\s/g,'')),c=>c.charCodeAt(0))
@@ -120,8 +161,11 @@ function button(el,get,set){
 
  el.onpointerdown=e=>{
   if(e.button!==0)return;
-  long=false;x=e.clientX;y=e.clientY;
+  long=false;
+  x=e.clientX;
+  y=e.clientY;
   stop();
+
   if(get())timer=setTimeout(()=>{
    long=true;
    set('');
@@ -149,11 +193,13 @@ function button(el,get,set){
 function control(id){
  const el=$(id);
  let s='';
+
  const set=v=>{
   s=v;
   el.textContent=v;
   el.dataset.value=v;
  };
+
  button(el,()=>s,set);
  return ()=>s;
 }
@@ -268,13 +314,15 @@ function render(text,sw){
 
  const lines=text.replace(/\r\n/g,'\n').split('\n');
  const seals=sw.replace(/\r\n/g,'\n').split('\n');
+
  if(lines.length<9833||seals.length<9833)
   throw Error('資料不足 9833 行');
 
  const fragment=document.createDocumentFragment();
 
  for(let i=0;i<9833;i++){
-  const m=chars(lines[i]).slice(0,3),s=seals[i].split('\t');
+  const m=chars(lines[i]).slice(0,3);
+  const s=seals[i].split('\t');
   const tr=document.createElement('tr');
   tr.insertCell();
 
@@ -295,6 +343,7 @@ function render(text,sw){
 
  const tail=lines.slice(9833);
  if(originalTrailingNewline&&tail.at(-1)==='')tail.pop();
+
  for(const line of tail)addRow(line,false);
 
  updateBg();
@@ -305,19 +354,29 @@ function render(text,sw){
 
 async function github(options={}){
  const r=await fetch(API+'?ref='+BRANCH,{
-  cache:'no-store',...options,
+  cache:'no-store',
+  ...options,
   headers:{
    Accept:'application/vnd.github+json',
    ...(options.headers||{})
   }
  });
+
  if(!r.ok)
   throw Error('GitHub HTTP '+r.status+'：'+(await r.text()).slice(0,400));
+
  return r.json();
 }
 
+// 重新載入：有未儲存修改時不覆蓋
 async function loadData(){
- if(loading||(dirty&&!confirm('有尚未儲存的修改、確定重新載入？')))return;
+ if(loading||saving)return;
+
+ if(dirty){
+  status('有尚未儲存的修改、請先儲存後再重新載入');
+  return;
+ }
+
  loading=true;
  status('正在載入…');
 
@@ -329,12 +388,15 @@ async function loadData(){
     return r.text();
    })
   ]);
+
   render(decode(file.content),sw);
   sha=file.sha;
  }catch(e){
   console.error(e);
   status('載入失敗：'+e.message);
- }finally{loading=false}
+ }finally{
+  loading=false;
+ }
 }
 
 $('reload').onclick=loadData;
@@ -342,6 +404,7 @@ $('reload').onclick=loadData;
 // 點擊其他文字複製 Unicode 字元
 document.addEventListener('click',async e=>{
  if(e.target.closest('button,input,textarea,[contenteditable]'))return;
+
  const el=e.target.closest('td,p,span');
  if(!el)return;
 
@@ -349,6 +412,7 @@ document.addEventListener('click',async e=>{
  if(selection&&!selection.isCollapsed)return;
 
  let node,offset;
+
  if(document.caretPositionFromPoint){
   const p=document.caretPositionFromPoint(e.clientX,e.clientY);
   if(p){node=p.offsetNode;offset=p.offset}
@@ -356,28 +420,42 @@ document.addEventListener('click',async e=>{
   const p=document.caretRangeFromPoint(e.clientX,e.clientY);
   if(p){node=p.startContainer;offset=p.startOffset}
  }
+
  if(!node||node.nodeType!==Node.TEXT_NODE||!el.contains(node))return;
 
  const s=node.textContent;
  const n=chars(s.slice(0,offset)).length;
  const c=chars(s)[n]||chars(s)[n-1]||'';
+
  if(c)await copy(c);
 });
 
 // 搜尋指定欄位
 function searchColumn(columns){
  cfa.replaceChildren();
+
  const q=getSearch();
  if(!q)return;
 
  const fragment=document.createDocumentFragment();
+
  [...table.rows].forEach(tr=>{
   if(!columns.some(n=>value(tr.cells[n-1]).includes(q)))return;
+
   const row=document.createElement('tr');
-  [...tr.cells].forEach(td=>row.insertCell().textContent=value(td));
-  row.onclick=()=>tr.scrollIntoView({behavior:'smooth',block:'center'});
+
+  [...tr.cells].forEach(td=>{
+   row.insertCell().textContent=value(td);
+  });
+
+  row.onclick=()=>tr.scrollIntoView({
+   behavior:'smooth',
+   block:'center'
+  });
+
   fragment.appendChild(row);
  });
+
  cfa.appendChild(fragment);
 }
 
@@ -389,24 +467,44 @@ $('cfb3').onclick=()=>searchColumn([6]);
 $('cpb').onclick=()=>{
  const q=getSearch();
  if(!q)return;
+
  const replacement=getReplace();
  let any=false;
 
  for(const tr of [...table.rows,...dataRows()]){
   for(const j of [1,2,3]){
-   const td=tr.cells[j],old=value(td);
+   const td=tr.cells[j];
+   const old=value(td);
+
    if(old.includes(q)){
     setCell(td,old.replaceAll(q,replacement));
     any=true;
    }
   }
  }
- if(any){updateBg();changed()}
+
+ if(any){
+  updateBg();
+  changed();
+ }
 };
 
-// 儲存 GitHub
+// 儲存 GitHub：Token 從 header 輸入框取得
 $('cs').onclick=async()=>{
- if(!loaded){alert('請先載入 mozi.txt');return}
+ if(saving||loading)return;
+
+ if(!loaded){
+  status('請先載入 mozi.txt');
+  return;
+ }
+
+ const token=tokenInput.value.trim();
+
+ if(!token){
+  status('請先在上方輸入 GitHub Token');
+  tokenInput.focus();
+  return;
+ }
 
  const serialize=tr=>[1,2,3].map(j=>value(tr.cells[j])).join('');
  const head=[...table.rows].map(serialize);
@@ -416,9 +514,7 @@ $('cs').onclick=async()=>{
  if(originalTrailingNewline)content+='\n';
  content=originalBOM+content.replace(/\n/g,originalNewline);
 
- const token=prompt('輸入 GitHub Fine-grained PAT（mozi 儲存庫 Contents: Read and write）。Token 不會儲存在網頁中：');
- if(!token){status('已取消儲存');return}
-
+ saving=true;
  $('cs').disabled=true;
  status('正在儲存…');
 
@@ -436,20 +532,20 @@ $('cs').onclick=async()=>{
     branch:BRANCH
    })
   });
+
   sha=result.content.sha;
   dirty=false;
   status('已提交至 GitHub mozi 分支');
  }catch(e){
   console.error(e);
-  status('儲存失敗');
-  alert(e.message);
- }finally{$('cs').disabled=false}
+  status('儲存失敗：'+e.message);
+ }finally{
+  saving=false;
+  $('cs').disabled=false;
+ }
 };
 
-window.addEventListener('beforeunload',e=>{
- if(dirty){e.preventDefault();e.returnValue=''}
-});
-
+// Apple 優先使用 SBIX、其他平台使用 CBDT
 const apple=/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)
  ||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 
