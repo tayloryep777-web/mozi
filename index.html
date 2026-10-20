@@ -463,11 +463,10 @@ $('cs').onclick=async()=>{
   sha=result.content.sha;
   dirty=false;
   status('已提交至 GitHub mozi 分支');
- }catch(e){
-  console.error(e);
-  status('儲存失敗');
-  alert(e.message);
- }finally{$('cs').disabled=false}
+}catch(e){
+ console.error(e);
+ status('載入失敗：'+e.message);
+}finally{loading=false}
 };
 
 window.addEventListener('beforeunload',e=>{
