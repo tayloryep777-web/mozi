@@ -1,10 +1,17 @@
-
 <!DOCTYPE html>
-<html lang="zh-Hant">
+
+<html>
+
+
+ 
 <head>
+
+ 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>說文解字</title>
+
+ 
 <style>
 @font-face{font-family:"華瑞小篆體";src:url("華瑞小篆體.ttf")}
 @font-face{font-family:"TW-MOE-Std-Kai";src:url("TW-MOE-Std-Kai.ttf")}
@@ -58,36 +65,9 @@ button{font:22pt "Jigmo","Jigmo2","Jigmo3"}
 #token{font:14pt sans-serif;width:220px;box-sizing:border-box}
 #status{font:14pt sans-serif;align-self:center;overflow-wrap:anywhere}
 </style>
-</head>
 
-<body>
 
-<header>
- <button id="cf" class="char"></button>
- <button id="cfb1">搜尋1</button>
- <button id="cfb2">搜尋2</button>
- <button id="cfb3">搜尋3</button>
- <button id="cp" class="char"></button>
- <button id="cpb">取代</button>
- <button id="reload">重新載入</button>
- <input id="token" type="password" placeholder="GitHub Token" autocomplete="off" aria-label="GitHub Token">
- <button id="cs">儲存至 GitHub</button>
- <span id="status" role="status"></span>
- <div id="results">
-  <table id="cfa"><col><col><col><col><col><col><col></table>
- </div>
-</header>
-
-<main>
- <table id="mozi"><col><col><col><col><col><col><col></table>
-</main>
-
-<footer>
- <table id="mozi2"><col><col><col><col><col><col></table>
- <p id="bg"></p>
-</footer>
-
-<script>
+ <script>
 'use strict';
 
 const API='https://api.github.com/repos/tayloryep777-web/mozi/contents/mozi.txt';
@@ -562,5 +542,41 @@ document.documentElement.style.setProperty(
 
 loadData();
 </script>
+
+ 
+</head>
+
+
+ 
+<body>
+
+<header>
+ <button id="cf" class="char"></button>
+ <button id="cfb1">搜尋1</button>
+ <button id="cfb2">搜尋2</button>
+ <button id="cfb3">搜尋3</button>
+ <button id="cp" class="char"></button>
+ <button id="cpb">取代</button>
+ <button id="reload">重新載入</button>
+ <input id="token" type="password" placeholder="GitHub Token" autocomplete="off" aria-label="GitHub Token">
+ <button id="cs">儲存至 GitHub</button>
+ <span id="status" role="status"></span>
+ <div id="results">
+  <table id="cfa"><col><col><col><col><col><col><col></table>
+ </div>
+</header>
+
+<main>
+ <table id="mozi"><col><col><col><col><col><col><col></table>
+</main>
+
+<footer>
+ <table id="mozi2"><col><col><col><col><col><col></table>
+ <p id="bg"></p>
+</footer>
+
 </body>
+
+
+ 
 </html>
