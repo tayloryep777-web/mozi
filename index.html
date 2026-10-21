@@ -300,34 +300,80 @@ async function pasteSystem(b){
 }
 
 
-/* 共用事件：左右鍵操作反轉 */
-let suppressedClick=null;
-let suppressedUntil=0;
+
+/* 共用事件：單擊與長按 */
+const LONG_PRESS=500;
+let pressTimer=null;
+let longPressed=false;
+let suppressClick=false;
+let pressButton=null;
+let pressX=0;
+let pressY=0;
+
+function cancelPress(){
+ clearTimeout(pressTimer);
+ pressTimer=null;
+ pressButton=null;
+}
+
+document.addEventListener('pointerdown',e=>{
+ const b=e.target.closest('button[data-edit]');
+ if(!b||e.button!==0)return;
+
+ cancelPress();
+ longPressed=false;
+ pressButton=b;
+ pressX=e.clientX;
+ pressY=e.clientY;
+
+ pressTimer=setTimeout(()=>{
+  pressTimer=null;
+  if(pressButton!==b)return;
+  longPressed=true;
+  suppressClick=true;
+
+  if(buttonInfo(b).value)clearValue(b);
+  else pasteInternal(b);
+ },LONG_PRESS);
+});
+
+document.addEventListener('pointermove',e=>{
+ if(!pressButton)return;
+ if(Math.hypot(e.clientX-pressX,e.clientY-pressY)>10){
+  cancelPress();
+ }
+});
+
+document.addEventListener('pointerup',cancelPress);
+document.addEventListener('pointercancel',cancelPress);
 
 document.addEventListener('click',e=>{
  const b=e.target.closest('button');
  if(!b)return;
- if(b.dataset.edit!==undefined&&b===suppressedClick&&performance.now()<suppressedUntil){
-  e.preventDefault();
-  e.stopPropagation();
-  suppressedClick=null;
+
+ if(b.dataset.edit!==undefined){
+  if(suppressClick){
+   suppressClick=false;
+   e.preventDefault();
+   e.stopPropagation();
+   return;
+  }
+
+  if(buttonInfo(b).value)copyValue(b);
+  else pasteSystem(b);
   return;
  }
- if(b.dataset.copy!==undefined){copy(b.dataset.copy);return;}
- if(b.dataset.edit===undefined)return;
- if(buttonInfo(b).value)clearValue(b);
- else pasteSystem(b);
+
+ if(b.dataset.copy!==undefined){
+  copy(b.dataset.copy);
+ }
 });
 
 document.addEventListener('contextmenu',e=>{
  const b=e.target.closest('button[data-edit]');
- if(!b)return;
- e.preventDefault();
- suppressedClick=b;
- suppressedUntil=performance.now()+1500;
- if(buttonInfo(b).value)copyValue(b);
- else pasteInternal(b);
+ if(b)e.preventDefault();
 });
+
 
 
 /* 主表 */
