@@ -32,7 +32,6 @@ button{font:22pt "Jigmo","Jigmo2","Jigmo3"}
 #bg{margin:0;overflow-x:hidden;overflow-y:auto;font:22pt "Jigmo","Jigmo2","Jigmo3"}
 #token{font:14pt sans-serif;width:220px;box-sizing:border-box}
 #status{font:14pt sans-serif;align-self:center;overflow-wrap:anywhere}
-/* 未完成前不顯示應用內容；載入層保持可見 */
 body:not(.ready)>header,body:not(.ready)>main,body:not(.ready)>footer{visibility:hidden}
 #loading{position:fixed;inset:0;z-index:9999;background:#fff;color:#222;display:flex;align-items:center;justify-content:center;font:16px system-ui,sans-serif}
 #loading[hidden]{display:none}
@@ -56,37 +55,31 @@ const first=s=>chars(s).find(c=>!(/[\p{White_Space}\p{Cc}\p{Cf}]/u.test(c)))||''
 const value=el=>el.dataset.value??el.textContent;
 const status=s=>{$('status').textContent=s};
 const changed=()=>{dirty=true;status('尚未儲存')};
-const nextFrame=()=>new Promise(resolve=>requestAnimationFrame(()=>setTimeout(resolve,0)));
+// 無逾時限制。讓瀏覽器有機會繪製進度畫面。
+const nextFrame=()=>new Promise(resolve=>requestAnimationFrame(()=>resolve()));
 let sha='',loaded=false,dirty=false,loading=false,saving=false;
 let clipboard='';
 let originalNewline='\n',originalBOM='',originalTrailingNewline=false;
 const apple=/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 const sealFamily=apple?'Shuo Wen SBIX':'Shuo Wen CBDT';
 document.documentElement.style.setProperty('--shuowen',JSON.stringify(sealFamily));
-
 function progress(p,stage,detail=''){
  $('loading-bar').value=Math.max(0,Math.min(100,p));
  $('loading-stage').textContent=stage;
- $('loading-detail').textContent=`${Math.round(p)}%${detail?' · '+detail:''}`;
+ $('loading-detail').textContent=`${p.toFixed(1)}%${detail?' · '+detail:''}`;
 }
 function showLoading(){
- document.body.classList.remove('ready');
- $('loading').hidden=false;
- $('loading-error').textContent='';
- $('retry').hidden=true;
+ document.body.classList.remove('ready');$('loading').hidden=false;
+ $('loading-error').textContent='';$('retry').hidden=true;
  progress(0,'準備載入…');
 }
 function failLoading(e){
- console.error(e);
- progress($('loading-bar').value,'載入失敗');
- $('loading-error').textContent=e.message||String(e);
- $('retry').hidden=false;
+ console.error(e);progress($('loading-bar').value,'載入失敗');
+ $('loading-error').textContent=e.message||String(e);$('retry').hidden=false;
  status('載入失敗：'+(e.message||String(e)));
 }
 function finishLoading(){
- progress(100,'全部載入完成');
- document.body.classList.add('ready');
- $('loading').hidden=true;
+ progress(100,'全部載入完成');document.body.classList.add('ready');$('loading').hidden=true;
 }
 try{tokenInput.value=localStorage.getItem('mozi-github-token')||''}catch(e){console.error(e)}
 tokenInput.addEventListener('input',()=>{
@@ -122,6 +115,7 @@ function button(el,get,set){
  el.onpointerdown=e=>{
   if(e.button!==0)return;
   long=false;x=e.clientX;y=e.clientY;stop();
+  // 600ms 是長按操作的判定時間、不是載入逾時限制。
   timer=setTimeout(async()=>{
    long=true;
    if(get()){set('');status('已清空')}
@@ -201,11 +195,12 @@ async function render(text,sw){
  const lines=text.replace(/\r\n/g,'\n').split('\n');
  const seals=sw.replace(/\r\n/g,'\n').split('\n');
  if(lines.length<9833||seals.length<9833)throw Error(`資料不足 9833 行（mozi：${lines.length}、shuowen：${seals.length}）`);
- const total=9833;
- // 先在離線 fragment 建立，避免畫面顯示半成品。
- const fragment=document.createDocumentFragment();
- for(let start=0;start<total;start+=100){
-  const end=Math.min(start+100,total);
+ const total=9833,chunkSize=100;
+ table.replaceChildren();cfa.replaceChildren();mozi2.replaceChildren();
+ // 分批插入實際 DOM、每批都可進行版面計算。
+ for(let start=0;start<total;start+=chunkSize){
+  const end=Math.min(start+chunkSize,total);
+  const fragment=document.createDocumentFragment();
   for(let i=start;i<end;i++){
    const m=chars(lines[i]).slice(0,3),s=seals[i].split('\t');
    const tr=document.createElement('tr');tr.insertCell();
@@ -214,22 +209,38 @@ async function render(text,sw){
    for(let j=0;j<3;j++)charButtons(tr.insertCell(),s[j]||'');
    fragment.appendChild(tr);
   }
-  progress(35+55*end/total,'正在建立主表',`${end} / ${total} 行`);
+  table.appendChild(fragment);
+  progress(35+43*end/total,'正在建立並插入主表',`${end} / ${total} 行`);
   await nextFrame();
  }
  const tail=lines.slice(9833);
  if(originalTrailingNewline&&tail.at(-1)==='')tail.pop();
- const extras=document.createDocumentFragment();
- for(let i=0;i<tail.length;i+=100){
-  for(const line of tail.slice(i,i+100))extras.appendChild(createExtraRow(line));
-  progress(90+5*Math.min(i+100,tail.length)/Math.max(1,tail.length),'正在建立附加資料',`${Math.min(i+100,tail.length)} / ${tail.length} 行`);
+ for(let i=0;i<tail.length;i+=chunkSize){
+  const fragment=document.createDocumentFragment();
+  for(const line of tail.slice(i,i+chunkSize))fragment.appendChild(createExtraRow(line));
+  mozi2.appendChild(fragment);
+  progress(78+7*Math.min(i+chunkSize,tail.length)/Math.max(1,tail.length),'正在建立附加資料',`${Math.min(i+chunkSize,tail.length)} / ${tail.length} 行`);
   await nextFrame();
  }
- table.replaceChildren(fragment);cfa.replaceChildren();mozi2.replaceChildren(extras);
  addButton();
- progress(96,'正在計算差異字元');await nextFrame();
- updateBg();loaded=true;dirty=false;
- status('已載入 mozi.txt');
+ progress(85,'正在計算差異字元');await nextFrame();
+ updateBg();
+ progress(87,'正在準備版面配置');await nextFrame();
+ // 對已插入的實際 DOM 逐批讀取尺寸、促使瀏覽器完成對應區域的樣式與版面計算。
+ // 這是測量批次進度、不是瀏覽器內部 Layout/Paint 的真實百分比。
+ const rows=[...table.rows,...dataRows()];
+ let measured=0;
+ for(let i=0;i<rows.length;i+=chunkSize){
+  const end=Math.min(i+chunkSize,rows.length);
+  for(let j=i;j<end;j++){
+   const rect=rows[j].getBoundingClientRect();
+   measured+=rect.height;
+  }
+  progress(87+11*end/rows.length,'正在測量版面',`${end} / ${rows.length} 行`);
+  await nextFrame();
+ }
+ void measured;
+ loaded=true;dirty=false;status('已載入 mozi.txt');
 }
 async function github(options={}){
  const r=await fetch(API+'?ref='+encodeURIComponent(BRANCH),{
@@ -244,14 +255,12 @@ async function loadFonts(){
  for(let i=0;i<families.length;i++){
   const family=families[i];
   progress(15+20*i/families.length,'正在載入字型',`${i+1}/${families.length}：${family}`);
-  // 明確載入字型；字形測試字元不必屬於該字型，FontFace.load() 可強制載入整個檔案。
   const face=[...document.fonts].find(f=>f.family.replace(/^['"]|['"]$/g,'')===family);
   if(!face)throw Error('找不到字型宣告：'+family);
   await face.load();
   if(face.status!=='loaded')throw Error('字型載入失敗：'+family);
  }
- await document.fonts.ready;
- progress(35,'字型載入完成');
+ progress(35,'字型檔案已載入');
 }
 async function loadData(){
  if(loading||saving)return;
@@ -259,22 +268,22 @@ async function loadData(){
  loading=true;showLoading();status('正在載入…');
  try{
   progress(2,'正在下載 TXT 檔案');
-  const files=Promise.all([
-   github().then(f=>{progress(8,'GitHub 資料已取得');return f}),
+  const [file,sw]=await Promise.all([
+   github(),
    fetch('shuowen.txt').then(r=>{
     if(!r.ok)throw Error('shuowen.txt HTTP '+r.status);
     return r.text();
    })
   ]);
-  // 並行取得檔案及字型，下載完成才開始渲染。
-  const fonts=loadFonts();
-  const [[file,sw]]=await Promise.all([files,fonts]);
+  progress(15,'TXT 下載完成');await nextFrame();
+  await loadFonts();
   progress(35,'正在解碼 TXT');await nextFrame();
   await render(decode(file.content),sw);
   sha=file.sha;
-  progress(98,'正在完成版面配置');
-  await document.fonts.ready;
-  await nextFrame();await nextFrame();
+  progress(98,'正在確認字型與最後畫面');
+  // 已逐一等待字型載入完成、這裡不再無限等待 document.fonts.ready。
+  await nextFrame();
+  progress(99,'正在顯示完整介面');
   finishLoading();
  }catch(e){failLoading(e)}
  finally{loading=false}
