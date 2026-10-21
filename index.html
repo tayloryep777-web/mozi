@@ -745,7 +745,7 @@ async function parseData(text,sw){
  originalTrailingNewline=/\r?\n$/.test(text);
  const lines=text.replace(/\r\n/g,'\n').split('\n');
  const seals=sw.replace(/\r\n/g,'\n').split('\n');
- if(lines.length<TOTAL||seals.length<TOTAL)){
+ if(lines.length<TOTAL||seals.length<TOTAL){
   throw Error(`資料不足 ${TOTAL} 行（mozi：${lines.length}、shuowen：${seals.length}）`);
  }
  loaded=false;
