@@ -27,7 +27,9 @@
  --w6:3ic;
 }
 
-*{box-sizing:border-box}
+*{
+ box-sizing:border-box;
+}
 
 html{
  width:100%;
@@ -63,7 +65,9 @@ button:focus{
  background:transparent;
 }
 
-button:focus{outline:none}
+button:focus{
+ outline:none;
+}
 
 header{
  flex-shrink:0;
@@ -118,15 +122,37 @@ footer{
  font-size:24pt;
 }
 
-#mozi,#cfa{width:100%}
-#mozi2{width:8ic}
+#mozi,#cfa{
+ width:100%;
+}
 
-:is(#mozi,#cfa,#mozi2) col:nth-child(1){width:var(--w1)}
-:is(#mozi,#cfa,#mozi2) col:nth-child(2){width:var(--w2)}
-:is(#mozi,#cfa,#mozi2) col:nth-child(3){width:var(--w3)}
-:is(#mozi,#cfa,#mozi2) col:nth-child(4){width:var(--w4)}
-:is(#mozi,#cfa) col:nth-child(5){width:var(--w5)}
-:is(#mozi,#cfa) col:nth-child(6){width:var(--w6)}
+#mozi2{
+ width:8ic;
+}
+
+:is(#mozi,#cfa,#mozi2) col:nth-child(1){
+ width:var(--w1);
+}
+
+:is(#mozi,#cfa,#mozi2) col:nth-child(2){
+ width:var(--w2);
+}
+
+:is(#mozi,#cfa,#mozi2) col:nth-child(3){
+ width:var(--w3);
+}
+
+:is(#mozi,#cfa,#mozi2) col:nth-child(4){
+ width:var(--w4);
+}
+
+:is(#mozi,#cfa) col:nth-child(5){
+ width:var(--w5);
+}
+
+:is(#mozi,#cfa) col:nth-child(6){
+ width:var(--w6);
+}
 
 #mozi2 col:nth-child(5),
 #mozi2 col:nth-child(6){
@@ -207,8 +233,13 @@ footer{
  text-align:center;
 }
 
-#cf,#cp{min-width:2ic}
-#cfa tr{cursor:pointer}
+#cf,#cp{
+ min-width:2ic;
+}
+
+#cfa tr{
+ cursor:pointer;
+}
 
 #mozi2 td:nth-child(5),
 #mozi2 td:nth-child(6){
@@ -262,30 +293,6 @@ footer{
  font:24pt var(--font);
 }
 
-/* Safari 原生貼上目標 */
-
-#native-paste{
- position:fixed;
- z-index:99999;
- opacity:0;
- pointer-events:auto;
- appearance:none;
- -webkit-appearance:none;
- border:0;
- border-radius:0;
- padding:0;
- margin:0;
- resize:none;
- outline:none;
- background:transparent;
- color:transparent;
- font-size:16px;
- line-height:normal;
- user-select:text;
- -webkit-user-select:text;
- touch-action:auto;
-}
-
 body:not(.ready)>header,
 body:not(.ready)>main,
 body:not(.ready)>footer{
@@ -304,7 +311,9 @@ body:not(.ready)>footer{
  font:24pt var(--font);
 }
 
-#loading[hidden]{display:none}
+#loading[hidden]{
+ display:none;
+}
 
 #loading-panel{
  width:85%;
@@ -327,7 +336,9 @@ body:not(.ready)>footer{
  accent-color:#3275bd;
 }
 
-#loading-detail{margin-top:0.25ic}
+#loading-detail{
+ margin-top:0.25ic;
+}
 
 #loading-error{
  white-space:pre-wrap;
@@ -486,13 +497,9 @@ function estimatedRowHeight(){
  const probe=document.createElement('span');
  probe.style.cssText=
   'position:absolute;visibility:hidden;font:24pt "Jigmo";height:2ic';
-
  document.body.appendChild(probe);
-
  const h=probe.getBoundingClientRect().height;
-
  probe.remove();
-
  return h||64;
 }
 
@@ -603,121 +610,25 @@ async function copy(s){
  status('已複製：'+s);
 }
 
-/*
- Safari 原生貼上：
-
- 建立與原按鈕相同尺寸的透明 textarea。
- 允許觸控與原生選單。
- 貼上後自動移除。
-*/
-
-let activePaste=null;
-
-function closeNativePaste(){
- if(!activePaste)return;
-
- const current=activePaste;
- activePaste=null;
-
- current.cleanup();
-}
-
-function nativePaste(button,callback){
- closeNativePaste();
-
- if(!button.isConnected)return;
-
- const rect=button.getBoundingClientRect();
-
- const input=document.createElement('textarea');
-
- input.id='native-paste';
- input.setAttribute('aria-label','貼上字元');
- input.setAttribute('autocomplete','off');
- input.setAttribute('autocapitalize','off');
- input.setAttribute('spellcheck','false');
-
- input.style.left=rect.left+'px';
- input.style.top=rect.top+'px';
- input.style.width=Math.max(1,rect.width)+'px';
- input.style.height=Math.max(1,rect.height)+'px';
-
- document.body.appendChild(input);
-
- let finished=false;
- let cleanupTimer=null;
-
- function cleanup(){
-  if(finished)return;
-
-  finished=true;
-  clearTimeout(cleanupTimer);
-
-  input.remove();
-
-  if(activePaste?.input===input){
-   activePaste=null;
-  }
+async function paste(){
+ try{
+  return first(await navigator.clipboard.readText());
+ }catch(e){
+  console.error(e);
+  status('無法讀取系統剪貼簿');
+  return null;
  }
-
- function accept(value){
-  if(finished)return;
-
-  const s=first(value);
-
-  if(!s)return;
-
-  clipboard=s;
-  callback(s);
-
-  status('已貼上：'+s);
-
-  cleanup();
- }
-
- activePaste={input,cleanup};
-
- input.addEventListener('paste',e=>{
-  const text=e.clipboardData?.getData('text/plain');
-
-  if(text){
-   e.preventDefault();
-   accept(text);
-  }
- });
-
- input.addEventListener('input',()=>{
-  accept(input.value);
- });
-
- input.addEventListener('blur',()=>{
-  cleanupTimer=setTimeout(cleanup,300);
- });
-
- input.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){
-   cleanup();
-  }
- });
-
- input.focus({preventScroll:true});
-
- status('請在原位置選擇「貼上」');
 }
-
-/* 字元按鈕 */
 
 function charButtons(el,s){
  const fragment=document.createDocumentFragment();
 
  for(const c of chars(s)){
   const b=document.createElement('button');
-
   b.type='button';
   b.className='char';
   b.textContent=c;
   b.dataset.copy=c;
-
   fragment.appendChild(b);
  }
 
@@ -746,12 +657,9 @@ function createEditableButton(s,kind,index,column){
 
 function control(id){
  const el=$(id);
-
  editableButton(el);
-
  el.dataset.kind='control';
  el.dataset.value='';
-
  return ()=>el.dataset.value||'';
 }
 
@@ -799,7 +707,7 @@ function updateFirst(tr,edit){
  charButtons(tr.cells[0],edit.join(''));
 }
 
-/* 複製事件 */
+/* 按鈕事件 */
 
 document.addEventListener('click',e=>{
  const b=e.target.closest('button[data-copy]');
@@ -808,8 +716,6 @@ document.addEventListener('click',e=>{
   copy(b.dataset.copy);
  }
 });
-
-/* 長按事件 */
 
 let pressTimer=null;
 let pressButton=null;
@@ -824,7 +730,6 @@ function stopPress(){
 
 document.addEventListener('pointerdown',e=>{
  const b=e.target.closest('button[data-edit]');
-
  if(!b||e.button!==0)return;
 
  stopPress();
@@ -838,7 +743,7 @@ document.addEventListener('pointerdown',e=>{
  const index=Number(b.dataset.index);
  const column=Number(b.dataset.column);
 
- pressTimer=setTimeout(()=>{
+ pressTimer=setTimeout(async()=>{
   if(pressButton!==b)return;
 
   longPressed=true;
@@ -851,10 +756,12 @@ document.addEventListener('pointerdown',e=>{
     b.textContent='';
     status('已清空');
    }else{
-    nativePaste(b,p=>{
+    const p=await paste();
+
+    if(p){
      b.dataset.value=p;
      b.textContent=p;
-    });
+    }
    }
 
    return;
@@ -866,9 +773,11 @@ document.addEventListener('pointerdown',e=>{
    setEditValue(kind,index,column,'');
    status('已清空');
   }else{
-   nativePaste(b,p=>{
+   const p=await paste();
+
+   if(p){
     setEditValue(kind,index,column,p);
-   });
+   }
   }
  },600);
 });
@@ -891,11 +800,8 @@ document.addEventListener('contextmenu',e=>{
  }
 });
 
-/* 單擊事件 */
-
 document.addEventListener('click',e=>{
  const b=e.target.closest('button[data-edit]');
-
  if(!b)return;
 
  if(longPressed){
@@ -1160,8 +1066,6 @@ viewport.addEventListener('scroll',scheduleRender,{
 window.addEventListener('resize',()=>{
  if(!loaded)return;
 
- closeNativePaste();
-
  heightTree=new FenwickTree(
   mainData.length,
   estimatedRowHeight()
@@ -1197,8 +1101,6 @@ function refreshVisibleRow(index){
 
 function jumpToRow(index){
  if(index<0||index>=mainData.length)return;
-
- closeNativePaste();
 
  highlightedIndex=index;
 
@@ -1668,8 +1570,6 @@ async function loadData(){
   status('有尚未儲存的修改、請先儲存後再重新載入');
   return;
  }
-
- closeNativePaste();
 
  loading=true;
  showLoading();
