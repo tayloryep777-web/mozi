@@ -51,13 +51,30 @@ button,input,progress{
  font:24pt var(--font);
 }
 
+button{
+ appearance:none;
+ -webkit-appearance:none;
+ border:0;
+ background:transparent;
+ color:inherit;
+}
+
+button:hover,
+button:active,
+button:focus{
+ background:transparent;
+}
+
+button:focus{
+ outline:none;
+}
+
 header{
  flex-shrink:0;
  display:flex;
  flex-wrap:wrap;
  align-items:center;
  min-width:0;
- border:solid;
 }
 
 main{
@@ -69,7 +86,6 @@ main{
  position:relative;
  overscroll-behavior:contain;
  overflow-anchor:none;
- border:solid;
 }
 
 footer{
@@ -79,7 +95,6 @@ footer{
  min-width:0;
  min-height:0;
  overflow:hidden;
- border:solid;
 }
 
 #results{
@@ -98,7 +113,6 @@ footer{
  overflow-x:hidden;
  overflow-y:auto;
  overscroll-behavior:contain;
- border:solid;
 }
 
 #mozi,#cfa,#mozi2{
@@ -146,7 +160,6 @@ footer{
 }
 
 :is(#mozi,#cfa,#mozi2) td{
- border:solid;
  padding:0;
  white-space:normal;
  overflow-wrap:anywhere;
@@ -188,7 +201,6 @@ footer{
 
 #mozi tr.spacer td{
  padding:0;
- border:0;
  height:0;
  min-height:0;
  line-height:0;
@@ -198,7 +210,6 @@ footer{
 
 .char{
  font:inherit;
- border:0;
  padding:0;
  margin:0;
  background:transparent;
@@ -213,14 +224,6 @@ footer{
  overflow-wrap:anywhere;
  word-break:break-word;
  vertical-align:middle;
-}
-
-.char:hover{
- background:#ddd;
-}
-
-.char:active{
- background:#ccc;
 }
 
 :is(#mozi,#mozi2) td:has(>button[data-edit])>button{
@@ -268,7 +271,6 @@ footer{
  overflow-wrap:anywhere;
  word-break:break-word;
  overscroll-behavior:contain;
- border:solid;
  font:24pt var(--font);
 }
 
@@ -276,6 +278,8 @@ footer{
  width:8ic;
  max-width:100%;
  font:24pt var(--font);
+ border:0;
+ outline:none;
 }
 
 #status{
@@ -1689,9 +1693,9 @@ loadData();
 
 <header>
  <button id="cf" class="char"></button>
- <button id="cfb1">搜尋1</button>
- <button id="cfb2">搜尋2</button>
- <button id="cfb3">搜尋3</button>
+ <button id="cfb1">搜字頭</button>
+ <button id="cfb2">搜偏旁</button>
+ <button id="cfb3">搜變體</button>
  <button id="cp" class="char"></button>
  <button id="cpb">取代</button>
  <button id="reload">重新載入</button>
