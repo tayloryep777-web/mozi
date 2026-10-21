@@ -719,9 +719,9 @@ function updateFirst(tr,edit){
  charButtons(tr.cells[0],edit.join(''));
 }
 
-/* 四個共用操作函數 */
+/* 頭部原有四種操作：只抽取函數 */
 
-/* 1. 單擊有值：複製 */
+/* 單擊有值：複製 */
 
 function clickCopy(b){
  const s=b.dataset.value||'';
@@ -731,7 +731,7 @@ function clickCopy(b){
  }
 }
 
-/* 2. 單擊無值：貼上內部剪貼簿 */
+/* 單擊無值：貼上內部剪貼簿 */
 
 function clickPaste(b){
  if(clipboard){
@@ -743,7 +743,7 @@ function clickPaste(b){
  }
 }
 
-/* 3. 長按有值：清空 */
+/* 長按有值：清空 */
 
 function longClear(b){
  b.dataset.value='';
@@ -751,7 +751,7 @@ function longClear(b){
  status('已清空');
 }
 
-/* 4. 長按無值：貼上系統剪貼簿 */
+/* 長按無值：貼上系統剪貼簿 */
 
 async function longPaste(b){
  const p=await paste();
@@ -762,7 +762,7 @@ async function longPaste(b){
  }
 }
 
-/* 表格資料同步，不修改四個操作函數 */
+/* 表格資料同步 */
 
 function syncEditButton(b){
  if(!b.isConnected)return;
@@ -774,12 +774,13 @@ function syncEditButton(b){
  const index=Number(b.dataset.index);
  const column=Number(b.dataset.column);
 
- setEditValue(
-  kind,
-  index,
-  column,
-  b.dataset.value||''
- );
+ if(kind!=='main'&&kind!=='extra')return;
+
+ const value=b.dataset.value||'';
+
+ if(getEditValue(kind,index,column)===value)return;
+
+ setEditValue(kind,index,column,value);
 }
 
 /* 按鈕事件 */
@@ -814,10 +815,30 @@ document.addEventListener('pointerdown',e=>{
  pressY=e.clientY;
  longPressed=false;
 
+ const kind=b.dataset.kind;
+ const index=Number(b.dataset.index);
+ const column=Number(b.dataset.column);
+
  pressTimer=setTimeout(async()=>{
   if(pressButton!==b)return;
 
   longPressed=true;
+
+  /* 恢復原本頭部專用分支 */
+
+  if(kind==='control'){
+   const s=b.dataset.value||'';
+
+   if(s){
+    longClear(b);
+   }else{
+    await longPaste(b);
+   }
+
+   return;
+  }
+
+  /* 表格直接使用相同四個函數 */
 
   const s=b.dataset.value||'';
 
@@ -863,6 +884,24 @@ document.addEventListener('click',e=>{
  }
 
  pressButton=null;
+
+ const kind=b.dataset.kind;
+
+ /* 恢復原本頭部專用分支 */
+
+ if(kind==='control'){
+  const s=b.dataset.value||'';
+
+  if(s){
+   clickCopy(b);
+  }else{
+   clickPaste(b);
+  }
+
+  return;
+ }
+
+ /* 表格直接使用相同四個函數 */
 
  const s=b.dataset.value||'';
 
