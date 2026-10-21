@@ -7,75 +7,167 @@
 <title>說文解字</title>
 
 <style>
-/* ==================== 字型 ==================== */
-
-@font-face{
- font-family:"華瑞小篆體";
- src:url("華瑞小篆體.ttf");
-}
-
-@font-face{
- font-family:"TW-MOE-Std-Kai";
- src:url("TW-MOE-Std-Kai.ttf");
-}
-
-@font-face{
- font-family:"Shuo Wen SBIX";
- src:url("Shuo Wen SBIX.ttf");
-}
-
-@font-face{
- font-family:"Shuo Wen CBDT";
- src:url("Shuo Wen CBDT.ttf");
-}
-
-@font-face{
- font-family:"Jigmo";
- src:url("Jigmo.ttf");
-}
-
-@font-face{
- font-family:"Jigmo2";
- src:url("Jigmo2.ttf");
-}
-
-@font-face{
- font-family:"Jigmo3";
- src:url("Jigmo3.ttf");
-}
-
-/* ==================== 全域 ==================== */
+@font-face{font-family:"華瑞小篆體";src:url("華瑞小篆體.ttf")}
+@font-face{font-family:"TW-MOE-Std-Kai";src:url("TW-MOE-Std-Kai.ttf")}
+@font-face{font-family:"Shuo Wen SBIX";src:url("Shuo Wen SBIX.ttf")}
+@font-face{font-family:"Shuo Wen CBDT";src:url("Shuo Wen CBDT.ttf")}
+@font-face{font-family:"Jigmo";src:url("Jigmo.ttf")}
+@font-face{font-family:"Jigmo2";src:url("Jigmo2.ttf")}
+@font-face{font-family:"Jigmo3";src:url("Jigmo3.ttf")}
 
 :root{
  --shuowen:"Shuo Wen CBDT";
  --row-height:56px;
- --w1:3ic;
- --w2:1ic;
- --w3:1ic;
- --w4:1ic;
- --w5:2ic;
- --w6:3ic;
- --w7:20ic;
+ --w1:3;
+ --w2:1;
+ --w3:1;
+ --w4:1;
+ --w5:2;
+ --w6:3;
+ --w7:20;
 }
 
 *{
  box-sizing:border-box;
 }
 
+html{
+ width:100%;
+ height:100%;
+ overflow:hidden;
+}
+
 body{
  margin:0;
+ width:100%;
  height:100vh;
  height:100dvh;
  display:flex;
  flex-direction:column;
  overflow:hidden;
-}
-
-button{
  font:22pt "Jigmo","Jigmo2","Jigmo3";
 }
 
-/* ==================== 通用字元按鈕 ==================== */
+header{
+ flex-shrink:0;
+ display:flex;
+ flex-wrap:wrap;
+ align-items:center;
+ min-width:0;
+}
+
+main{
+ flex:1;
+ min-width:0;
+ min-height:0;
+ overflow-x:hidden;
+ overflow-y:auto;
+ position:relative;
+ overscroll-behavior:contain;
+ -webkit-overflow-scrolling:touch;
+ overflow-anchor:none;
+}
+
+footer{
+ height:25vh;
+ flex-shrink:0;
+ display:flex;
+ min-width:0;
+ min-height:0;
+ overflow:hidden;
+}
+
+#results{
+ flex-basis:100%;
+ max-height:25vh;
+ min-width:0;
+ overflow-x:hidden;
+ overflow-y:auto;
+}
+
+#mozi2-scroll{
+ flex:0 0 50%;
+ min-width:0;
+ min-height:0;
+ overflow-x:hidden;
+ overflow-y:auto;
+ overscroll-behavior:contain;
+}
+
+#mozi,#cfa,#mozi2{
+ width:100%;
+ table-layout:fixed;
+ border-collapse:collapse;
+ border-spacing:0;
+ font-size:24pt;
+}
+
+:is(#mozi,#cfa) col:nth-child(1){width:calc(100% * 3 / 31)}
+:is(#mozi,#cfa) col:nth-child(2){width:calc(100% * 1 / 31)}
+:is(#mozi,#cfa) col:nth-child(3){width:calc(100% * 1 / 31)}
+:is(#mozi,#cfa) col:nth-child(4){width:calc(100% * 1 / 31)}
+:is(#mozi,#cfa) col:nth-child(5){width:calc(100% * 2 / 31)}
+:is(#mozi,#cfa) col:nth-child(6){width:calc(100% * 3 / 31)}
+:is(#mozi,#cfa) col:nth-child(7){width:calc(100% * 20 / 31)}
+
+#mozi2 col:nth-child(1){width:37.5%}
+#mozi2 col:nth-child(2){width:12.5%}
+#mozi2 col:nth-child(3){width:12.5%}
+#mozi2 col:nth-child(4){width:12.5%}
+#mozi2 col:nth-child(5){width:12.5%}
+#mozi2 col:nth-child(6){width:12.5%}
+
+:is(#mozi,#cfa,#mozi2) td{
+ border:1px solid #aaa;
+ padding:0;
+ white-space:normal;
+ overflow-wrap:anywhere;
+ word-break:break-word;
+ vertical-align:middle;
+ min-width:0;
+}
+
+:is(#mozi,#cfa,#mozi2) td:nth-child(1){
+ font:26pt "華瑞小篆體","Jigmo","Jigmo2","Jigmo3";
+}
+
+:is(#mozi,#cfa,#mozi2) td:nth-child(2),
+:is(#mozi,#cfa,#mozi2) td:nth-child(3),
+:is(#mozi,#cfa,#mozi2) td:nth-child(4){
+ font:24pt "TW-MOE-Std-Kai","Jigmo","Jigmo2","Jigmo3";
+}
+
+:is(#mozi,#cfa) td:nth-child(5){
+ font:26pt var(--shuowen),"Jigmo","Jigmo2","Jigmo3";
+}
+
+:is(#mozi,#cfa) td:nth-child(6),
+:is(#mozi,#cfa) td:nth-child(7){
+ font:22pt "Jigmo","Jigmo2","Jigmo3";
+}
+
+#mozi tr.data-row{
+ min-height:var(--row-height);
+}
+
+#mozi tr.data-row td{
+ height:auto;
+ min-height:var(--row-height);
+ line-height:1.25;
+ white-space:normal;
+ overflow-wrap:anywhere;
+ vertical-align:middle;
+}
+
+#mozi tr.spacer td{
+ padding:0;
+ border:0;
+ height:0;
+ min-height:0;
+ line-height:0;
+ font-size:0;
+ overflow:hidden;
+}
 
 .char{
  font:inherit;
@@ -88,8 +180,12 @@ button{
  touch-action:manipulation;
  user-select:none;
  -webkit-user-select:none;
- min-width:1ic;
+ min-width:0;
  min-height:1em;
+ white-space:normal;
+ overflow-wrap:anywhere;
+ word-break:break-word;
+ vertical-align:middle;
 }
 
 .char:hover{
@@ -100,50 +196,51 @@ button{
  background:#ccc;
 }
 
-/* ==================== Header ==================== */
-
-#header{
- flex-shrink:0;
- display:flex;
- flex-wrap:wrap;
- align-items:center;
-}
-
-#cf{
+#cf,#cp{
  min-width:2ic;
 }
 
-#cfb1{
+#cfa tr{
  cursor:pointer;
 }
 
-#cfb2{
- cursor:pointer;
+#mozi2 td:nth-child(5),
+#mozi2 td:nth-child(6){
+ text-align:center;
 }
 
-#cfb3{
- cursor:pointer;
+#mozi2 td:nth-child(5) button,
+#mozi2 td:nth-child(6) button{
+ font:24pt "Jigmo","Jigmo2","Jigmo3";
 }
 
-#cp{
- min-width:2ic;
+#mozi2 tr:last-child td{
+ text-align:center;
 }
 
-#cpb{
- cursor:pointer;
+#mozi2 tr:last-child button{
+ display:block;
+ width:100%;
+ font:24pt "Jigmo","Jigmo2","Jigmo3";
 }
 
-#reload{
- cursor:pointer;
+#bg{
+ flex:1;
+ min-width:0;
+ min-height:0;
+ margin:0;
+ overflow-x:hidden;
+ overflow-y:auto;
+ overflow-wrap:anywhere;
+ word-break:break-word;
+ overscroll-behavior:contain;
+ font:22pt "Jigmo","Jigmo2","Jigmo3";
 }
 
 #token{
  font:14pt sans-serif;
  width:220px;
-}
-
-#cs{
- cursor:pointer;
+ max-width:100%;
 }
 
 #status{
@@ -158,313 +255,11 @@ button{
  margin-left:8px;
 }
 
-/* ==================== 搜尋結果容器 ==================== */
-
-#results{
- flex-basis:100%;
- max-height:25vh;
- min-width:0;
- overflow:auto;
-}
-
-/* ==================== 搜尋結果表格 ==================== */
-
-#cfa{
- width:31ic;
- table-layout:fixed;
- border-collapse:collapse;
- font-size:24pt;
-}
-
-#cfa col:nth-child(1){
- width:var(--w1);
-}
-
-#cfa col:nth-child(2){
- width:var(--w2);
-}
-
-#cfa col:nth-child(3){
- width:var(--w3);
-}
-
-#cfa col:nth-child(4){
- width:var(--w4);
-}
-
-#cfa col:nth-child(5){
- width:var(--w5);
-}
-
-#cfa col:nth-child(6){
- width:var(--w6);
-}
-
-#cfa col:nth-child(7){
- width:var(--w7);
-}
-
-#cfa td{
- overflow:visible;
- white-space:pre;
- padding:0;
-}
-
-#cfa td:nth-child(1){
- font:26pt "華瑞小篆體","Jigmo","Jigmo2","Jigmo3";
-}
-
-#cfa td:nth-child(2){
- font:24pt "TW-MOE-Std-Kai","Jigmo","Jigmo2","Jigmo3";
-}
-
-#cfa td:nth-child(3){
- font:24pt "TW-MOE-Std-Kai","Jigmo","Jigmo2","Jigmo3";
-}
-
-#cfa td:nth-child(4){
- font:24pt "TW-MOE-Std-Kai","Jigmo","Jigmo2","Jigmo3";
-}
-
-#cfa td:nth-child(5){
- font:26pt var(--shuowen),"Jigmo","Jigmo2","Jigmo3";
-}
-
-#cfa td:nth-child(6){
- font:22pt "Jigmo","Jigmo2","Jigmo3";
-}
-
-#cfa td:nth-child(7){
- font:22pt "Jigmo","Jigmo2","Jigmo3";
-}
-
-#cfa tr{
- cursor:pointer;
-}
-
-/* ==================== 主表容器 ==================== */
-
-#viewport{
- flex:1;
- min-height:0;
- overflow:auto;
- position:relative;
- overscroll-behavior:contain;
- -webkit-overflow-scrolling:touch;
-}
-
-/* ==================== 主表 ==================== */
-
-#mozi{
- width:31ic;
- table-layout:fixed;
- border-collapse:collapse;
- font-size:24pt;
-}
-
-#mozi col:nth-child(1){
- width:var(--w1);
-}
-
-#mozi col:nth-child(2){
- width:var(--w2);
-}
-
-#mozi col:nth-child(3){
- width:var(--w3);
-}
-
-#mozi col:nth-child(4){
- width:var(--w4);
-}
-
-#mozi col:nth-child(5){
- width:var(--w5);
-}
-
-#mozi col:nth-child(6){
- width:var(--w6);
-}
-
-#mozi col:nth-child(7){
- width:var(--w7);
-}
-
-#mozi td{
- overflow:visible;
- white-space:pre;
- padding:0;
-}
-
-#mozi td:nth-child(1){
- font:26pt "華瑞小篆體","Jigmo","Jigmo2","Jigmo3";
-}
-
-#mozi td:nth-child(2){
- font:24pt "TW-MOE-Std-Kai","Jigmo","Jigmo2","Jigmo3";
-}
-
-#mozi td:nth-child(3){
- font:24pt "TW-MOE-Std-Kai","Jigmo","Jigmo2","Jigmo3";
-}
-
-#mozi td:nth-child(4){
- font:24pt "TW-MOE-Std-Kai","Jigmo","Jigmo2","Jigmo3";
-}
-
-#mozi td:nth-child(5){
- font:26pt var(--shuowen),"Jigmo","Jigmo2","Jigmo3";
-}
-
-#mozi td:nth-child(6){
- font:22pt "Jigmo","Jigmo2","Jigmo3";
-}
-
-#mozi td:nth-child(7){
- font:22pt "Jigmo","Jigmo2","Jigmo3";
-}
-
-#mozi .data-row{
- height:var(--row-height);
- max-height:var(--row-height);
-}
-
-#mozi .data-row td{
- height:var(--row-height);
- max-height:var(--row-height);
- line-height:var(--row-height);
- white-space:nowrap;
- overflow:visible;
- vertical-align:middle;
-}
-
-#mozi .spacer td{
- padding:0;
- border:0;
- height:0;
- line-height:0;
- font-size:0;
-}
-
-#mozi .highlight{
- background:#fff2b0;
-}
-
-/* ==================== Footer ==================== */
-
-#footer{
- height:25vh;
- flex-shrink:0;
- display:flex;
- overflow:auto;
-}
-
-/* ==================== 附加資料表 ==================== */
-
-#mozi2{
- width:8ic;
- align-self:flex-start;
- table-layout:fixed;
- border-collapse:collapse;
- font-size:24pt;
-}
-
-#mozi2 col:nth-child(1){
- width:3ic;
-}
-
-#mozi2 col:nth-child(2){
- width:1ic;
-}
-
-#mozi2 col:nth-child(3){
- width:1ic;
-}
-
-#mozi2 col:nth-child(4){
- width:1ic;
-}
-
-#mozi2 col:nth-child(5){
- width:1ic;
-}
-
-#mozi2 col:nth-child(6){
- width:1ic;
-}
-
-#mozi2 td{
- overflow:visible;
- white-space:pre;
- padding:0;
- border:1px solid #aaa;
-}
-
-#mozi2 td:nth-child(1){
- font:26pt "華瑞小篆體","Jigmo","Jigmo2","Jigmo3";
-}
-
-#mozi2 td:nth-child(2){
- font:24pt "TW-MOE-Std-Kai","Jigmo","Jigmo2","Jigmo3";
-}
-
-#mozi2 td:nth-child(3){
- font:24pt "TW-MOE-Std-Kai","Jigmo","Jigmo2","Jigmo3";
-}
-
-#mozi2 td:nth-child(4){
- font:24pt "TW-MOE-Std-Kai","Jigmo","Jigmo2","Jigmo3";
-}
-
-#mozi2 td:nth-child(5){
- font:22pt "Jigmo","Jigmo2","Jigmo3";
-}
-
-#mozi2 td:nth-child(6){
- font:22pt "Jigmo","Jigmo2","Jigmo3";
-}
-
-#mozi2 td:nth-child(5) button{
- cursor:pointer;
-}
-
-#mozi2 td:nth-child(6) button{
- cursor:pointer;
-}
-
-#mozi2 .add-row td{
- text-align:center;
-}
-
-#mozi2 .add-row button{
- display:block;
- width:100%;
-}
-
-/* ==================== 差異字元 ==================== */
-
-#bg{
- margin:0;
- overflow-x:hidden;
- overflow-y:auto;
- font:22pt "Jigmo","Jigmo2","Jigmo3";
-}
-
-/* ==================== 載入前隱藏 ==================== */
-
-body:not(.ready) #header{
+body:not(.ready)>header,
+body:not(.ready)>main,
+body:not(.ready)>footer{
  display:none;
 }
-
-body:not(.ready) #viewport{
- display:none;
-}
-
-body:not(.ready) #footer{
- display:none;
-}
-
-/* ==================== 載入畫面 ==================== */
 
 #loading{
  position:fixed;
@@ -526,15 +321,13 @@ body:not(.ready) #footer{
 <script type="module">
 'use strict';
 
-/* ==================== 設定 ==================== */
-
 const API='https://api.github.com/repos/tayloryep777-web/mozi/contents/mozi.txt';
 const BRANCH='mozi';
 const TOTAL=9833;
 
 const ROW_HEIGHT=56;
 const OVERSCAN=20;
-const SEARCH_PAGE=100;
+const MAX_RENDER_ROWS=250;
 
 const $=id=>document.getElementById(id);
 
@@ -544,9 +337,9 @@ const mozi2=$('mozi2');
 const bg=$('bg');
 const viewport=$('viewport');
 
-const mainBody=$('mozi-body');
-const searchBody=$('cfa-body');
-const extraBody=$('mozi2-body');
+const mainBody=table.tBodies[0];
+const searchBody=cfa.tBodies[0];
+const extraBody=mozi2.tBodies[0];
 
 const tokenInput=$('token');
 
@@ -563,8 +356,6 @@ const status=s=>{
 const nextFrame=()=>new Promise(resolve=>{
  requestAnimationFrame(resolve);
 });
-
-/* ==================== 狀態 ==================== */
 
 let sha='';
 let loaded=false;
@@ -586,14 +377,110 @@ let renderPending=false;
 let highlightedIndex=-1;
 
 let searchMatches=[];
+let searchColumns=[];
 
-let pressTimer=null;
-let pressButton=null;
-let pressX=0;
-let pressY=0;
-let longPressed=false;
+/*
+ 動態行高虛擬捲動。
 
-/* ==================== 平台字型 ==================== */
+ heights：
+ 每一行目前已知或預估的高度。
+
+ Fenwick Tree：
+ 快速計算前 N 行總高度、
+ 並根據 scrollTop 反查資料行。
+
+ 每次行高變動：
+ O(log N)
+
+ 捲動定位：
+ O(log N)
+*/
+
+class FenwickTree{
+ constructor(size,initialHeight){
+  this.size=size;
+  this.tree=new Float64Array(size+1);
+  this.heights=new Float64Array(size);
+
+  for(let i=0;i<size;i++){
+   this.heights[i]=initialHeight;
+   this.tree[i+1]+=initialHeight;
+
+   const parent=i+1+((i+1)&-(i+1));
+
+   if(parent<=size){
+    this.tree[parent]+=this.tree[i+1];
+   }
+  }
+ }
+
+ update(index,height){
+  if(index<0||index>=this.size)return;
+
+  height=Math.max(1,height);
+
+  const delta=height-this.heights[index];
+
+  if(Math.abs(delta)<0.5)return;
+
+  this.heights[index]=height;
+
+  for(let i=index+1;i<=this.size;i+=i&-i){
+   this.tree[i]+=delta;
+  }
+ }
+
+ prefix(count){
+  count=Math.max(0,Math.min(this.size,count));
+
+  let sum=0;
+
+  for(let i=count;i>0;i-=i&-i){
+   sum+=this.tree[i];
+  }
+
+  return sum;
+ }
+
+ total(){
+  return this.prefix(this.size);
+ }
+
+ findIndex(offset){
+  if(this.size===0)return 0;
+
+  offset=Math.max(0,offset);
+
+  let index=0;
+  let sum=0;
+  let bit=1;
+
+  while(bit*2<=this.size){
+   bit*=2;
+  }
+
+  for(;bit>0;bit>>=1){
+   const next=index+bit;
+
+   if(
+    next<=this.size&&
+    sum+this.tree[next]<=offset
+   ){
+    index=next;
+    sum+=this.tree[next];
+   }
+  }
+
+  return Math.min(index,this.size-1);
+ }
+}
+
+let heightTree=new FenwickTree(TOTAL,ROW_HEIGHT);
+
+let rowObserver=null;
+let measuring=false;
+let measurementPending=false;
+let measurementChanges=new Map();
 
 const apple=/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)||
  (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
@@ -604,8 +491,6 @@ document.documentElement.style.setProperty(
  '--shuowen',
  JSON.stringify(sealFamily)
 );
-
-/* ==================== 載入畫面 ==================== */
 
 function progress(p,stage,detail=''){
  $('loading-bar').value=Math.max(0,Math.min(100,p));
@@ -624,15 +509,9 @@ function showLoading(){
 
 function failLoading(e){
  console.error(e);
-
- progress(
-  $('loading-bar').value,
-  '載入失敗'
- );
-
+ progress($('loading-bar').value,'載入失敗');
  $('loading-error').textContent=e.message||String(e);
  $('retry').hidden=false;
-
  status('載入失敗：'+(e.message||String(e)));
 }
 
@@ -642,7 +521,6 @@ function finishLoading(){
  requestAnimationFrame(()=>{
   renderedStart=-1;
   renderedEnd=-1;
-
   renderVisible(true);
 
   $('loading').hidden=true;
@@ -655,28 +533,20 @@ function changed(){
  status('尚未儲存');
 }
 
-/* ==================== Token ==================== */
-
 try{
- tokenInput.value=
-  localStorage.getItem('mozi-github-token')||'';
+ tokenInput.value=localStorage.getItem('mozi-github-token')||'';
 }catch(e){
  console.error(e);
 }
 
 tokenInput.addEventListener('input',()=>{
  try{
-  localStorage.setItem(
-   'mozi-github-token',
-   tokenInput.value
-  );
+  localStorage.setItem('mozi-github-token',tokenInput.value);
  }catch(e){
   console.error(e);
   status('瀏覽器無法儲存 Token');
  }
 });
-
-/* ==================== 編碼 ==================== */
 
 const decode=s=>new TextDecoder().decode(
  Uint8Array.from(
@@ -698,7 +568,7 @@ const encode=s=>{
  return btoa(binary);
 };
 
-/* ==================== 複製與貼上 ==================== */
+/* 複製與貼上 */
 
 async function copy(s){
  if(!s)return;
@@ -716,9 +586,7 @@ async function copy(s){
 
 async function paste(){
  try{
-  return first(
-   await navigator.clipboard.readText()
-  );
+  return first(await navigator.clipboard.readText());
  }catch(e){
   console.error(e);
   status('無法讀取系統剪貼簿');
@@ -726,24 +594,16 @@ async function paste(){
  }
 }
 
-/* ==================== 建立字元按鈕 ==================== */
-
-function charButtons(el,s,prefix){
+function charButtons(el,s){
  const fragment=document.createDocumentFragment();
-
- let index=0;
 
  for(const c of chars(s)){
   const b=document.createElement('button');
-
-  b.id=prefix+'-char-'+index;
   b.type='button';
   b.className='char';
   b.textContent=c;
   b.dataset.copy=c;
-
   fragment.appendChild(b);
-  index++;
  }
 
  el.replaceChildren(fragment);
@@ -758,8 +618,6 @@ function editableButton(el){
 function createEditableButton(s,kind,index,column){
  const b=document.createElement('button');
 
- b.id=kind+'-edit-'+index+'-'+column;
-
  editableButton(b);
 
  b.textContent=s;
@@ -771,23 +629,18 @@ function createEditableButton(s,kind,index,column){
  return b;
 }
 
-/* ==================== 搜尋與取代輸入 ==================== */
-
 function control(id){
  const el=$(id);
-
  editableButton(el);
-
  el.dataset.kind='control';
  el.dataset.value='';
-
  return ()=>el.dataset.value||'';
 }
 
 const getSearch=control('cf');
 const getReplace=control('cp');
 
-/* ==================== 資料存取 ==================== */
+/* 資料修改 */
 
 function getEditValue(kind,index,column){
  if(kind==='main'){
@@ -798,7 +651,7 @@ function getEditValue(kind,index,column){
   return extraData[index]?.[column]??'';
  }
 
- return '';
+ return $(index)?.dataset.value??'';
 }
 
 function setEditValue(kind,index,column,s){
@@ -824,15 +677,11 @@ function setEditValue(kind,index,column,s){
  }
 }
 
-function updateFirst(tr,edit,prefix){
- charButtons(
-  tr.cells[0],
-  edit.join(''),
-  prefix+'-first'
- );
+function updateFirst(tr,edit){
+ charButtons(tr.cells[0],edit.join(''));
 }
 
-/* ==================== 按鈕複製 ==================== */
+/* 全域按鈕事件 */
 
 document.addEventListener('click',e=>{
  const b=e.target.closest('button[data-copy]');
@@ -842,7 +691,11 @@ document.addEventListener('click',e=>{
  }
 });
 
-/* ==================== 長按操作 ==================== */
+let pressTimer=null;
+let pressButton=null;
+let pressX=0;
+let pressY=0;
+let longPressed=false;
 
 function stopPress(){
  clearTimeout(pressTimer);
@@ -851,7 +704,6 @@ function stopPress(){
 
 document.addEventListener('pointerdown',e=>{
  const b=e.target.closest('button[data-edit]');
-
  if(!b||e.button!==0)return;
 
  stopPress();
@@ -907,10 +759,7 @@ document.addEventListener('pointerdown',e=>{
 document.addEventListener('pointermove',e=>{
  if(
   pressButton&&
-  Math.hypot(
-   e.clientX-pressX,
-   e.clientY-pressY
-  )>10
+  Math.hypot(e.clientX-pressX,e.clientY-pressY)>10
  ){
   stopPress();
  }
@@ -925,11 +774,8 @@ document.addEventListener('contextmenu',e=>{
  }
 });
 
-/* ==================== 單擊操作 ==================== */
-
 document.addEventListener('click',e=>{
  const b=e.target.closest('button[data-edit]');
-
  if(!b)return;
 
  if(longPressed){
@@ -949,7 +795,6 @@ document.addEventListener('click',e=>{
    copy(s);
   }else if(clipboard){
    const v=first(clipboard);
-
    b.dataset.value=v;
    b.textContent=v;
   }else{
@@ -961,7 +806,6 @@ document.addEventListener('click',e=>{
 
  const index=Number(b.dataset.index);
  const column=Number(b.dataset.column);
-
  const s=getEditValue(kind,index,column);
 
  if(s){
@@ -973,23 +817,21 @@ document.addEventListener('click',e=>{
  }
 });
 
-/* ==================== 建立主表行 ==================== */
+/* 建立主表行 */
 
 function createMainRow(index){
  const data=mainData[index];
  const tr=document.createElement('tr');
 
- tr.id='main-row-'+index;
  tr.className='data-row';
  tr.dataset.index=index;
 
- for(let j=0;j<7;j++){
-  const td=tr.insertCell();
-  td.id='main-cell-'+index+'-'+j;
- }
+ tr.insertCell();
 
  for(let j=0;j<3;j++){
-  tr.cells[j+1].appendChild(
+  const td=tr.insertCell();
+
+  td.appendChild(
    createEditableButton(
     data.edit[j],
     'main',
@@ -999,47 +841,125 @@ function createMainRow(index){
   );
  }
 
- updateFirst(
-  tr,
-  data.edit,
-  'main-'+index
- );
+ updateFirst(tr,data.edit);
 
  for(let j=0;j<3;j++){
   charButtons(
-   tr.cells[j+4],
-   data.seal[j]||'',
-   'main-'+index+'-seal-'+j
+   tr.insertCell(),
+   data.seal[j]||''
   );
  }
 
  if(index===highlightedIndex){
-  tr.classList.add('highlight');
+  tr.style.background='#fff2b0';
  }
 
  return tr;
 }
 
-/* ==================== 虛擬捲動佔位 ==================== */
+/* 動態行高測量 */
 
-function createSpacer(height,position){
+function initRowObserver(){
+ if(rowObserver){
+  rowObserver.disconnect();
+ }
+
+ rowObserver=new ResizeObserver(entries=>{
+  if(measuring)return;
+
+  for(const entry of entries){
+   const tr=entry.target;
+
+   if(!tr.isConnected)continue;
+
+   const index=Number(tr.dataset.index);
+
+   if(!Number.isInteger(index))continue;
+
+   const height=entry.borderBoxSize?.[0]?.blockSize
+    ??tr.getBoundingClientRect().height;
+
+   if(height>0){
+    measurementChanges.set(index,height);
+   }
+  }
+
+  scheduleMeasurements();
+ });
+}
+
+function observeRows(){
+ if(!rowObserver)return;
+
+ rowObserver.disconnect();
+
+ for(const tr of mainBody.querySelectorAll('tr.data-row')){
+  rowObserver.observe(tr);
+ }
+}
+
+function scheduleMeasurements(){
+ if(measurementPending)return;
+
+ measurementPending=true;
+
+ requestAnimationFrame(()=>{
+  measurementPending=false;
+  applyMeasurements();
+ });
+}
+
+function applyMeasurements(){
+ if(!loaded||measurementChanges.size===0)return;
+
+ const changes=[...measurementChanges.entries()];
+ measurementChanges.clear();
+
+ const anchorIndex=heightTree.findIndex(viewport.scrollTop);
+ const anchorOffset=viewport.scrollTop-heightTree.prefix(anchorIndex);
+
+ let any=false;
+
+ measuring=true;
+
+ for(const [index,height] of changes){
+  if(index<0||index>=mainData.length)continue;
+
+  const old=heightTree.heights[index];
+
+  if(Math.abs(old-height)>=0.5){
+   heightTree.update(index,height);
+   any=true;
+  }
+ }
+
+ measuring=false;
+
+ if(!any)return;
+
+ const newTop=heightTree.prefix(anchorIndex)+anchorOffset;
+
+ if(Math.abs(viewport.scrollTop-newTop)>0.5){
+  viewport.scrollTop=newTop;
+ }
+
+ renderVisible(true);
+}
+
+/* 動態虛擬捲動 */
+
+function createSpacer(height){
  const tr=document.createElement('tr');
-
- tr.id='main-spacer-'+position;
  tr.className='spacer';
 
  const td=tr.insertCell();
-
- td.id='main-spacer-cell-'+position;
  td.colSpan=7;
 
- td.style.height=height+'px';
- td.style.minHeight=height+'px';
+ td.style.height=Math.max(0,height)+'px';
+ td.style.minHeight=Math.max(0,height)+'px';
 
  return tr;
 }
-
-/* ==================== 虛擬捲動 ==================== */
 
 function renderVisible(force=false){
  if(!loaded)return;
@@ -1047,8 +967,10 @@ function renderVisible(force=false){
  const scrollTop=viewport.scrollTop;
  const viewportHeight=viewport.clientHeight;
 
- const firstVisible=Math.floor(
-  scrollTop/ROW_HEIGHT
+ const firstVisible=heightTree.findIndex(scrollTop);
+
+ const lastVisible=heightTree.findIndex(
+  scrollTop+viewportHeight
  );
 
  const start=Math.max(
@@ -1056,13 +978,13 @@ function renderVisible(force=false){
   firstVisible-OVERSCAN
  );
 
- const visibleCount=Math.ceil(
-  viewportHeight/ROW_HEIGHT
- );
-
  const end=Math.min(
   mainData.length,
-  firstVisible+visibleCount+OVERSCAN
+  Math.max(
+   lastVisible+OVERSCAN+1,
+   start+1
+  ),
+  start+MAX_RENDER_ROWS
  );
 
  if(
@@ -1070,18 +992,19 @@ function renderVisible(force=false){
   start===renderedStart&&
   end===renderedEnd
  ){
+  $('position').textContent=
+   `${Math.min(firstVisible+1,TOTAL)} / ${TOTAL}`;
   return;
  }
 
  const fragment=document.createDocumentFragment();
 
- const topHeight=start*ROW_HEIGHT;
- const bottomHeight=
-  (mainData.length-end)*ROW_HEIGHT;
+ const topHeight=heightTree.prefix(start);
+ const bottomHeight=heightTree.total()-heightTree.prefix(end);
 
  if(topHeight>0){
   fragment.appendChild(
-   createSpacer(topHeight,'top')
+   createSpacer(topHeight)
   );
  }
 
@@ -1093,8 +1016,12 @@ function renderVisible(force=false){
 
  if(bottomHeight>0){
   fragment.appendChild(
-   createSpacer(bottomHeight,'bottom')
+   createSpacer(bottomHeight)
   );
+ }
+
+ if(rowObserver){
+  rowObserver.disconnect();
  }
 
  mainBody.replaceChildren(fragment);
@@ -1104,6 +1031,8 @@ function renderVisible(force=false){
 
  $('position').textContent=
   `${Math.min(firstVisible+1,TOTAL)} / ${TOTAL}`;
+
+ observeRows();
 }
 
 function scheduleRender(){
@@ -1117,16 +1046,25 @@ function scheduleRender(){
  });
 }
 
-viewport.addEventListener(
- 'scroll',
- scheduleRender,
- {passive:true}
-);
+viewport.addEventListener('scroll',scheduleRender,{
+ passive:true
+});
 
-window.addEventListener(
- 'resize',
- scheduleRender
-);
+window.addEventListener('resize',()=>{
+ if(!loaded)return;
+
+ /*
+  寬度改變時、原本測量的行高可能失效。
+  先重設為預估值、再重新測量可見行。
+ */
+ heightTree=new FenwickTree(mainData.length,ROW_HEIGHT);
+
+ renderedStart=-1;
+ renderedEnd=-1;
+ measurementChanges.clear();
+
+ scheduleRender();
+});
 
 function refreshVisibleRow(index){
  if(
@@ -1136,12 +1074,17 @@ function refreshVisibleRow(index){
   return;
  }
 
- const tr=$('main-row-'+index);
+ const tr=mainBody.querySelector(
+  `tr[data-index="${index}"]`
+ );
 
  if(tr){
-  tr.replaceWith(
-   createMainRow(index)
-  );
+  rowObserver?.unobserve(tr);
+
+  const next=createMainRow(index);
+  tr.replaceWith(next);
+
+  rowObserver?.observe(next);
  }
 }
 
@@ -1150,11 +1093,12 @@ function jumpToRow(index){
 
  highlightedIndex=index;
 
- const top=index*ROW_HEIGHT;
+ const top=heightTree.prefix(index);
+ const height=heightTree.heights[index];
 
  viewport.scrollTop=Math.max(
   0,
-  top-(viewport.clientHeight-ROW_HEIGHT)/2
+  top-(viewport.clientHeight-height)/2
  );
 
  renderVisible(true);
@@ -1162,22 +1106,19 @@ function jumpToRow(index){
  status(`已跳至第 ${index+1} 行`);
 }
 
-/* ==================== 附加資料 ==================== */
+/* 附加資料 */
 
 function createExtraRow(index){
  const data=extraData[index];
  const tr=document.createElement('tr');
 
- tr.id='extra-row-'+index;
  tr.dataset.index=index;
-
- for(let j=0;j<6;j++){
-  const td=tr.insertCell();
-  td.id='extra-cell-'+index+'-'+j;
- }
+ tr.insertCell();
 
  for(let j=0;j<3;j++){
-  tr.cells[j+1].appendChild(
+  const td=tr.insertCell();
+
+  td.appendChild(
    createEditableButton(
     data[j],
     'extra',
@@ -1187,20 +1128,14 @@ function createExtraRow(index){
   );
  }
 
- updateFirst(
-  tr,
-  data,
-  'extra-'+index
- );
+ updateFirst(tr,data);
 
  for(const [symbol,direction] of [['↑',-1],['↓',1]]){
-  const column=direction<0?4:5;
-  const td=tr.cells[column];
-
+  const td=tr.insertCell();
   const b=document.createElement('button');
 
-  b.id='extra-move-'+index+'-'+column;
   b.type='button';
+  b.className='char';
   b.textContent=symbol;
   b.title=direction<0?'上移一行':'下移一行';
 
@@ -1224,26 +1159,19 @@ function renderExtra(){
  }
 
  const tr=document.createElement('tr');
-
- tr.id='extra-add-row';
- tr.className='add-row';
  tr.dataset.add='1';
 
  const td=tr.insertCell();
-
- td.id='extra-add-cell';
  td.colSpan=6;
 
  const b=document.createElement('button');
-
- b.id='extra-add-button';
  b.type='button';
- b.textContent='＋';
+ b.className='char';
+ b.textContent='+';
  b.title='新增一行';
 
  b.addEventListener('click',()=>{
   extraData.push(['','','']);
-
   renderExtra();
   updateBg();
   changed();
@@ -1272,7 +1200,7 @@ function moveExtraRow(index,direction){
  changed();
 }
 
-/* ==================== 差異字元 ==================== */
+/* 差異字元 */
 
 function updateBg(){
  const a=new Set();
@@ -1302,12 +1230,11 @@ function updateBg(){
 
  charButtons(
   bg,
-  [...b].filter(c=>!a.has(c)).join(''),
-  'bg'
+  [...b].filter(c=>!a.has(c)).join('')
  );
 }
 
-/* ==================== 搜尋資料 ==================== */
+/* 搜尋 */
 
 function rowValues(data){
  return [
@@ -1321,10 +1248,10 @@ function searchColumn(columns){
  searchBody.replaceChildren();
 
  const q=getSearch();
-
  if(!q)return;
 
  searchMatches=[];
+ searchColumns=columns;
 
  for(let i=0;i<mainData.length;i++){
   const cells=rowValues(mainData[i]);
@@ -1341,13 +1268,12 @@ function searchColumn(columns){
  status(`找到 ${searchMatches.length} 行`);
 }
 
-/* ==================== 搜尋結果 ==================== */
-
 function renderSearchResults(offset){
+ const PAGE=100;
  const fragment=document.createDocumentFragment();
 
  const end=Math.min(
-  offset+SEARCH_PAGE,
+  offset+PAGE,
   searchMatches.length
  );
 
@@ -1357,19 +1283,12 @@ function renderSearchResults(offset){
   const cells=rowValues(data);
 
   const tr=document.createElement('tr');
-
-  tr.id='search-row-'+index;
   tr.dataset.index=index;
 
-  for(let j=0;j<7;j++){
-   const td=tr.insertCell();
-
-   td.id='search-cell-'+index+'-'+j;
-
+  for(const s of cells){
    charButtons(
-    td,
-    cells[j],
-    'search-'+index+'-'+j
+    tr.insertCell(),
+    s
    );
   }
 
@@ -1378,17 +1297,10 @@ function renderSearchResults(offset){
 
  if(end<searchMatches.length){
   const tr=document.createElement('tr');
-
-  tr.id='search-more-row';
-
   const td=tr.insertCell();
-
-  td.id='search-more-cell';
   td.colSpan=7;
 
   const b=document.createElement('button');
-
-  b.id='search-more-button';
   b.type='button';
   b.textContent=
    `顯示更多（${end} / ${searchMatches.length}）`;
@@ -1407,12 +1319,9 @@ function renderSearchResults(offset){
 
 cfa.addEventListener('click',e=>{
  const tr=e.target.closest('tr[data-index]');
-
  if(!tr)return;
 
- jumpToRow(
-  Number(tr.dataset.index)
- );
+ jumpToRow(Number(tr.dataset.index));
 });
 
 $('cfb1').addEventListener('click',()=>{
@@ -1427,15 +1336,13 @@ $('cfb3').addEventListener('click',()=>{
  searchColumn([6]);
 });
 
-/* ==================== 取代 ==================== */
+/* 取代 */
 
 $('cpb').addEventListener('click',()=>{
  const q=getSearch();
-
  if(!q)return;
 
  const replacement=getReplace();
-
  let any=false;
 
  for(const row of mainData){
@@ -1446,7 +1353,6 @@ $('cpb').addEventListener('click',()=>{
     row.edit[j]=first(
      old.replaceAll(q,replacement)
     );
-
     any=true;
    }
   }
@@ -1460,13 +1366,18 @@ $('cpb').addEventListener('click',()=>{
     row[j]=first(
      old.replaceAll(q,replacement)
     );
-
     any=true;
    }
   }
  }
 
  if(any){
+  heightTree=new FenwickTree(mainData.length,ROW_HEIGHT);
+  measurementChanges.clear();
+
+  renderedStart=-1;
+  renderedEnd=-1;
+
   renderVisible(true);
   renderExtra();
   updateBg();
@@ -1478,7 +1389,7 @@ $('cpb').addEventListener('click',()=>{
  }
 });
 
-/* ==================== GitHub API ==================== */
+/* GitHub */
 
 async function github(options={}){
  const r=await fetch(
@@ -1503,7 +1414,7 @@ async function github(options={}){
  return r.json();
 }
 
-/* ==================== 字型載入 ==================== */
+/* 字型載入 */
 
 async function loadFonts(){
  const families=[
@@ -1542,7 +1453,7 @@ async function loadFonts(){
  progress(35,'字型檔案已載入');
 }
 
-/* ==================== 資料解析 ==================== */
+/* 資料解析 */
 
 async function parseData(text,sw){
  originalBOM=text.startsWith('\uFEFF')?'\uFEFF':'';
@@ -1618,11 +1529,15 @@ async function parseData(text,sw){
  mainData=nextMain;
  extraData=nextExtra;
 
+ heightTree=new FenwickTree(mainData.length,ROW_HEIGHT);
+ measurementChanges.clear();
+
  progress(85,'正在建立附加資料表');
+
+ rowObserver?.disconnect();
 
  mainBody.replaceChildren();
  searchBody.replaceChildren();
-
  renderExtra();
 
  progress(90,'正在計算差異字元');
@@ -1638,6 +1553,8 @@ async function parseData(text,sw){
 
  viewport.scrollTop=0;
 
+ initRowObserver();
+
  loaded=true;
  dirty=false;
 
@@ -1650,7 +1567,7 @@ async function parseData(text,sw){
  );
 }
 
-/* ==================== 載入 ==================== */
+/* 載入 */
 
 async function loadData(){
  if(loading||saving)return;
@@ -1662,7 +1579,6 @@ async function loadData(){
 
  loading=true;
  showLoading();
-
  status('正在載入…');
 
  try{
@@ -1707,7 +1623,7 @@ async function loadData(){
 $('reload').addEventListener('click',loadData);
 $('retry').addEventListener('click',loadData);
 
-/* ==================== 儲存 ==================== */
+/* 儲存 */
 
 $('cs').addEventListener('click',async()=>{
  if(saving||loading)return;
@@ -1744,7 +1660,6 @@ $('cs').addEventListener('click',async()=>{
 
  saving=true;
  $('cs').disabled=true;
-
  status('正在儲存…');
 
  try{
@@ -1781,8 +1696,6 @@ loadData();
 
 <body>
 
-<!-- ==================== 載入畫面 ==================== -->
-
 <div id="loading" role="status" aria-live="polite">
  <div id="loading-panel">
   <div id="loading-title">說文解字</div>
@@ -1794,14 +1707,11 @@ loadData();
  </div>
 </div>
 
-<!-- ==================== Header ==================== -->
-
-<header id="header">
+<header>
  <button id="cf" class="char"></button>
  <button id="cfb1">搜尋1</button>
  <button id="cfb2">搜尋2</button>
  <button id="cfb3">搜尋3</button>
-
  <button id="cp" class="char"></button>
  <button id="cpb">取代</button>
  <button id="reload">重新載入</button>
@@ -1821,34 +1731,32 @@ loadData();
 
  <div id="results">
   <table id="cfa">
-   <colgroup id="cfa-columns">
+   <colgroup>
     <col><col><col><col><col><col><col>
    </colgroup>
-   <tbody id="cfa-body"></tbody>
+   <tbody></tbody>
   </table>
  </div>
 </header>
 
-<!-- ==================== 主表 ==================== -->
-
 <main id="viewport">
  <table id="mozi">
-  <colgroup id="mozi-columns">
+  <colgroup>
    <col><col><col><col><col><col><col>
   </colgroup>
-  <tbody id="mozi-body"></tbody>
+  <tbody></tbody>
  </table>
 </main>
 
-<!-- ==================== Footer ==================== -->
-
-<footer id="footer">
- <table id="mozi2">
-  <colgroup id="mozi2-columns">
-   <col><col><col><col><col><col>
-  </colgroup>
-  <tbody id="mozi2-body"></tbody>
- </table>
+<footer>
+ <div id="mozi2-scroll">
+  <table id="mozi2">
+   <colgroup>
+    <col><col><col><col><col><col>
+   </colgroup>
+   <tbody></tbody>
+  </table>
+ </div>
 
  <p id="bg"></p>
 </footer>
