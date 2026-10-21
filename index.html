@@ -850,11 +850,12 @@ async function loadData(){
   progress(35,'正在解碼 TXT');
   await nextFrame();
 
-  await render(decode(file.content),sw);
+await render(decode(file.content),sw);
+sha=file.sha;
 
-  sha=file.sha;
-
-  finishLoading();
+console.log('render 已完成');
+finishLoading();
+console.log('finishLoading 已完成');
  }catch(e){
   failLoading(e);
  }finally{
