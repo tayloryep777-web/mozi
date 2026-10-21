@@ -739,17 +739,21 @@ async function render(text,sw){
   await nextFrame();
  }
 
- addButton();
+progress(86,'正在新增附加行按鈕');
+console.time('addButton');
+addButton();
+console.timeEnd('addButton');
 
- progress(92,'正在計算差異字元');
+progress(90,'正在計算差異字元');
+console.time('updateBg');
+updateBg();
+console.timeEnd('updateBg');
 
- updateBg();
+progress(97,'正在完成資料初始化');
 
- progress(97,'正在完成資料初始化');
-
- loaded=true;
- dirty=false;
- status('已載入 mozi.txt');
+loaded=true;
+dirty=false;
+status('已載入 mozi.txt');
 }
 
 async function github(options={}){
