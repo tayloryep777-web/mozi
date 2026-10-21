@@ -189,6 +189,17 @@ body:not(.ready)>footer{
  color:#a11;
  margin-top:14px;
 }
+#loading-log{
+ margin-top:14px;
+ padding:8px;
+ max-height:180px;
+ overflow:auto;
+ white-space:pre-wrap;
+ overflow-wrap:anywhere;
+ font:12px ui-monospace,monospace;
+ background:#f3f3f3;
+ color:#444;
+}
 #retry{
  font:16px system-ui,sans-serif;
  margin-top:12px;
@@ -233,6 +244,10 @@ const nextFrame=()=>new Promise(resolve=>{
  requestAnimationFrame(resolve);
 });
 
+const pause=()=>new Promise(resolve=>{
+ setTimeout(resolve,0);
+});
+
 let sha='';
 let loaded=false;
 let dirty=false;
@@ -243,6 +258,9 @@ let clipboard='';
 let originalNewline='\n';
 let originalBOM='';
 let originalTrailingNewline=false;
+
+let loadStarted=0;
+let lastCheckpoint=0;
 
 const apple=/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)||
  (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
@@ -261,11 +279,38 @@ function progress(p,stage,detail=''){
   `${p.toFixed(1)}%${detail?' · '+detail:''}`;
 }
 
+function logStage(stage,detail=''){
+ const now=performance.now();
+ const total=((now-loadStarted)/1000).toFixed(2);
+ const delta=((now-lastCheckpoint)/1000).toFixed(2);
+
+ const line=`${total}s (+${delta}s) ${stage}${detail?' · '+detail:''}`;
+
+ console.log(line);
+
+ const log=$('loading-log');
+ log.textContent+=line+'\n';
+ log.scrollTop=log.scrollHeight;
+
+ lastCheckpoint=now;
+}
+
+async function checkpoint(p,stage,detail=''){
+ progress(p,stage,detail);
+ logStage(stage,detail);
+ await pause();
+}
+
 function showLoading(){
+ loadStarted=performance.now();
+ lastCheckpoint=loadStarted;
+
  document.body.classList.remove('ready');
  $('loading').hidden=false;
  $('loading-error').textContent='';
+ $('loading-log').textContent='';
  $('retry').hidden=true;
+
  progress(0,'準備載入…');
 }
 
@@ -655,16 +700,17 @@ async function render(text,sw){
 
  loaded=false;
 
- // 清除舊資料，但保留三個表格的 colgroup。
  mainBody.replaceChildren();
  searchBody.replaceChildren();
  extraBody.replaceChildren();
  bg.replaceChildren();
 
- progress(35,'正在建立主表','0 / '+TOTAL+' 行');
+ await checkpoint(
+  35,
+  '開始建立主表',
+  `總共 ${TOTAL} 行`
+ );
 
- // 每批只建立 100 行。
- // 完成一批就插入 tbody，避免最後一次插入全部 9833 行。
  for(let start=0;start<TOTAL;start+=CHUNK){
   const end=Math.min(start+CHUNK,TOTAL);
   const batch=document.createDocumentFragment();
@@ -697,7 +743,6 @@ async function render(text,sw){
    batch.appendChild(tr);
   }
 
-  // 每次只插入這一批。
   mainBody.appendChild(batch);
 
   progress(
@@ -706,9 +751,18 @@ async function render(text,sw){
    `${end} / ${TOTAL} 行`
   );
 
-  // 讓 Safari 有機會處理畫面與其他工作。
+  if(end%1000<CHUNK||end===TOTAL){
+   logStage('主表已插入',`${end} / ${TOTAL} 行`);
+  }
+
   await nextFrame();
  }
+
+ await checkpoint(
+  78,
+  '主表建立完成',
+  `${mainBody.rows.length} 行`
+ );
 
  const tail=lines.slice(TOTAL);
 
@@ -716,7 +770,11 @@ async function render(text,sw){
   tail.pop();
  }
 
- progress(78,'正在建立附加資料');
+ await checkpoint(
+  79,
+  '開始建立附加資料',
+  `總共 ${tail.length} 行`
+ );
 
  for(let i=0;i<tail.length;i+=CHUNK){
   const end=Math.min(i+CHUNK,tail.length);
@@ -731,7 +789,7 @@ async function render(text,sw){
   extraBody.appendChild(batch);
 
   progress(
-   78+7*end/Math.max(1,tail.length),
+   79+6*end/Math.max(1,tail.length),
    '正在建立附加資料',
    `${end} / ${tail.length} 行`
   );
@@ -739,21 +797,48 @@ async function render(text,sw){
   await nextFrame();
  }
 
-progress(86,'正在新增附加行按鈕');
-console.time('addButton');
-addButton();
-console.timeEnd('addButton');
+ await checkpoint(
+  85,
+  '附加資料建立完成',
+  `${tail.length} 行`
+ );
 
-progress(90,'正在計算差異字元');
-console.time('updateBg');
-updateBg();
-console.timeEnd('updateBg');
+ await checkpoint(
+  86,
+  '準備新增附加行按鈕'
+ );
 
-progress(97,'正在完成資料初始化');
+ console.time('addButton');
+ addButton();
+ console.timeEnd('addButton');
 
-loaded=true;
-dirty=false;
-status('已載入 mozi.txt');
+ await checkpoint(
+  88,
+  '附加行按鈕建立完成'
+ );
+
+ await checkpoint(
+  90,
+  '準備計算差異字元'
+ );
+
+ console.time('updateBg');
+ updateBg();
+ console.timeEnd('updateBg');
+
+ await checkpoint(
+  95,
+  '差異字元計算完成'
+ );
+
+ loaded=true;
+ dirty=false;
+ status('已載入 mozi.txt');
+
+ await checkpoint(
+  97,
+  '資料初始化完成'
+ );
 }
 
 async function github(options={}){
@@ -813,7 +898,7 @@ async function loadFonts(){
   }
  }
 
- progress(35,'字型檔案已載入');
+ await checkpoint(35,'字型檔案已載入');
 }
 
 async function loadData(){
@@ -829,7 +914,7 @@ async function loadData(){
  status('正在載入…');
 
  try{
-  progress(2,'正在下載 TXT 檔案');
+  await checkpoint(2,'正在下載 TXT 檔案');
 
   const [file,sw]=await Promise.all([
    github(),
@@ -842,20 +927,24 @@ async function loadData(){
    })
   ]);
 
-  progress(15,'TXT 下載完成');
-  await nextFrame();
+  await checkpoint(15,'TXT 下載完成');
 
   await loadFonts();
 
-  progress(35,'正在解碼 TXT');
-  await nextFrame();
+  await checkpoint(35,'正在解碼 TXT');
 
-await render(decode(file.content),sw);
-sha=file.sha;
+  await render(decode(file.content),sw);
 
-console.log('render 已完成');
-finishLoading();
-console.log('finishLoading 已完成');
+  sha=file.sha;
+
+  await checkpoint(
+   99,
+   '準備顯示完整表格'
+  );
+
+  finishLoading();
+
+  console.log('finishLoading 已完成');
  }catch(e){
   failLoading(e);
  }finally{
@@ -1038,6 +1127,7 @@ loadData();
   <div id="loading-stage">準備載入…</div>
   <progress id="loading-bar" max="100" value="0"></progress>
   <div id="loading-detail">0%</div>
+  <div id="loading-log"></div>
   <div id="loading-error"></div>
   <button id="retry" hidden>重新嘗試</button>
  </div>
