@@ -1,11 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>說文解字</title>
-
 <style>
 @font-face{font-family:"華瑞小篆體";src:url("華瑞小篆體.ttf")}
 @font-face{font-family:"TW-MOE-Std-Kai";src:url("TW-MOE-Std-Kai.ttf")}
@@ -14,518 +12,160 @@
 @font-face{font-family:"Jigmo";src:url("Jigmo.ttf")}
 @font-face{font-family:"Jigmo2";src:url("Jigmo2.ttf")}
 @font-face{font-family:"Jigmo3";src:url("Jigmo3.ttf")}
-
-:root{
- --shuowen:"Shuo Wen CBDT";
- --font:"Jigmo","Jigmo2","Jigmo3";
- --row-height:2ic;
- --w1:3ic;
- --w2:1ic;
- --w3:1ic;
- --w4:1ic;
- --w5:2ic;
- --w6:3ic;
-}
-
-*{
- box-sizing:border-box;
-}
-
-html{
- width:100%;
- height:100%;
- overflow:hidden;
-}
-
-body{
- margin:0;
- width:100%;
- height:100%;
- display:flex;
- flex-direction:column;
- overflow:hidden;
- font:24pt var(--font);
-}
-
-button,input,progress{
- font:24pt var(--font);
-}
-
-button{
- appearance:none;
- -webkit-appearance:none;
- border:0;
- background:transparent;
- color:inherit;
-}
-
-button:hover,
-button:active,
-button:focus{
- background:transparent;
-}
-
-button:focus{
- outline:none;
-}
-
-header{
- flex-shrink:0;
- display:flex;
- flex-wrap:wrap;
- align-items:center;
- min-width:0;
-}
-
-main{
- flex:1;
- min-width:0;
- min-height:0;
- overflow-x:hidden;
- overflow-y:auto;
- position:relative;
- overscroll-behavior:contain;
- overflow-anchor:none;
-}
-
-footer{
- height:25%;
- flex-shrink:0;
- display:flex;
- min-width:0;
- min-height:0;
- overflow:hidden;
-}
-
-#results{
- flex-basis:100%;
- max-height:25%;
- min-width:0;
- overflow-x:hidden;
- overflow-y:auto;
-}
-
-#mozi2-scroll{
- flex:0 0 auto;
- width:8ic;
- min-width:8ic;
- min-height:0;
- overflow-x:hidden;
- overflow-y:auto;
- overscroll-behavior:contain;
-}
-
-#mozi,#cfa,#mozi2{
- table-layout:fixed;
- border-collapse:collapse;
- border-spacing:0;
- font-size:24pt;
-}
-
-#mozi,#cfa{
- width:100%;
-}
-
-#mozi2{
- width:8ic;
-}
-
-:is(#mozi,#cfa,#mozi2) col:nth-child(1){
- width:var(--w1);
-}
-
-:is(#mozi,#cfa,#mozi2) col:nth-child(2){
- width:var(--w2);
-}
-
-:is(#mozi,#cfa,#mozi2) col:nth-child(3){
- width:var(--w3);
-}
-
-:is(#mozi,#cfa,#mozi2) col:nth-child(4){
- width:var(--w4);
-}
-
-:is(#mozi,#cfa) col:nth-child(5){
- width:var(--w5);
-}
-
-:is(#mozi,#cfa) col:nth-child(6){
- width:var(--w6);
-}
-
-#mozi2 col:nth-child(5),
-#mozi2 col:nth-child(6){
- width:1ic;
-}
-
-:is(#mozi,#cfa,#mozi2) td{
- padding:0;
- white-space:normal;
- overflow-wrap:anywhere;
- word-break:break-word;
- vertical-align:middle;
- min-width:0;
-}
-
-:is(#mozi,#cfa,#mozi2) td:nth-child(1){
- font:24pt "華瑞小篆體","Jigmo","Jigmo2","Jigmo3";
-}
-
-:is(#mozi,#cfa,#mozi2) td:nth-child(2),
-:is(#mozi,#cfa,#mozi2) td:nth-child(3),
-:is(#mozi,#cfa,#mozi2) td:nth-child(4){
- font:24pt "TW-MOE-Std-Kai","Jigmo","Jigmo2","Jigmo3";
-}
-
-:is(#mozi,#cfa) td:nth-child(5){
- font:24pt var(--shuowen),"Jigmo","Jigmo2","Jigmo3";
-}
-
-:is(#mozi,#cfa) td:nth-child(6),
-:is(#mozi,#cfa) td:nth-child(7){
- font:24pt var(--font);
-}
-
-#mozi tr.data-row{
- min-height:var(--row-height);
-}
-
-#mozi tr.data-row td{
- height:auto;
- min-height:var(--row-height);
- white-space:normal;
- overflow-wrap:anywhere;
- vertical-align:middle;
-}
-
-#mozi tr.spacer td{
- padding:0;
- height:0;
- min-height:0;
- line-height:0;
- font-size:0;
- overflow:hidden;
-}
-
-.char{
- font:inherit;
- padding:0;
- margin:0;
- background:transparent;
- cursor:pointer;
- color:inherit;
- touch-action:manipulation;
- user-select:none;
- -webkit-user-select:none;
- min-width:1ic;
- min-height:1ic;
- white-space:normal;
- overflow-wrap:anywhere;
- word-break:break-word;
- vertical-align:middle;
-}
-
-:is(#mozi,#mozi2) td:has(>button[data-edit])>button{
- display:block;
- width:100%;
- min-height:1.5ic;
- text-align:center;
-}
-
-#cf,#cp{
- min-width:2ic;
-}
-
-#cfa tr{
- cursor:pointer;
-}
-
-#mozi2 td:nth-child(5),
-#mozi2 td:nth-child(6){
- text-align:center;
-}
-
-#mozi2 td:nth-child(5) button,
-#mozi2 td:nth-child(6) button{
- font:24pt var(--font);
-}
-
-#mozi2 tr:last-child td{
- text-align:center;
-}
-
-#mozi2 tr:last-child button{
- display:block;
- width:100%;
- font:24pt var(--font);
-}
-
-#bg{
- flex:1;
- min-width:0;
- min-height:0;
- margin:0;
- overflow-x:hidden;
- overflow-y:auto;
- overflow-wrap:anywhere;
- word-break:break-word;
- overscroll-behavior:contain;
- font:24pt var(--font);
-}
-
-#token{
- width:8ic;
- max-width:100%;
- font:24pt var(--font);
- border:0;
- outline:none;
-}
-
-#status{
- align-self:center;
- overflow-wrap:anywhere;
- font:24pt var(--font);
-}
-
-#position{
- margin-left:0.25ic;
- font:24pt var(--font);
-}
-
-body:not(.ready)>header,
-body:not(.ready)>main,
-body:not(.ready)>footer{
- display:none;
-}
-
-#loading{
- position:fixed;
- inset:0;
- z-index:9999;
- background:white;
- color:#222;
- display:flex;
- align-items:center;
- justify-content:center;
- font:24pt var(--font);
-}
-
-#loading[hidden]{
- display:none;
-}
-
-#loading-panel{
- width:85%;
- max-width:18ic;
-}
-
-#loading-title{
- font:24pt var(--font);
- margin-bottom:0.5ic;
-}
-
-#loading-stage{
- margin-bottom:0.5ic;
- overflow-wrap:anywhere;
-}
-
-#loading-bar{
- width:100%;
- height:0.5ic;
- accent-color:#3275bd;
-}
-
-#loading-detail{
- margin-top:0.25ic;
-}
-
-#loading-error{
- white-space:pre-wrap;
- overflow-wrap:anywhere;
- color:#a11;
- margin-top:0.5ic;
-}
-
-#retry{
- font:24pt var(--font);
- margin-top:0.5ic;
- padding:0.25ic 0.5ic;
-}
+:root{--shuowen:"Shuo Wen CBDT";--font:"Jigmo","Jigmo2","Jigmo3";--row-height:2ic;--w1:3ic;--w2:1ic;--w3:1ic;--w4:1ic;--w5:2ic;--w6:3ic}
+*{box-sizing:border-box}
+html{width:100%;height:100%;overflow:hidden}
+body{margin:0;width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;font:24pt var(--font)}
+button,input,progress{font:24pt var(--font)}
+button{appearance:none;-webkit-appearance:none;border:0;background:transparent;color:inherit}
+button:hover,button:active,button:focus{background:transparent}
+button:focus{outline:none}
+header{flex-shrink:0;display:flex;flex-wrap:wrap;align-items:center;min-width:0}
+main{flex:1;min-width:0;min-height:0;overflow-x:hidden;overflow-y:auto;position:relative;overscroll-behavior:contain;overflow-anchor:none}
+footer{height:25%;flex-shrink:0;display:flex;min-width:0;min-height:0;overflow:hidden}
+#results{flex-basis:100%;max-height:25%;min-width:0;overflow-x:hidden;overflow-y:auto}
+#mozi2-scroll{flex:0 0 auto;width:8ic;min-width:8ic;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain}
+#mozi,#cfa,#mozi2{table-layout:fixed;border-collapse:collapse;border-spacing:0;font-size:24pt}
+#mozi,#cfa{width:100%}
+#mozi2{width:8ic}
+:is(#mozi,#cfa,#mozi2) col:nth-child(1){width:var(--w1)}
+:is(#mozi,#cfa,#mozi2) col:nth-child(2){width:var(--w2)}
+:is(#mozi,#cfa,#mozi2) col:nth-child(3){width:var(--w3)}
+:is(#mozi,#cfa,#mozi2) col:nth-child(4){width:var(--w4)}
+:is(#mozi,#cfa) col:nth-child(5){width:var(--w5)}
+:is(#mozi,#cfa) col:nth-child(6){width:var(--w6)}
+#mozi2 col:nth-child(5),#mozi2 col:nth-child(6){width:1ic}
+:is(#mozi,#cfa,#mozi2) td{padding:0;white-space:normal;overflow-wrap:anywhere;word-break:break-word;vertical-align:middle;min-width:0}
+:is(#mozi,#cfa,#mozi2) td:nth-child(1){font:24pt "華瑞小篆體","Jigmo","Jigmo2","Jigmo3"}
+:is(#mozi,#cfa,#mozi2) td:nth-child(2),:is(#mozi,#cfa,#mozi2) td:nth-child(3),:is(#mozi,#cfa,#mozi2) td:nth-child(4){font:24pt "TW-MOE-Std-Kai","Jigmo","Jigmo2","Jigmo3"}
+:is(#mozi,#cfa) td:nth-child(5){font:24pt var(--shuowen),"Jigmo","Jigmo2","Jigmo3"}
+:is(#mozi,#cfa) td:nth-child(6),:is(#mozi,#cfa) td:nth-child(7){font:24pt var(--font)}
+#mozi tr.data-row{min-height:var(--row-height)}
+#mozi tr.data-row td{height:auto;min-height:var(--row-height);white-space:normal;overflow-wrap:anywhere;vertical-align:middle}
+#mozi tr.spacer td{padding:0;height:0;min-height:0;line-height:0;font-size:0;overflow:hidden}
+.char{font:inherit;padding:0;margin:0;background:transparent;cursor:pointer;color:inherit;touch-action:manipulation;user-select:none;-webkit-user-select:none;min-width:1ic;min-height:1ic;white-space:normal;overflow-wrap:anywhere;word-break:break-word;vertical-align:middle}
+:is(#mozi,#mozi2) td:has(>button[data-edit])>button{display:block;width:100%;min-height:1.5ic;text-align:center}
+#cf,#cp{min-width:2ic}
+#cfa tr{cursor:pointer}
+#mozi2 td:nth-child(5),#mozi2 td:nth-child(6){text-align:center}
+#mozi2 td:nth-child(5) button,#mozi2 td:nth-child(6) button{font:24pt var(--font)}
+#mozi2 tr:last-child td{text-align:center}
+#mozi2 tr:last-child button{display:block;width:100%;font:24pt var(--font)}
+#bg{flex:1;min-width:0;min-height:0;margin:0;overflow-x:hidden;overflow-y:auto;overflow-wrap:anywhere;word-break:break-word;overscroll-behavior:contain;font:24pt var(--font)}
+#token{width:8ic;max-width:100%;font:24pt var(--font);border:0;outline:none}
+#status{align-self:center;overflow-wrap:anywhere;font:24pt var(--font)}
+#position{margin-left:0.25ic;font:24pt var(--font)}
+body:not(.ready)>header,body:not(.ready)>main,body:not(.ready)>footer{display:none}
+#loading{position:fixed;inset:0;z-index:9999;background:white;color:#222;display:flex;align-items:center;justify-content:center;font:24pt var(--font)}
+#loading[hidden]{display:none}
+#loading-panel{width:85%;max-width:18ic}
+#loading-title{font:24pt var(--font);margin-bottom:0.5ic}
+#loading-stage{margin-bottom:0.5ic;overflow-wrap:anywhere}
+#loading-bar{width:100%;height:0.5ic;accent-color:#3275bd}
+#loading-detail{margin-top:0.25ic}
+#loading-error{white-space:pre-wrap;overflow-wrap:anywhere;color:#a11;margin-top:0.5ic}
+#retry{font:24pt var(--font);margin-top:0.5ic;padding:0.25ic 0.5ic}
 </style>
-
 <script type="module">
 'use strict';
-
 const API='https://api.github.com/repos/tayloryep777-web/mozi/contents/mozi.txt';
 const BRANCH='mozi';
 const TOTAL=9833;
 const OVERSCAN=20;
 const MAX_RENDER_ROWS=250;
-
 const $=id=>document.getElementById(id);
-
 const table=$('mozi');
 const cfa=$('cfa');
 const mozi2=$('mozi2');
 const bg=$('bg');
 const viewport=$('viewport');
-
 const mainBody=table.tBodies[0];
 const searchBody=cfa.tBodies[0];
 const extraBody=mozi2.tBodies[0];
 const tokenInput=$('token');
-
 const chars=s=>Array.from(s);
-
-const first=s=>chars(s).find(
- c=>!(/[\p{White_Space}\p{Cc}\p{Cf}]/u.test(c))
-)||'';
-
-const status=s=>{
- $('status').textContent=s;
-};
-
-const nextFrame=()=>new Promise(resolve=>{
- requestAnimationFrame(resolve);
-});
-
+const first=s=>chars(s).find(c=>!(/[\p{White_Space}\p{Cc}\p{Cf}]/u.test(c)))||'';
+const status=s=>{$('status').textContent=s;};
+const nextFrame=()=>new Promise(resolve=>{requestAnimationFrame(resolve);});
 let sha='';
 let loaded=false;
 let dirty=false;
 let loading=false;
 let saving=false;
 let clipboard='';
-
 let originalNewline='\n';
 let originalBOM='';
 let originalTrailingNewline=false;
-
 let mainData=[];
 let extraData=[];
-
 let renderedStart=-1;
 let renderedEnd=-1;
 let renderPending=false;
 let highlightedIndex=-1;
-
 let searchMatches=[];
 let searchColumns=[];
 
 /* 動態行高索引 */
-
 class FenwickTree{
  constructor(size,initialHeight){
   this.size=size;
   this.tree=new Float64Array(size+1);
   this.heights=new Float64Array(size);
-
   for(let i=0;i<size;i++){
    this.heights[i]=initialHeight;
    this.tree[i+1]+=initialHeight;
-
    const parent=i+1+((i+1)&-(i+1));
-
-   if(parent<=size){
-    this.tree[parent]+=this.tree[i+1];
-   }
+   if(parent<=size)this.tree[parent]+=this.tree[i+1];
   }
  }
-
  update(index,height){
   if(index<0||index>=this.size)return;
-
   height=Math.max(1,height);
-
   const delta=height-this.heights[index];
-
   if(Math.abs(delta)<0.5)return;
-
   this.heights[index]=height;
-
-  for(let i=index+1;i<=this.size;i+=i&-i){
-   this.tree[i]+=delta;
-  }
+  for(let i=index+1;i<=this.size;i+=i&-i)this.tree[i]+=delta;
  }
-
  prefix(count){
   count=Math.max(0,Math.min(this.size,count));
-
   let sum=0;
-
-  for(let i=count;i>0;i-=i&-i){
-   sum+=this.tree[i];
-  }
-
+  for(let i=count;i>0;i-=i&-i)sum+=this.tree[i];
   return sum;
  }
-
- total(){
-  return this.prefix(this.size);
- }
-
+ total(){return this.prefix(this.size);}
  findIndex(offset){
   if(this.size===0)return 0;
-
   offset=Math.max(0,offset);
-
-  let index=0;
-  let sum=0;
-  let bit=1;
-
-  while(bit*2<=this.size){
-   bit*=2;
-  }
-
+  let index=0,sum=0,bit=1;
+  while(bit*2<=this.size)bit*=2;
   for(;bit>0;bit>>=1){
    const next=index+bit;
-
-   if(
-    next<=this.size&&
-    sum+this.tree[next]<=offset
-   ){
-    index=next;
-    sum+=this.tree[next];
-   }
+   if(next<=this.size&&sum+this.tree[next]<=offset){index=next;sum+=this.tree[next];}
   }
-
   return Math.min(index,this.size-1);
  }
 }
-
 function estimatedRowHeight(){
  const probe=document.createElement('span');
- probe.style.cssText=
-  'position:absolute;visibility:hidden;font:24pt "Jigmo";height:2ic';
+ probe.style.cssText='position:absolute;visibility:hidden;font:24pt "Jigmo";height:2ic';
  document.body.appendChild(probe);
  const h=probe.getBoundingClientRect().height;
  probe.remove();
  return h||64;
 }
-
 let heightTree=new FenwickTree(TOTAL,64);
 let rowObserver=null;
 let measuring=false;
 let measurementPending=false;
 let measurementChanges=new Map();
-
-const apple=/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)||
- (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-
+const apple=/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 const sealFamily=apple?'Shuo Wen SBIX':'Shuo Wen CBDT';
-
-document.documentElement.style.setProperty(
- '--shuowen',
- JSON.stringify(sealFamily)
-);
-
+document.documentElement.style.setProperty('--shuowen',JSON.stringify(sealFamily));
 function progress(p,stage,detail=''){
  $('loading-bar').value=Math.max(0,Math.min(100,p));
  $('loading-stage').textContent=stage;
- $('loading-detail').textContent=
-  `${p.toFixed(1)}%${detail?' · '+detail:''}`;
+ $('loading-detail').textContent=`${p.toFixed(1)}%${detail?' · '+detail:''}`;
 }
-
 function showLoading(){
  document.body.classList.remove('ready');
  $('loading').hidden=false;
@@ -533,7 +173,6 @@ function showLoading(){
  $('retry').hidden=true;
  progress(0,'準備載入…');
 }
-
 function failLoading(e){
  console.error(e);
  progress($('loading-bar').value,'載入失敗');
@@ -541,10 +180,8 @@ function failLoading(e){
  $('retry').hidden=false;
  status('載入失敗：'+(e.message||String(e)));
 }
-
 function finishLoading(){
  document.body.classList.add('ready');
-
  requestAnimationFrame(()=>{
   renderedStart=-1;
   renderedEnd=-1;
@@ -553,1133 +190,489 @@ function finishLoading(){
   progress(100,'全部載入完成');
  });
 }
-
-function changed(){
- dirty=true;
- status('尚未儲存');
-}
-
-try{
- tokenInput.value=localStorage.getItem('mozi-github-token')||'';
-}catch(e){
- console.error(e);
-}
-
+function changed(){dirty=true;status('尚未儲存');}
+try{tokenInput.value=localStorage.getItem('mozi-github-token')||'';}catch(e){console.error(e);}
 tokenInput.addEventListener('input',()=>{
- try{
-  localStorage.setItem('mozi-github-token',tokenInput.value);
- }catch(e){
-  console.error(e);
-  status('瀏覽器無法儲存 Token');
- }
+ try{localStorage.setItem('mozi-github-token',tokenInput.value);}
+ catch(e){console.error(e);status('瀏覽器無法儲存 Token');}
 });
-
-const decode=s=>new TextDecoder().decode(
- Uint8Array.from(
-  atob(s.replace(/\s/g,'')),
-  c=>c.charCodeAt(0)
- )
-);
-
+const decode=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g,'')),c=>c.charCodeAt(0)));
 const encode=s=>{
  const bytes=new TextEncoder().encode(s);
  let binary='';
-
- for(let i=0;i<bytes.length;i+=8192){
-  binary+=String.fromCharCode(
-   ...bytes.subarray(i,i+8192)
-  );
- }
-
+ for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
  return btoa(binary);
 };
 
-/* 複製與貼上 */
-
+/* 複製與貼上：保留原本邏輯 */
 async function copy(s){
  if(!s)return;
-
  clipboard=s;
-
- try{
-  await navigator.clipboard.writeText(s);
- }catch(e){
-  console.error(e);
- }
-
+ try{await navigator.clipboard.writeText(s);}catch(e){console.error(e);}
  status('已複製：'+s);
 }
-
 async function paste(){
- try{
-  return first(await navigator.clipboard.readText());
- }catch(e){
-  console.error(e);
-  status('無法讀取系統剪貼簿');
-  return null;
- }
+ try{return first(await navigator.clipboard.readText());}
+ catch(e){console.error(e);status('無法讀取系統剪貼簿');return null;}
 }
-
 function charButtons(el,s){
  const fragment=document.createDocumentFragment();
-
  for(const c of chars(s)){
   const b=document.createElement('button');
-  b.type='button';
-  b.className='char';
-  b.textContent=c;
-  b.dataset.copy=c;
+  b.type='button';b.className='char';b.textContent=c;b.dataset.copy=c;
   fragment.appendChild(b);
  }
-
  el.replaceChildren(fragment);
 }
-
-function editableButton(el){
- el.classList.add('char');
- el.type='button';
- el.dataset.edit='1';
-}
-
+function editableButton(el){el.classList.add('char');el.type='button';el.dataset.edit='1';}
 function createEditableButton(s,kind,index,column){
  const b=document.createElement('button');
-
  editableButton(b);
-
- b.textContent=s;
- b.dataset.value=s;
- b.dataset.kind=kind;
- b.dataset.index=index;
- b.dataset.column=column;
-
+ b.textContent=s;b.dataset.value=s;b.dataset.kind=kind;b.dataset.index=index;b.dataset.column=column;
  return b;
 }
-
 function control(id){
  const el=$(id);
  editableButton(el);
- el.dataset.kind='control';
- el.dataset.value='';
+ el.dataset.kind='control';el.dataset.value='';
  return ()=>el.dataset.value||'';
 }
-
 const getSearch=control('cf');
 const getReplace=control('cp');
 
 /* 資料修改 */
-
 function getEditValue(kind,index,column){
- if(kind==='main'){
-  return mainData[index]?.edit[column]??'';
- }
-
- if(kind==='extra'){
-  return extraData[index]?.[column]??'';
- }
-
+ if(kind==='main')return mainData[index]?.edit[column]??'';
+ if(kind==='extra')return extraData[index]?.[column]??'';
  return $(index)?.dataset.value??'';
 }
-
 function setEditValue(kind,index,column,s){
  s=first(s);
-
  if(kind==='main'){
   if(!mainData[index])return;
   mainData[index].edit[column]=s;
  }else if(kind==='extra'){
   if(!extraData[index])return;
   extraData[index][column]=s;
- }else{
-  return;
- }
-
- changed();
- updateBg();
-
- if(kind==='main'){
-  refreshVisibleRow(index);
- }else{
-  renderExtra();
- }
+ }else{return;}
+ changed();updateBg();
+ if(kind==='main')refreshVisibleRow(index);
+ else renderExtra();
 }
+function updateFirst(tr,edit){charButtons(tr.cells[0],edit.join(''));}
 
-function updateFirst(tr,edit){
- charButtons(tr.cells[0],edit.join(''));
-}
-
-/* 按鈕事件 */
-
-document.addEventListener('click',e=>{
- const b=e.target.closest('button[data-copy]');
-
- if(b){
-  copy(b.dataset.copy);
- }
-});
-
-let pressTimer=null;
-let pressButton=null;
-let pressX=0;
-let pressY=0;
-let longPressed=false;
-
-function stopPress(){
- clearTimeout(pressTimer);
- pressTimer=null;
-}
-
-document.addEventListener('pointerdown',e=>{
- const b=e.target.closest('button[data-edit]');
- if(!b||e.button!==0)return;
-
- stopPress();
-
- pressButton=b;
- pressX=e.clientX;
- pressY=e.clientY;
- longPressed=false;
-
+/* 四個獨立共用操作 */
+function buttonInfo(b){
  const kind=b.dataset.kind;
+ if(kind==='control')return {kind,value:b.dataset.value||''};
  const index=Number(b.dataset.index);
  const column=Number(b.dataset.column);
-
- pressTimer=setTimeout(async()=>{
-  if(pressButton!==b)return;
-
-  longPressed=true;
-
-  if(kind==='control'){
-   const s=b.dataset.value||'';
-
-   if(s){
-    b.dataset.value='';
-    b.textContent='';
-    status('已清空');
-   }else{
-    const p=await paste();
-
-    if(p){
-     b.dataset.value=p;
-     b.textContent=p;
-    }
-   }
-
-   return;
-  }
-
-  const s=getEditValue(kind,index,column);
-
-  if(s){
-   setEditValue(kind,index,column,'');
-   status('已清空');
-  }else{
-   const p=await paste();
-
-   if(p){
-    setEditValue(kind,index,column,p);
-   }
-  }
- },600);
-});
-
-document.addEventListener('pointermove',e=>{
- if(
-  pressButton&&
-  Math.hypot(e.clientX-pressX,e.clientY-pressY)>10
- ){
-  stopPress();
+ return {kind,index,column,value:getEditValue(kind,index,column)};
+}
+function writeButton(b,s){
+ const info=buttonInfo(b);
+ if(info.kind==='control'){
+  b.dataset.value=s;
+  b.textContent=s;
+ }else{
+  setEditValue(info.kind,info.index,info.column,s);
  }
-});
+}
+/* 1. 單擊複製 */
+function copyValue(b){
+ const {value}=buttonInfo(b);
+ if(value)copy(value);
+}
+/* 2. 單擊貼上網頁內部剪貼簿 */
+function pasteInternal(b){
+ if(!clipboard){status('網頁內部剪貼簿為空');return;}
+ writeButton(b,first(clipboard));
+}
+/* 3. 長按清空 */
+function clearValue(b){
+ writeButton(b,'');
+ if(b.dataset.kind==='control')status('已清空');
+}
+/* 4. 長按讀取系統剪貼簿 */
+async function pasteSystem(b){
+ const p=await paste();
+ if(p)writeButton(b,p);
+}
 
-document.addEventListener('pointerup',stopPress);
-document.addEventListener('pointercancel',stopPress);
-
-document.addEventListener('contextmenu',e=>{
- if(e.target.closest('button[data-edit]')){
-  e.preventDefault();
- }
-});
-
+/* 共用事件：方法一 contextmenu */
+let suppressedClick=null;
+let suppressedUntil=0;
 document.addEventListener('click',e=>{
+ const b=e.target.closest('button');
+ if(!b)return;
+ if(b.dataset.edit!==undefined&&b===suppressedClick&&performance.now()<suppressedUntil){
+  e.preventDefault();
+  e.stopPropagation();
+  suppressedClick=null;
+  return;
+ }
+ if(b.dataset.copy!==undefined){copy(b.dataset.copy);return;}
+ if(b.dataset.edit===undefined)return;
+ if(buttonInfo(b).value)copyValue(b);
+ else pasteInternal(b);
+});
+document.addEventListener('contextmenu',e=>{
  const b=e.target.closest('button[data-edit]');
  if(!b)return;
-
- if(longPressed){
-  longPressed=false;
-  pressButton=null;
-  return;
- }
-
- pressButton=null;
-
- const kind=b.dataset.kind;
-
- if(kind==='control'){
-  const s=b.dataset.value||'';
-
-  if(s){
-   copy(s);
-  }else if(clipboard){
-   const v=first(clipboard);
-   b.dataset.value=v;
-   b.textContent=v;
-  }else{
-   status('網頁內部剪貼簿為空');
-  }
-
-  return;
- }
-
- const index=Number(b.dataset.index);
- const column=Number(b.dataset.column);
- const s=getEditValue(kind,index,column);
-
- if(s){
-  copy(s);
- }else if(clipboard){
-  setEditValue(kind,index,column,clipboard);
- }else{
-  status('網頁內部剪貼簿為空');
- }
+ e.preventDefault();
+ suppressedClick=b;
+ suppressedUntil=performance.now()+1500;
+ if(buttonInfo(b).value)clearValue(b);
+ else pasteSystem(b);
 });
 
 /* 主表 */
-
 function createMainRow(index){
  const data=mainData[index];
  const tr=document.createElement('tr');
-
- tr.className='data-row';
- tr.dataset.index=index;
-
+ tr.className='data-row';tr.dataset.index=index;
  tr.insertCell();
-
  for(let j=0;j<3;j++){
   const td=tr.insertCell();
-
-  td.appendChild(
-   createEditableButton(
-    data.edit[j],
-    'main',
-    index,
-    j
-   )
-  );
+  td.appendChild(createEditableButton(data.edit[j],'main',index,j));
  }
-
  updateFirst(tr,data.edit);
-
- for(let j=0;j<3;j++){
-  charButtons(
-   tr.insertCell(),
-   data.seal[j]||''
-  );
- }
-
- if(index===highlightedIndex){
-  tr.style.background='#fff2b0';
- }
-
+ for(let j=0;j<3;j++)charButtons(tr.insertCell(),data.seal[j]||'');
+ if(index===highlightedIndex)tr.style.background='#fff2b0';
  return tr;
 }
-
 /* 行高測量 */
-
 function initRowObserver(){
- if(rowObserver){
-  rowObserver.disconnect();
- }
-
+ if(rowObserver)rowObserver.disconnect();
  rowObserver=new ResizeObserver(entries=>{
   if(measuring)return;
-
   for(const entry of entries){
    const tr=entry.target;
-
    if(!tr.isConnected)continue;
-
    const index=Number(tr.dataset.index);
-
    if(!Number.isInteger(index))continue;
-
-   const height=entry.borderBoxSize?.[0]?.blockSize
-    ??tr.getBoundingClientRect().height;
-
-   if(height>0){
-    measurementChanges.set(index,height);
-   }
+   const height=entry.borderBoxSize?.[0]?.blockSize??tr.getBoundingClientRect().height;
+   if(height>0)measurementChanges.set(index,height);
   }
-
   scheduleMeasurements();
  });
 }
-
 function observeRows(){
  if(!rowObserver)return;
-
  rowObserver.disconnect();
-
- for(const tr of mainBody.querySelectorAll('tr.data-row')){
-  rowObserver.observe(tr);
- }
+ for(const tr of mainBody.querySelectorAll('tr.data-row'))rowObserver.observe(tr);
 }
-
 function scheduleMeasurements(){
  if(measurementPending)return;
-
  measurementPending=true;
-
- requestAnimationFrame(()=>{
-  measurementPending=false;
-  applyMeasurements();
- });
+ requestAnimationFrame(()=>{measurementPending=false;applyMeasurements();});
 }
-
 function applyMeasurements(){
  if(!loaded||measurementChanges.size===0)return;
-
  const changes=[...measurementChanges.entries()];
  measurementChanges.clear();
-
  const anchorIndex=heightTree.findIndex(viewport.scrollTop);
  const anchorOffset=viewport.scrollTop-heightTree.prefix(anchorIndex);
-
  let any=false;
-
  measuring=true;
-
  for(const [index,height] of changes){
   if(index<0||index>=mainData.length)continue;
-
   const old=heightTree.heights[index];
-
-  if(Math.abs(old-height)>=0.5){
-   heightTree.update(index,height);
-   any=true;
-  }
+  if(Math.abs(old-height)>=0.5){heightTree.update(index,height);any=true;}
  }
-
  measuring=false;
-
  if(!any)return;
-
  const newTop=heightTree.prefix(anchorIndex)+anchorOffset;
-
- if(Math.abs(viewport.scrollTop-newTop)>0.5){
-  viewport.scrollTop=newTop;
- }
-
+ if(Math.abs(viewport.scrollTop-newTop)>0.5)viewport.scrollTop=newTop;
  renderVisible(true);
 }
-
 /* 虛擬捲動 */
-
 function createSpacer(height){
- const tr=document.createElement('tr');
- tr.className='spacer';
-
- const td=tr.insertCell();
- td.colSpan=7;
-
- td.style.height=Math.max(0,height)+'px';
- td.style.minHeight=Math.max(0,height)+'px';
-
+ const tr=document.createElement('tr');tr.className='spacer';
+ const td=tr.insertCell();td.colSpan=7;
+ td.style.height=Math.max(0,height)+'px';td.style.minHeight=Math.max(0,height)+'px';
  return tr;
 }
-
 function renderVisible(force=false){
  if(!loaded)return;
-
  const scrollTop=viewport.scrollTop;
  const viewportHeight=viewport.clientHeight;
-
  const firstVisible=heightTree.findIndex(scrollTop);
- const lastVisible=heightTree.findIndex(
-  scrollTop+viewportHeight
- );
-
- const start=Math.max(
-  0,
-  firstVisible-OVERSCAN
- );
-
- const end=Math.min(
-  mainData.length,
-  Math.max(lastVisible+OVERSCAN+1,start+1),
-  start+MAX_RENDER_ROWS
- );
-
- if(
-  !force&&
-  start===renderedStart&&
-  end===renderedEnd
- ){
-  $('position').textContent=
-   `${Math.min(firstVisible+1,TOTAL)} / ${TOTAL}`;
+ const lastVisible=heightTree.findIndex(scrollTop+viewportHeight);
+ const start=Math.max(0,firstVisible-OVERSCAN);
+ const end=Math.min(mainData.length,Math.max(lastVisible+OVERSCAN+1,start+1),start+MAX_RENDER_ROWS);
+ if(!force&&start===renderedStart&&end===renderedEnd){
+  $('position').textContent=`${Math.min(firstVisible+1,TOTAL)} / ${TOTAL}`;
   return;
  }
-
  const fragment=document.createDocumentFragment();
-
  const topHeight=heightTree.prefix(start);
  const bottomHeight=heightTree.total()-heightTree.prefix(end);
-
- if(topHeight>0){
-  fragment.appendChild(createSpacer(topHeight));
- }
-
- for(let i=start;i<end;i++){
-  fragment.appendChild(createMainRow(i));
- }
-
- if(bottomHeight>0){
-  fragment.appendChild(createSpacer(bottomHeight));
- }
-
+ if(topHeight>0)fragment.appendChild(createSpacer(topHeight));
+ for(let i=start;i<end;i++)fragment.appendChild(createMainRow(i));
+ if(bottomHeight>0)fragment.appendChild(createSpacer(bottomHeight));
  rowObserver?.disconnect();
  mainBody.replaceChildren(fragment);
-
- renderedStart=start;
- renderedEnd=end;
-
- $('position').textContent=
-  `${Math.min(firstVisible+1,TOTAL)} / ${TOTAL}`;
-
+ renderedStart=start;renderedEnd=end;
+ $('position').textContent=`${Math.min(firstVisible+1,TOTAL)} / ${TOTAL}`;
  observeRows();
 }
-
 function scheduleRender(){
  if(renderPending)return;
-
  renderPending=true;
-
- requestAnimationFrame(()=>{
-  renderPending=false;
-  renderVisible();
- });
+ requestAnimationFrame(()=>{renderPending=false;renderVisible();});
 }
-
-viewport.addEventListener('scroll',scheduleRender,{
- passive:true
-});
-
+viewport.addEventListener('scroll',scheduleRender,{passive:true});
 window.addEventListener('resize',()=>{
  if(!loaded)return;
-
- heightTree=new FenwickTree(
-  mainData.length,
-  estimatedRowHeight()
- );
-
- renderedStart=-1;
- renderedEnd=-1;
- measurementChanges.clear();
-
- scheduleRender();
+ heightTree=new FenwickTree(mainData.length,estimatedRowHeight());
+ renderedStart=-1;renderedEnd=-1;measurementChanges.clear();scheduleRender();
 });
-
 function refreshVisibleRow(index){
- if(
-  index<renderedStart||
-  index>=renderedEnd
- ){
-  return;
- }
-
- const tr=mainBody.querySelector(
-  `tr[data-index="${index}"]`
- );
-
+ if(index<renderedStart||index>=renderedEnd)return;
+ const tr=mainBody.querySelector(`tr[data-index="${index}"]`);
  if(tr){
   rowObserver?.unobserve(tr);
-
   const next=createMainRow(index);
   tr.replaceWith(next);
   rowObserver?.observe(next);
  }
 }
-
 function jumpToRow(index){
  if(index<0||index>=mainData.length)return;
-
  highlightedIndex=index;
-
  const top=heightTree.prefix(index);
  const height=heightTree.heights[index];
-
- viewport.scrollTop=Math.max(
-  0,
-  top-(viewport.clientHeight-height)/2
- );
-
+ viewport.scrollTop=Math.max(0,top-(viewport.clientHeight-height)/2);
  renderVisible(true);
-
  status(`已跳至第 ${index+1} 行`);
 }
-
 /* 附加資料 */
-
 function createExtraRow(index){
  const data=extraData[index];
- const tr=document.createElement('tr');
-
- tr.dataset.index=index;
- tr.insertCell();
-
+ const tr=document.createElement('tr');tr.dataset.index=index;tr.insertCell();
  for(let j=0;j<3;j++){
   const td=tr.insertCell();
-
-  td.appendChild(
-   createEditableButton(
-    data[j],
-    'extra',
-    index,
-    j
-   )
-  );
+  td.appendChild(createEditableButton(data[j],'extra',index,j));
  }
-
  updateFirst(tr,data);
-
  for(const [symbol,direction] of [['↑',-1],['↓',1]]){
-  const td=tr.insertCell();
-  const b=document.createElement('button');
-
-  b.type='button';
-  b.className='char';
-  b.textContent=symbol;
+  const td=tr.insertCell();const b=document.createElement('button');
+  b.type='button';b.className='char';b.textContent=symbol;
   b.title=direction<0?'上移一行':'下移一行';
-
-  b.addEventListener('click',()=>{
-   moveExtraRow(index,direction);
-  });
-
+  b.addEventListener('click',()=>moveExtraRow(index,direction));
   td.appendChild(b);
  }
-
  return tr;
 }
-
 function renderExtra(){
  const fragment=document.createDocumentFragment();
-
- for(let i=0;i<extraData.length;i++){
-  fragment.appendChild(createExtraRow(i));
- }
-
- const tr=document.createElement('tr');
- tr.dataset.add='1';
-
- const td=tr.insertCell();
- td.colSpan=6;
-
+ for(let i=0;i<extraData.length;i++)fragment.appendChild(createExtraRow(i));
+ const tr=document.createElement('tr');tr.dataset.add='1';
+ const td=tr.insertCell();td.colSpan=6;
  const b=document.createElement('button');
- b.type='button';
- b.className='char';
- b.textContent='+';
- b.title='新增一行';
-
+ b.type='button';b.className='char';b.textContent='+';b.title='新增一行';
  b.addEventListener('click',()=>{
-  extraData.push(['','','']);
-  renderExtra();
-  updateBg();
-  changed();
+  extraData.push(['','','']);renderExtra();updateBg();changed();
  });
-
- td.appendChild(b);
- fragment.appendChild(tr);
-
+ td.appendChild(b);fragment.appendChild(tr);
  extraBody.replaceChildren(fragment);
 }
-
 function moveExtraRow(index,direction){
  const target=index+direction;
-
  if(target<0||target>=extraData.length)return;
-
- [extraData[index],extraData[target]]=
- [extraData[target],extraData[index]];
-
- renderExtra();
- changed();
+ [extraData[index],extraData[target]]=[extraData[target],extraData[index]];
+ renderExtra();changed();
 }
-
 /* 差異字元 */
-
 function updateBg(){
- const a=new Set();
- const b=new Set();
-
+ const a=new Set(),b=new Set();
  for(const row of mainData){
-  for(const c of chars(row.edit[0])){
-   a.add(c);
-  }
-
-  for(const c of chars(row.edit[1]+row.edit[2])){
-   b.add(c);
-  }
+  for(const c of chars(row.edit[0]))a.add(c);
+  for(const c of chars(row.edit[1]+row.edit[2]))b.add(c);
  }
-
  for(const row of extraData){
-  for(const c of chars(row[0])){
-   a.add(c);
-  }
-
-  for(const c of chars(row[1]+row[2])){
-   b.add(c);
-  }
+  for(const c of chars(row[0]))a.add(c);
+  for(const c of chars(row[1]+row[2]))b.add(c);
  }
-
- charButtons(
-  bg,
-  [...b].filter(c=>!a.has(c)).join('')
- );
+ charButtons(bg,[...b].filter(c=>!a.has(c)).join(''));
 }
-
 /* 搜尋 */
-
-function rowValues(data){
- return [
-  data.edit.join(''),
-  ...data.edit,
-  ...data.seal
- ];
-}
-
+function rowValues(data){return [data.edit.join(''),...data.edit,...data.seal];}
 function searchColumn(columns){
  searchBody.replaceChildren();
-
- const q=getSearch();
- if(!q)return;
-
- searchMatches=[];
- searchColumns=columns;
-
+ const q=getSearch();if(!q)return;
+ searchMatches=[];searchColumns=columns;
  for(let i=0;i<mainData.length;i++){
   const cells=rowValues(mainData[i]);
-
-  if(columns.some(n=>cells[n-1].includes(q))){
-   searchMatches.push(i);
-  }
+  if(columns.some(n=>cells[n-1].includes(q)))searchMatches.push(i);
  }
-
  renderSearchResults(0);
  status(`找到 ${searchMatches.length} 行`);
 }
-
 function renderSearchResults(offset){
- const PAGE=100;
- const fragment=document.createDocumentFragment();
-
- const end=Math.min(
-  offset+PAGE,
-  searchMatches.length
- );
-
+ const PAGE=100,fragment=document.createDocumentFragment();
+ const end=Math.min(offset+PAGE,searchMatches.length);
  for(let k=offset;k<end;k++){
-  const index=searchMatches[k];
-  const cells=rowValues(mainData[index]);
-
-  const tr=document.createElement('tr');
-  tr.dataset.index=index;
-
-  for(const s of cells){
-   charButtons(tr.insertCell(),s);
-  }
-
+  const index=searchMatches[k];const cells=rowValues(mainData[index]);
+  const tr=document.createElement('tr');tr.dataset.index=index;
+  for(const s of cells)charButtons(tr.insertCell(),s);
   fragment.appendChild(tr);
  }
-
  if(end<searchMatches.length){
-  const tr=document.createElement('tr');
-  const td=tr.insertCell();
-  td.colSpan=7;
-
-  const b=document.createElement('button');
-  b.type='button';
-  b.textContent=
-   `顯示更多（${end} / ${searchMatches.length}）`;
-
-  b.addEventListener('click',()=>{
-   tr.remove();
-   renderSearchResults(end);
-  });
-
-  td.appendChild(b);
-  fragment.appendChild(tr);
+  const tr=document.createElement('tr');const td=tr.insertCell();td.colSpan=7;
+  const b=document.createElement('button');b.type='button';
+  b.textContent=`顯示更多（${end} / ${searchMatches.length}）`;
+  b.addEventListener('click',()=>{tr.remove();renderSearchResults(end);});
+  td.appendChild(b);fragment.appendChild(tr);
  }
-
  searchBody.appendChild(fragment);
 }
-
 cfa.addEventListener('click',e=>{
  const tr=e.target.closest('tr[data-index]');
  if(!tr)return;
-
  jumpToRow(Number(tr.dataset.index));
 });
-
-$('cfb1').addEventListener('click',()=>{
- searchColumn([2]);
-});
-
-$('cfb2').addEventListener('click',()=>{
- searchColumn([3,4]);
-});
-
-$('cfb3').addEventListener('click',()=>{
- searchColumn([6]);
-});
-
+$('cfb1').addEventListener('click',()=>searchColumn([2]));
+$('cfb2').addEventListener('click',()=>searchColumn([3,4]));
+$('cfb3').addEventListener('click',()=>searchColumn([6]));
 /* 取代 */
-
 $('cpb').addEventListener('click',()=>{
- const q=getSearch();
- if(!q)return;
-
- const replacement=getReplace();
- let any=false;
-
+ const q=getSearch();if(!q)return;
+ const replacement=getReplace();let any=false;
  for(const row of mainData){
   for(let j=0;j<3;j++){
    const old=row.edit[j];
-
-   if(old.includes(q)){
-    row.edit[j]=first(old.replaceAll(q,replacement));
-    any=true;
-   }
+   if(old.includes(q)){row.edit[j]=first(old.replaceAll(q,replacement));any=true;}
   }
  }
-
  for(const row of extraData){
   for(let j=0;j<3;j++){
    const old=row[j];
-
-   if(old.includes(q)){
-    row[j]=first(old.replaceAll(q,replacement));
-    any=true;
-   }
+   if(old.includes(q)){row[j]=first(old.replaceAll(q,replacement));any=true;}
   }
  }
-
  if(any){
-  heightTree=new FenwickTree(
-   mainData.length,
-   estimatedRowHeight()
-  );
-
-  measurementChanges.clear();
-  renderedStart=-1;
-  renderedEnd=-1;
-
-  renderVisible(true);
-  renderExtra();
-  updateBg();
-
-  searchBody.replaceChildren();
-  searchMatches=[];
-
-  changed();
+  heightTree=new FenwickTree(mainData.length,estimatedRowHeight());
+  measurementChanges.clear();renderedStart=-1;renderedEnd=-1;
+  renderVisible(true);renderExtra();updateBg();
+  searchBody.replaceChildren();searchMatches=[];changed();
  }
 });
-
 /* GitHub */
-
 async function github(options={}){
- const r=await fetch(
-  API+'?ref='+encodeURIComponent(BRANCH),
-  {
-   cache:'no-store',
-   ...options,
-   headers:{
-    Accept:'application/vnd.github+json',
-    ...(options.headers||{})
-   }
-  }
- );
-
- if(!r.ok){
-  throw Error(
-   'GitHub HTTP '+r.status+'：'+
-   (await r.text()).slice(0,400)
-  );
- }
-
+ const r=await fetch(API+'?ref='+encodeURIComponent(BRANCH),{
+  cache:'no-store',...options,
+  headers:{Accept:'application/vnd.github+json',...(options.headers||{})}
+ });
+ if(!r.ok)throw Error('GitHub HTTP '+r.status+'：'+(await r.text()).slice(0,400));
  return r.json();
 }
-
 /* 字型載入 */
-
 async function loadFonts(){
- const families=[
-  '華瑞小篆體',
-  'TW-MOE-Std-Kai',
-  sealFamily,
-  'Jigmo',
-  'Jigmo2',
-  'Jigmo3'
- ];
-
+ const families=['華瑞小篆體','TW-MOE-Std-Kai',sealFamily,'Jigmo','Jigmo2','Jigmo3'];
  for(let i=0;i<families.length;i++){
   const family=families[i];
-
-  progress(
-   15+20*i/families.length,
-   '正在載入字型',
-   `${i+1}/${families.length}：${family}`
-  );
-
-  const face=[...document.fonts].find(
-   f=>f.family.replace(/^['"]|['"]$/g,'')===family
-  );
-
-  if(!face){
-   throw Error('找不到字型宣告：'+family);
-  }
-
+  progress(15+20*i/families.length,'正在載入字型',`${i+1}/${families.length}：${family}`);
+  const face=[...document.fonts].find(f=>f.family.replace(/^['"]|['"]$/g,'')===family);
+  if(!face)throw Error('找不到字型宣告：'+family);
   await face.load();
-
-  if(face.status!=='loaded'){
-   throw Error('字型載入失敗：'+family);
-  }
+  if(face.status!=='loaded')throw Error('字型載入失敗：'+family);
  }
-
  progress(35,'字型檔案已載入');
 }
-
 /* 資料解析 */
-
 async function parseData(text,sw){
  originalBOM=text.startsWith('\uFEFF')?'\uFEFF':'';
-
- if(originalBOM){
-  text=text.slice(1);
- }
-
+ if(originalBOM)text=text.slice(1);
  originalNewline=text.includes('\r\n')?'\r\n':'\n';
  originalTrailingNewline=/\r?\n$/.test(text);
-
  const lines=text.replace(/\r\n/g,'\n').split('\n');
  const seals=sw.replace(/\r\n/g,'\n').split('\n');
-
  if(lines.length<TOTAL||seals.length<TOTAL){
-  throw Error(
-   `資料不足 ${TOTAL} 行（mozi：${lines.length}、shuowen：${seals.length}）`
-  );
+  throw Error(`資料不足 ${TOTAL} 行（mozi：${lines.length}、shuowen：${seals.length}）`);
  }
-
- loaded=false;
- const nextMain=[];
-
+ loaded=false;const nextMain=[];
  progress(35,'正在解析主表資料');
-
  for(let i=0;i<TOTAL;i++){
   const m=chars(lines[i]).slice(0,3);
   const s=seals[i].split('\t');
-
   nextMain.push({
-   edit:[
-    first(m[0]||''),
-    first(m[1]||''),
-    first(m[2]||'')
-   ],
-   seal:[
-    s[0]||'',
-    s[1]||'',
-    s[2]||''
-   ]
+   edit:[first(m[0]||''),first(m[1]||''),first(m[2]||'')],
+   seal:[s[0]||'',s[1]||'',s[2]||'']
   });
-
   if(i%1000===999){
-   progress(
-    35+40*(i+1)/TOTAL,
-    '正在解析主表資料',
-    `${i+1} / ${TOTAL} 行`
-   );
+   progress(35+40*(i+1)/TOTAL,'正在解析主表資料',`${i+1} / ${TOTAL} 行`);
    await nextFrame();
   }
  }
-
  progress(78,'正在解析附加資料');
-
  const tail=lines.slice(TOTAL);
-
- if(originalTrailingNewline&&tail.at(-1)===''){
-  tail.pop();
- }
-
+ if(originalTrailingNewline&&tail.at(-1)==='')tail.pop();
  const nextExtra=tail.map(line=>{
   const m=chars(line);
-
-  return [
-   first(m[0]||''),
-   first(m[1]||''),
-   first(m[2]||'')
-  ];
+  return [first(m[0]||''),first(m[1]||''),first(m[2]||'')];
  });
-
- mainData=nextMain;
- extraData=nextExtra;
-
- heightTree=new FenwickTree(
-  mainData.length,
-  estimatedRowHeight()
- );
-
+ mainData=nextMain;extraData=nextExtra;
+ heightTree=new FenwickTree(mainData.length,estimatedRowHeight());
  measurementChanges.clear();
-
  progress(85,'正在建立附加資料表');
-
- rowObserver?.disconnect();
- mainBody.replaceChildren();
- searchBody.replaceChildren();
- renderExtra();
-
- progress(90,'正在計算差異字元');
- updateBg();
-
+ rowObserver?.disconnect();mainBody.replaceChildren();searchBody.replaceChildren();renderExtra();
+ progress(90,'正在計算差異字元');updateBg();
  progress(95,'正在初始化虛擬捲動');
-
- renderedStart=-1;
- renderedEnd=-1;
- highlightedIndex=-1;
- searchMatches=[];
-
- viewport.scrollTop=0;
-
- initRowObserver();
-
- loaded=true;
- dirty=false;
-
+ renderedStart=-1;renderedEnd=-1;highlightedIndex=-1;searchMatches=[];
+ viewport.scrollTop=0;initRowObserver();loaded=true;dirty=false;
  status('已載入 mozi.txt');
-
- progress(
-  98,
-  '資料初始化完成',
-  `${mainData.length} 行主表、${extraData.length} 行附加資料`
- );
+ progress(98,'資料初始化完成',`${mainData.length} 行主表、${extraData.length} 行附加資料`);
 }
-
 /* 載入 */
-
 async function loadData(){
  if(loading||saving)return;
-
- if(dirty){
-  status('有尚未儲存的修改、請先儲存後再重新載入');
-  return;
- }
-
- loading=true;
- showLoading();
- status('正在載入…');
-
+ if(dirty){status('有尚未儲存的修改、請先儲存後再重新載入');return;}
+ loading=true;showLoading();status('正在載入…');
  try{
   progress(2,'正在下載 TXT 檔案');
-
   const [file,sw]=await Promise.all([
    github(),
-   fetch('shuowen.txt').then(r=>{
-    if(!r.ok){
-     throw Error('shuowen.txt HTTP '+r.status);
-    }
-    return r.text();
-   })
+   fetch('shuowen.txt').then(r=>{if(!r.ok)throw Error('shuowen.txt HTTP '+r.status);return r.text();})
   ]);
-
-  progress(15,'TXT 下載完成');
-  await nextFrame();
-
+  progress(15,'TXT 下載完成');await nextFrame();
   await loadFonts();
-
-  progress(35,'正在解碼 TXT');
-  await nextFrame();
-
+  progress(35,'正在解碼 TXT');await nextFrame();
   await parseData(decode(file.content),sw);
-
   sha=file.sha;
-
-  progress(99,'正在顯示可見行');
-  finishLoading();
- }catch(e){
-  failLoading(e);
- }finally{
-  loading=false;
- }
+  progress(99,'正在顯示可見行');finishLoading();
+ }catch(e){failLoading(e);}finally{loading=false;}
 }
-
 $('reload').addEventListener('click',loadData);
 $('retry').addEventListener('click',loadData);
-
 /* 儲存 */
-
 $('cs').addEventListener('click',async()=>{
  if(saving||loading)return;
-
- if(!loaded){
-  status('請先載入 mozi.txt');
-  return;
- }
-
+ if(!loaded){status('請先載入 mozi.txt');return;}
  const token=tokenInput.value.trim();
-
- if(!token){
-  status('請先在上方輸入 GitHub Token');
-  tokenInput.focus();
-  return;
- }
-
+ if(!token){status('請先在上方輸入 GitHub Token');tokenInput.focus();return;}
  const head=mainData.map(row=>row.edit.join(''));
  const tail=extraData.map(row=>row.join(''));
-
  let content=[...head,...tail].join('\n');
-
- if(originalTrailingNewline){
-  content+='\n';
- }
-
- content=originalBOM+
-  content.replace(/\n/g,originalNewline);
-
- saving=true;
- $('cs').disabled=true;
- status('正在儲存…');
-
+ if(originalTrailingNewline)content+='\n';
+ content=originalBOM+content.replace(/\n/g,originalNewline);
+ saving=true;$('cs').disabled=true;status('正在儲存…');
  try{
   const result=await github({
    method:'PUT',
-   headers:{
-    Authorization:'Bearer '+token,
-    'Content-Type':'application/json'
-   },
-   body:JSON.stringify({
-    message:'更新 mozi.txt',
-    content:encode(content),
-    sha,
-    branch:BRANCH
-   })
+   headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+   body:JSON.stringify({message:'更新 mozi.txt',content:encode(content),sha,branch:BRANCH})
   });
-
-  sha=result.content.sha;
-  dirty=false;
-
+  sha=result.content.sha;dirty=false;
   status('已提交至 GitHub mozi 分支');
- }catch(e){
-  console.error(e);
-  status('儲存失敗：'+e.message);
- }finally{
-  saving=false;
-  $('cs').disabled=false;
- }
+ }catch(e){console.error(e);status('儲存失敗：'+e.message);}
+ finally{saving=false;$('cs').disabled=false;}
 });
-
 loadData();
 </script>
 </head>
-
 <body>
-
 <div id="loading" role="status" aria-live="polite">
  <div id="loading-panel">
   <div id="loading-title">說文解字</div>
@@ -1690,7 +683,6 @@ loadData();
   <button id="retry" hidden>重新嘗試</button>
  </div>
 </div>
-
 <header>
  <button id="cf" class="char"></button>
  <button id="cfb1">搜字頭</button>
@@ -1699,51 +691,22 @@ loadData();
  <button id="cp" class="char"></button>
  <button id="cpb">取代</button>
  <button id="reload">重新載入</button>
-
- <input
-  id="token"
-  type="password"
-  placeholder="GitHub Token"
-  autocomplete="off"
-  aria-label="GitHub Token"
- >
-
+ <input id="token" type="password" placeholder="GitHub Token" autocomplete="off" aria-label="GitHub Token">
  <button id="cs">儲存至 GitHub</button>
-
  <span id="status" role="status"></span>
  <span id="position"></span>
-
  <div id="results">
-  <table id="cfa">
-   <colgroup>
-    <col><col><col><col><col><col><col>
-   </colgroup>
-   <tbody></tbody>
-  </table>
+  <table id="cfa"><colgroup><col><col><col><col><col><col><col></colgroup><tbody></tbody></table>
  </div>
 </header>
-
 <main id="viewport">
- <table id="mozi">
-  <colgroup>
-   <col><col><col><col><col><col><col>
-  </colgroup>
-  <tbody></tbody>
- </table>
+ <table id="mozi"><colgroup><col><col><col><col><col><col><col></colgroup><tbody></tbody></table>
 </main>
-
 <footer>
  <div id="mozi2-scroll">
-  <table id="mozi2">
-   <colgroup>
-    <col><col><col><col><col><col>
-   </colgroup>
-   <tbody></tbody>
-  </table>
+  <table id="mozi2"><colgroup><col><col><col><col><col><col></colgroup><tbody></tbody></table>
  </div>
-
  <p id="bg"></p>
 </footer>
-
 </body>
 </html>
