@@ -1,9 +1,11 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>說文解字</title>
+
 <style>
 @font-face{font-family:"華瑞小篆體";src:url("華瑞小篆體.ttf")}
 @font-face{font-family:"TW-MOE-Std-Kai";src:url("TW-MOE-Std-Kai.ttf")}
@@ -12,28 +14,169 @@
 @font-face{font-family:"Jigmo";src:url("Jigmo.ttf")}
 @font-face{font-family:"Jigmo2";src:url("Jigmo2.ttf")}
 @font-face{font-family:"Jigmo3";src:url("Jigmo3.ttf")}
-body{margin:0;height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
-header{flex-shrink:0;display:flex;flex-wrap:wrap;align-items:center}
-main{flex:1;min-height:0;overflow:auto}
-footer{height:25vh;flex-shrink:0;display:flex;overflow:auto}
-#results{flex-basis:100%;max-height:25vh;min-width:0;overflow:auto}
-:is(#mozi,#mozi2,#cfa) td:nth-child(1){font:26pt "華瑞小篆體","Jigmo","Jigmo2","Jigmo3"}
-:is(#mozi,#mozi2,#cfa) td:nth-child(2),:is(#mozi,#mozi2,#cfa) td:nth-child(3),:is(#mozi,#mozi2,#cfa) td:nth-child(4){font:24pt "TW-MOE-Std-Kai","Jigmo","Jigmo2","Jigmo3"}
-:is(#mozi,#cfa) td:nth-child(5){font:26pt var(--shuowen),"Jigmo","Jigmo2","Jigmo3"}
-:is(#mozi,#cfa) td:nth-child(6),:is(#mozi,#cfa) td:nth-child(7){font:22pt "Jigmo","Jigmo2","Jigmo3"}
-:is(#mozi,#mozi2,#cfa) td:nth-child(-n+4){white-space:pre}
+
+:root{
+ --shuowen:"Shuo Wen CBDT";
+ --w1:3ic;
+ --w2:1ic;
+ --w3:1ic;
+ --w4:1ic;
+ --w5:2ic;
+ --w6:3ic;
+ --w7:20ic;
+}
+
+*{box-sizing:border-box}
+
+body{
+ margin:0;
+ height:100vh;
+ height:100dvh;
+ display:flex;
+ flex-direction:column;
+ overflow:hidden;
+}
+
+header{
+ flex-shrink:0;
+ display:flex;
+ flex-wrap:wrap;
+ align-items:center;
+}
+
+main{
+ flex:1;
+ min-height:0;
+ overflow:auto;
+}
+
+footer{
+ height:25vh;
+ flex-shrink:0;
+ display:flex;
+ overflow:auto;
+}
+
+#results{
+ flex-basis:100%;
+ max-height:25vh;
+ min-width:0;
+ overflow:auto;
+}
+
+#mozi,#cfa,#mozi2{
+ table-layout:fixed;
+ border-collapse:collapse;
+ font-size:24pt;
+}
+
+#mozi,#cfa{width:31ic}
+#mozi2{width:8ic;align-self:flex-start}
+
+:is(#mozi,#cfa) col:nth-child(1){width:var(--w1)}
+:is(#mozi,#cfa) col:nth-child(2){width:var(--w2)}
+:is(#mozi,#cfa) col:nth-child(3){width:var(--w3)}
+:is(#mozi,#cfa) col:nth-child(4){width:var(--w4)}
+:is(#mozi,#cfa) col:nth-child(5){width:var(--w5)}
+:is(#mozi,#cfa) col:nth-child(6){width:var(--w6)}
+:is(#mozi,#cfa) col:nth-child(7){width:var(--w7)}
+
+#mozi2 col:nth-child(1){width:3ic}
+#mozi2 col:nth-child(2){width:1ic}
+#mozi2 col:nth-child(3){width:1ic}
+#mozi2 col:nth-child(4){width:1ic}
+#mozi2 col:nth-child(5){width:1ic}
+#mozi2 col:nth-child(6){width:1ic}
+
+:is(#mozi,#mozi2,#cfa) td{
+ overflow:visible;
+ white-space:pre;
+}
+
+#mozi2 td{border:1px solid #aaa}
+
+:is(#mozi,#mozi2,#cfa) td:nth-child(1){
+ font:26pt "華瑞小篆體","Jigmo","Jigmo2","Jigmo3";
+}
+
+:is(#mozi,#mozi2,#cfa) td:nth-child(2),
+:is(#mozi,#mozi2,#cfa) td:nth-child(3),
+:is(#mozi,#mozi2,#cfa) td:nth-child(4){
+ font:24pt "TW-MOE-Std-Kai","Jigmo","Jigmo2","Jigmo3";
+}
+
+:is(#mozi,#cfa) td:nth-child(5){
+ font:26pt var(--shuowen),"Jigmo","Jigmo2","Jigmo3";
+}
+
+:is(#mozi,#cfa) td:nth-child(6),
+:is(#mozi,#cfa) td:nth-child(7){
+ font:22pt "Jigmo","Jigmo2","Jigmo3";
+}
+
 button{font:22pt "Jigmo","Jigmo2","Jigmo3"}
-.char{font:inherit;border:0;padding:0;margin:0;background:transparent;cursor:pointer;color:inherit;touch-action:manipulation;user-select:none;-webkit-user-select:none;min-width:1ic;min-height:1em}
-.char:hover{background:#ddd}.char:active{background:#ccc}
-#cf,#cp{min-width:2ic}#cfa tr{cursor:pointer}
-#mozi2{border-collapse:collapse;align-self:flex-start}#mozi2 td{border:1px solid #aaa}
-#mozi2 td:nth-child(n+5) button{cursor:pointer}#mozi2 tr:last-child td{text-align:center}
+
+.char{
+ font:inherit;
+ border:0;
+ padding:0;
+ margin:0;
+ background:transparent;
+ cursor:pointer;
+ color:inherit;
+ touch-action:manipulation;
+ user-select:none;
+ -webkit-user-select:none;
+ min-width:1ic;
+ min-height:1em;
+}
+
+.char:hover{background:#ddd}
+.char:active{background:#ccc}
+
+#cf,#cp{min-width:2ic}
+#cfa tr{cursor:pointer}
+
+#mozi2 td:nth-child(n+5) button{cursor:pointer}
+#mozi2 tr:last-child td{text-align:center}
 #mozi2 tr:last-child button{display:block;width:100%}
-#bg{margin:0;overflow-x:hidden;overflow-y:auto;font:22pt "Jigmo","Jigmo2","Jigmo3"}
-#token{font:14pt sans-serif;width:220px;box-sizing:border-box}
-#status{font:14pt sans-serif;align-self:center;overflow-wrap:anywhere}
-body:not(.ready)>header,body:not(.ready)>main,body:not(.ready)>footer{visibility:hidden}
-#loading{position:fixed;inset:0;z-index:9999;background:#fff;color:#222;display:flex;align-items:center;justify-content:center;font:16px system-ui,sans-serif}
+
+#bg{
+ margin:0;
+ overflow-x:hidden;
+ overflow-y:auto;
+ font:22pt "Jigmo","Jigmo2","Jigmo3";
+}
+
+#token{
+ font:14pt sans-serif;
+ width:220px;
+}
+
+#status{
+ font:14pt sans-serif;
+ align-self:center;
+ overflow-wrap:anywhere;
+}
+
+body:not(.ready)>header,
+body:not(.ready)>main,
+body:not(.ready)>footer{
+ visibility:hidden;
+}
+
+#loading{
+ position:fixed;
+ inset:0;
+ z-index:9999;
+ background:white;
+ color:#222;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ font:16px system-ui,sans-serif;
+}
+
 #loading[hidden]{display:none}
 #loading-panel{width:min(440px,85vw)}
 #loading-title{font-size:22px;font-weight:600;margin-bottom:16px}
@@ -43,8 +186,10 @@ body:not(.ready)>header,body:not(.ready)>main,body:not(.ready)>footer{visibility
 #loading-error{white-space:pre-wrap;overflow-wrap:anywhere;color:#a11;margin-top:14px}
 #retry{font:16px system-ui,sans-serif;margin-top:12px;padding:6px 14px}
 </style>
+
 <script type="module">
 'use strict';
+
 const API='https://api.github.com/repos/tayloryep777-web/mozi/contents/mozi.txt';
 const BRANCH='mozi';
 const $=id=>document.getElementById(id);
@@ -54,108 +199,234 @@ const chars=s=>Array.from(s);
 const first=s=>chars(s).find(c=>!(/[\p{White_Space}\p{Cc}\p{Cf}]/u.test(c)))||'';
 const value=el=>el.dataset.value??el.textContent;
 const status=s=>{$('status').textContent=s};
-const changed=()=>{dirty=true;status('尚未儲存')};
-// 無逾時限制。讓瀏覽器有機會繪製進度畫面。
-const nextFrame=()=>new Promise(resolve=>requestAnimationFrame(()=>resolve()));
+const nextFrame=()=>new Promise(resolve=>requestAnimationFrame(resolve));
+
 let sha='',loaded=false,dirty=false,loading=false,saving=false;
 let clipboard='';
 let originalNewline='\n',originalBOM='',originalTrailingNewline=false;
-const apple=/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+
+const apple=/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)||
+ (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 const sealFamily=apple?'Shuo Wen SBIX':'Shuo Wen CBDT';
+
 document.documentElement.style.setProperty('--shuowen',JSON.stringify(sealFamily));
+
 function progress(p,stage,detail=''){
  $('loading-bar').value=Math.max(0,Math.min(100,p));
  $('loading-stage').textContent=stage;
  $('loading-detail').textContent=`${p.toFixed(1)}%${detail?' · '+detail:''}`;
 }
+
 function showLoading(){
- document.body.classList.remove('ready');$('loading').hidden=false;
- $('loading-error').textContent='';$('retry').hidden=true;
+ document.body.classList.remove('ready');
+ $('loading').hidden=false;
+ $('loading-error').textContent='';
+ $('retry').hidden=true;
  progress(0,'準備載入…');
 }
+
 function failLoading(e){
- console.error(e);progress($('loading-bar').value,'載入失敗');
- $('loading-error').textContent=e.message||String(e);$('retry').hidden=false;
+ console.error(e);
+ progress($('loading-bar').value,'載入失敗');
+ $('loading-error').textContent=e.message||String(e);
+ $('retry').hidden=false;
  status('載入失敗：'+(e.message||String(e)));
 }
+
 function finishLoading(){
- progress(100,'全部載入完成');document.body.classList.add('ready');$('loading').hidden=true;
+ progress(100,'全部載入完成');
+ document.body.classList.add('ready');
+ $('loading').hidden=true;
 }
-try{tokenInput.value=localStorage.getItem('mozi-github-token')||''}catch(e){console.error(e)}
+
+function changed(){
+ dirty=true;
+ status('尚未儲存');
+}
+
+try{
+ tokenInput.value=localStorage.getItem('mozi-github-token')||'';
+}catch(e){console.error(e)}
+
 tokenInput.addEventListener('input',()=>{
  try{localStorage.setItem('mozi-github-token',tokenInput.value)}
  catch(e){console.error(e);status('瀏覽器無法儲存 Token')}
 });
-const decode=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g,'')),c=>c.charCodeAt(0)));
+
+const decode=s=>new TextDecoder().decode(
+ Uint8Array.from(atob(s.replace(/\s/g,'')),c=>c.charCodeAt(0))
+);
+
 const encode=s=>{
- const bytes=new TextEncoder().encode(s);let binary='';
- for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
+ const bytes=new TextEncoder().encode(s);
+ let binary='';
+ for(let i=0;i<bytes.length;i+=8192)
+  binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
  return btoa(binary);
 };
+
 async function copy(s){
- if(!s)return;clipboard=s;
- try{await navigator.clipboard.writeText(s)}catch(e){console.error(e)}
+ if(!s)return;
+ clipboard=s;
+ try{await navigator.clipboard.writeText(s)}
+ catch(e){console.error(e)}
  status('已複製：'+s);
 }
+
 async function paste(){
  try{return first(await navigator.clipboard.readText())}
  catch(e){console.error(e);status('無法讀取系統剪貼簿');return null}
 }
+
+document.addEventListener('click',e=>{
+ const b=e.target.closest('button[data-copy]');
+ if(b)copy(b.dataset.copy);
+});
+
 function charButtons(el,s){
- el.replaceChildren();
+ const fragment=document.createDocumentFragment();
  for(const c of chars(s)){
-  const b=document.createElement('button');b.type='button';b.className='char';b.textContent=c;
-  b.onclick=()=>copy(c);el.appendChild(b);
+  const b=document.createElement('button');
+  b.type='button';
+  b.className='char';
+  b.textContent=c;
+  b.dataset.copy=c;
+  fragment.appendChild(b);
  }
+ el.replaceChildren(fragment);
 }
-function button(el,get,set){
- let timer,long=false,x=0,y=0;
- const stop=()=>clearTimeout(timer);
- el.classList.add('char');el.type='button';
- el.onpointerdown=e=>{
-  if(e.button!==0)return;
-  long=false;x=e.clientX;y=e.clientY;stop();
-  // 600ms 是長按操作的判定時間、不是載入逾時限制。
-  timer=setTimeout(async()=>{
-   long=true;
-   if(get()){set('');status('已清空')}
-   else{const s=await paste();if(s)set(s)}
-  },600);
- };
- el.onpointermove=e=>{if(Math.hypot(e.clientX-x,e.clientY-y)>10)stop()};
- el.onpointerup=el.onpointercancel=el.onpointerleave=stop;
- el.oncontextmenu=e=>e.preventDefault();
- el.onclick=async()=>{
-  if(long){long=false;return}
-  if(get())await copy(get());
-  else if(clipboard)set(first(clipboard));
-  else status('網頁內部剪貼簿為空');
- };
+
+let pressTimer=null,pressButton=null,pressX=0,pressY=0,longPressed=false;
+
+function stopPress(){
+ clearTimeout(pressTimer);
+ pressTimer=null;
 }
+
+function editableButton(el){
+ el.classList.add('char');
+ el.type='button';
+ el.dataset.edit='1';
+}
+
+document.addEventListener('pointerdown',e=>{
+ const b=e.target.closest('button[data-edit]');
+ if(!b||e.button!==0)return;
+
+ stopPress();
+ pressButton=b;
+ pressX=e.clientX;
+ pressY=e.clientY;
+ longPressed=false;
+
+ pressTimer=setTimeout(async()=>{
+  if(pressButton!==b)return;
+  longPressed=true;
+
+  const td=b.closest('td');
+  if(td){
+   if(value(td)){
+    setCell(td,'',true);
+    status('已清空');
+   }else{
+    const s=await paste();
+    if(s)setCell(td,s,true);
+   }
+  }else{
+   const s=b.dataset.value||'';
+   if(s){
+    b.dataset.value='';
+    b.textContent='';
+    status('已清空');
+   }else{
+    const p=await paste();
+    if(p){b.dataset.value=p;b.textContent=p}
+   }
+  }
+ },600);
+});
+
+document.addEventListener('pointermove',e=>{
+ if(pressButton&&Math.hypot(e.clientX-pressX,e.clientY-pressY)>10)
+  stopPress();
+});
+
+document.addEventListener('pointerup',stopPress);
+document.addEventListener('pointercancel',stopPress);
+
+document.addEventListener('contextmenu',e=>{
+ if(e.target.closest('button[data-edit]'))e.preventDefault();
+});
+
+document.addEventListener('click',e=>{
+ const b=e.target.closest('button[data-edit]');
+ if(!b)return;
+
+ if(longPressed){
+  longPressed=false;
+  pressButton=null;
+  return;
+ }
+
+ pressButton=null;
+ const td=b.closest('td');
+ const s=td?value(td):(b.dataset.value||'');
+
+ if(s)copy(s);
+ else if(clipboard){
+  const v=first(clipboard);
+  if(td)setCell(td,v,true);
+  else{b.dataset.value=v;b.textContent=v}
+ }else status('網頁內部剪貼簿為空');
+});
+
 function control(id){
- const el=$(id);let s='';
- const set=v=>{s=v;el.textContent=v;el.dataset.value=v};
- button(el,()=>s,set);return ()=>s;
+ const el=$(id);
+ editableButton(el);
+ el.dataset.value='';
+ return ()=>el.dataset.value||'';
 }
+
 const getSearch=control('cf'),getReplace=control('cp');
+
 function updateFirst(tr){
- const s=[1,2,3].map(i=>tr.cells[i]?value(tr.cells[i]):'').join('');
- charButtons(tr.cells[0],s);
+ charButtons(tr.cells[0],[1,2,3].map(i=>value(tr.cells[i])).join(''));
 }
-function dataRows(){return [...mozi2.rows].filter(tr=>tr.dataset.add!=='1')}
+
+function dataRows(){
+ return [...mozi2.rows].filter(tr=>tr.dataset.add!=='1');
+}
+
 function updateBg(){
- const rows=[...table.rows,...dataRows()];
- const a=new Set(chars(rows.map(r=>value(r.cells[1])).join('')));
- const b=new Set(chars(rows.map(r=>value(r.cells[2])+value(r.cells[3])).join('')));
+ const a=new Set(),b=new Set();
+
+ for(const tr of table.rows){
+  for(const c of chars(value(tr.cells[1])))a.add(c);
+  for(const c of chars(value(tr.cells[2])+value(tr.cells[3])))b.add(c);
+ }
+
+ for(const tr of dataRows()){
+  for(const c of chars(value(tr.cells[1])))a.add(c);
+  for(const c of chars(value(tr.cells[2])+value(tr.cells[3])))b.add(c);
+ }
+
  charButtons(bg,[...b].filter(c=>!a.has(c)).join(''));
 }
+
 function setCell(td,s,notify=false,update=true){
- s=first(s);td.dataset.value=s;td.replaceChildren();
- const el=document.createElement('button');el.textContent=s;td.appendChild(el);
- button(el,()=>value(td),v=>setCell(td,v,true));
+ s=first(s);
+ td.dataset.value=s;
+ td.replaceChildren();
+
+ const b=document.createElement('button');
+ b.textContent=s;
+ editableButton(b);
+ td.appendChild(b);
+
  if(update)updateFirst(td.parentElement);
  if(notify){updateBg();changed()}
 }
+
 function moveRow(tr,direction){
  const rows=dataRows(),index=rows.indexOf(tr),target=rows[index+direction];
  if(!target)return;
@@ -163,111 +434,175 @@ function moveRow(tr,direction){
  else target.parentNode.insertBefore(target,tr);
  changed();
 }
+
 function createExtraRow(s=''){
- const tr=document.createElement('tr');tr.insertCell();
+ const tr=document.createElement('tr');
+ tr.insertCell();
  const m=chars(s);
+
  for(let i=0;i<3;i++)setCell(tr.insertCell(),m[i]||'',false,false);
  updateFirst(tr);
+
  for(const [symbol,direction] of [['↑',-1],['↓',1]]){
-  const td=tr.insertCell(),el=document.createElement('button');
-  el.type='button';el.textContent=symbol;el.title=direction<0?'上移一行':'下移一行';
-  el.onclick=()=>moveRow(tr,direction);td.appendChild(el);
+  const td=tr.insertCell(),b=document.createElement('button');
+  b.type='button';
+  b.textContent=symbol;
+  b.title=direction<0?'上移一行':'下移一行';
+  b.onclick=()=>moveRow(tr,direction);
+  td.appendChild(b);
  }
+
  return tr;
 }
+
 function addRow(s='',notify=true){
- const tr=createExtraRow(s),add=mozi2.querySelector('tr[data-add="1"]');
+ const tr=createExtraRow(s);
+ const add=mozi2.querySelector('tr[data-add="1"]');
  add.parentNode.insertBefore(tr,add);
  if(notify){updateBg();changed()}
  return tr;
 }
+
 function addButton(){
- const tr=mozi2.insertRow();tr.dataset.add='1';
- const td=tr.insertCell();td.colSpan=6;
- const el=document.createElement('button');el.type='button';el.textContent='＋';
- el.title='新增一行';el.onclick=()=>addRow();td.appendChild(el);
+ const tr=mozi2.insertRow();
+ tr.dataset.add='1';
+ const td=tr.insertCell();
+ td.colSpan=6;
+ const b=document.createElement('button');
+ b.type='button';
+ b.textContent='＋';
+ b.title='新增一行';
+ b.onclick=()=>addRow();
+ td.appendChild(b);
 }
+
 async function render(text,sw){
  originalBOM=text.startsWith('\uFEFF')?'\uFEFF':'';
  if(originalBOM)text=text.slice(1);
+
  originalNewline=text.includes('\r\n')?'\r\n':'\n';
  originalTrailingNewline=/\r?\n$/.test(text);
+
  const lines=text.replace(/\r\n/g,'\n').split('\n');
  const seals=sw.replace(/\r\n/g,'\n').split('\n');
- if(lines.length<9833||seals.length<9833)throw Error(`資料不足 9833 行（mozi：${lines.length}、shuowen：${seals.length}）`);
+
+ if(lines.length<9833||seals.length<9833)
+  throw Error(`資料不足 9833 行（mozi：${lines.length}、shuowen：${seals.length}）`);
+
  const total=9833,chunkSize=100;
- table.replaceChildren();cfa.replaceChildren();mozi2.replaceChildren();
- // 分批插入實際 DOM、每批都可進行版面計算。
+ const fragment=document.createDocumentFragment();
+
  for(let start=0;start<total;start+=chunkSize){
   const end=Math.min(start+chunkSize,total);
-  const fragment=document.createDocumentFragment();
+
   for(let i=start;i<end;i++){
-   const m=chars(lines[i]).slice(0,3),s=seals[i].split('\t');
-   const tr=document.createElement('tr');tr.insertCell();
-   for(let j=0;j<3;j++)setCell(tr.insertCell(),m[j]||'',false,false);
+   const m=chars(lines[i]).slice(0,3);
+   const s=seals[i].split('\t');
+   const tr=document.createElement('tr');
+   tr.insertCell();
+
+   for(let j=0;j<3;j++)
+    setCell(tr.insertCell(),m[j]||'',false,false);
+
    updateFirst(tr);
-   for(let j=0;j<3;j++)charButtons(tr.insertCell(),s[j]||'');
+
+   for(let j=0;j<3;j++)
+    charButtons(tr.insertCell(),s[j]||'');
+
    fragment.appendChild(tr);
   }
-  table.appendChild(fragment);
-  progress(35+43*end/total,'正在建立並插入主表',`${end} / ${total} 行`);
+
+  progress(35+43*end/total,'正在建立主表',`${end} / ${total} 行`);
   await nextFrame();
  }
+
  const tail=lines.slice(9833);
  if(originalTrailingNewline&&tail.at(-1)==='')tail.pop();
+
+ const extras=document.createDocumentFragment();
+
  for(let i=0;i<tail.length;i+=chunkSize){
-  const fragment=document.createDocumentFragment();
-  for(const line of tail.slice(i,i+chunkSize))fragment.appendChild(createExtraRow(line));
-  mozi2.appendChild(fragment);
-  progress(78+7*Math.min(i+chunkSize,tail.length)/Math.max(1,tail.length),'正在建立附加資料',`${Math.min(i+chunkSize,tail.length)} / ${tail.length} 行`);
+  const end=Math.min(i+chunkSize,tail.length);
+
+  for(let j=i;j<end;j++)
+   extras.appendChild(createExtraRow(tail[j]));
+
+  progress(78+7*end/Math.max(1,tail.length),
+   '正在建立附加資料',`${end} / ${tail.length} 行`);
   await nextFrame();
  }
+
+ progress(85,'正在插入完整表格');
+ await nextFrame();
+
+ table.replaceChildren(fragment);
+ cfa.replaceChildren();
+ mozi2.replaceChildren(extras);
  addButton();
- progress(85,'正在計算差異字元');await nextFrame();
+
+ progress(92,'正在計算差異字元');
+ await nextFrame();
  updateBg();
- progress(87,'正在準備版面配置');await nextFrame();
- // 對已插入的實際 DOM 逐批讀取尺寸、促使瀏覽器完成對應區域的樣式與版面計算。
- // 這是測量批次進度、不是瀏覽器內部 Layout/Paint 的真實百分比。
- const rows=[...table.rows,...dataRows()];
- let measured=0;
- for(let i=0;i<rows.length;i+=chunkSize){
-  const end=Math.min(i+chunkSize,rows.length);
-  for(let j=i;j<end;j++){
-   const rect=rows[j].getBoundingClientRect();
-   measured+=rect.height;
-  }
-  progress(87+11*end/rows.length,'正在測量版面',`${end} / ${rows.length} 行`);
-  await nextFrame();
- }
- void measured;
- loaded=true;dirty=false;status('已載入 mozi.txt');
+
+ progress(97,'正在完成資料初始化');
+ await nextFrame();
+
+ loaded=true;
+ dirty=false;
+ status('已載入 mozi.txt');
 }
+
 async function github(options={}){
  const r=await fetch(API+'?ref='+encodeURIComponent(BRANCH),{
-  cache:'no-store',...options,
-  headers:{Accept:'application/vnd.github+json',...(options.headers||{})}
+  cache:'no-store',
+  ...options,
+  headers:{
+   Accept:'application/vnd.github+json',
+   ...(options.headers||{})
+  }
  });
- if(!r.ok)throw Error('GitHub HTTP '+r.status+'：'+(await r.text()).slice(0,400));
+
+ if(!r.ok)
+  throw Error('GitHub HTTP '+r.status+'：'+(await r.text()).slice(0,400));
+
  return r.json();
 }
+
 async function loadFonts(){
  const families=['華瑞小篆體','TW-MOE-Std-Kai',sealFamily,'Jigmo','Jigmo2','Jigmo3'];
+
  for(let i=0;i<families.length;i++){
   const family=families[i];
-  progress(15+20*i/families.length,'正在載入字型',`${i+1}/${families.length}：${family}`);
-  const face=[...document.fonts].find(f=>f.family.replace(/^['"]|['"]$/g,'')===family);
+  progress(15+20*i/families.length,'正在載入字型',
+   `${i+1}/${families.length}：${family}`);
+
+  const face=[...document.fonts].find(
+   f=>f.family.replace(/^['"]|['"]$/g,'')===family
+  );
+
   if(!face)throw Error('找不到字型宣告：'+family);
+
   await face.load();
   if(face.status!=='loaded')throw Error('字型載入失敗：'+family);
  }
+
  progress(35,'字型檔案已載入');
 }
+
 async function loadData(){
  if(loading||saving)return;
- if(dirty){status('有尚未儲存的修改、請先儲存後再重新載入');return}
- loading=true;showLoading();status('正在載入…');
+ if(dirty){
+  status('有尚未儲存的修改、請先儲存後再重新載入');
+  return;
+ }
+
+ loading=true;
+ showLoading();
+ status('正在載入…');
+
  try{
   progress(2,'正在下載 TXT 檔案');
+
   const [file,sw]=await Promise.all([
    github(),
    fetch('shuowen.txt').then(r=>{
@@ -275,71 +610,142 @@ async function loadData(){
     return r.text();
    })
   ]);
-  progress(15,'TXT 下載完成');await nextFrame();
+
+  progress(15,'TXT 下載完成');
+  await nextFrame();
   await loadFonts();
-  progress(35,'正在解碼 TXT');await nextFrame();
+
+  progress(35,'正在解碼 TXT');
+  await nextFrame();
+
   await render(decode(file.content),sw);
   sha=file.sha;
-  progress(98,'正在確認字型與最後畫面');
-  // 已逐一等待字型載入完成、這裡不再無限等待 document.fonts.ready。
+
+  progress(98,'正在確認完整表格');
   await nextFrame();
+
   progress(99,'正在顯示完整介面');
   finishLoading();
- }catch(e){failLoading(e)}
- finally{loading=false}
+ }catch(e){
+  failLoading(e);
+ }finally{
+  loading=false;
+ }
 }
+
 $('reload').onclick=loadData;
 $('retry').onclick=loadData;
+
 function searchColumn(columns){
- cfa.replaceChildren();const q=getSearch();if(!q)return;
+ cfa.replaceChildren();
+ const q=getSearch();
+ if(!q)return;
+
  const fragment=document.createDocumentFragment();
- [...table.rows].forEach(tr=>{
-  if(!columns.some(n=>value(tr.cells[n-1]).includes(q)))return;
+
+ for(const tr of table.rows){
+  if(!columns.some(n=>value(tr.cells[n-1]).includes(q)))continue;
+
   const row=document.createElement('tr');
-  [...tr.cells].forEach(td=>charButtons(row.insertCell(),value(td)));
-  row.onclick=()=>tr.scrollIntoView({behavior:'smooth',block:'center'});
+  for(const td of tr.cells)
+   charButtons(row.insertCell(),value(td));
+
+  row.dataset.index=tr.rowIndex;
   fragment.appendChild(row);
- });
+ }
+
  cfa.appendChild(fragment);
 }
+
+cfa.addEventListener('click',e=>{
+ const tr=e.target.closest('tr[data-index]');
+ if(!tr)return;
+
+ const target=table.rows[Number(tr.dataset.index)];
+ if(target)target.scrollIntoView({behavior:'smooth',block:'center'});
+});
+
 $('cfb1').onclick=()=>searchColumn([2]);
 $('cfb2').onclick=()=>searchColumn([3,4]);
 $('cfb3').onclick=()=>searchColumn([6]);
+
 $('cpb').onclick=()=>{
- const q=getSearch();if(!q)return;
- const replacement=getReplace();let any=false;
+ const q=getSearch();
+ if(!q)return;
+
+ const replacement=getReplace();
+ let any=false;
+
  for(const tr of [...table.rows,...dataRows()]){
   for(const j of [1,2,3]){
    const td=tr.cells[j],old=value(td);
-   if(old.includes(q)){setCell(td,old.replaceAll(q,replacement));any=true}
+   if(old.includes(q)){
+    setCell(td,old.replaceAll(q,replacement),false,false);
+    updateFirst(tr);
+    any=true;
+   }
   }
  }
+
  if(any){updateBg();changed()}
 };
+
 $('cs').onclick=async()=>{
  if(saving||loading)return;
  if(!loaded){status('請先載入 mozi.txt');return}
+
  const token=tokenInput.value.trim();
- if(!token){status('請先在上方輸入 GitHub Token');tokenInput.focus();return}
+ if(!token){
+  status('請先在上方輸入 GitHub Token');
+  tokenInput.focus();
+  return;
+ }
+
  const serialize=tr=>[1,2,3].map(j=>value(tr.cells[j])).join('');
- const head=[...table.rows].map(serialize),tail=dataRows().map(serialize);
+ const head=[...table.rows].map(serialize);
+ const tail=dataRows().map(serialize);
+
  let content=[...head,...tail].join('\n');
  if(originalTrailingNewline)content+='\n';
  content=originalBOM+content.replace(/\n/g,originalNewline);
- saving=true;$('cs').disabled=true;status('正在儲存…');
+
+ saving=true;
+ $('cs').disabled=true;
+ status('正在儲存…');
+
  try{
   const result=await github({
-   method:'PUT',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
-   body:JSON.stringify({message:'更新 mozi.txt',content:encode(content),sha,branch:BRANCH})
+   method:'PUT',
+   headers:{
+    Authorization:'Bearer '+token,
+    'Content-Type':'application/json'
+   },
+   body:JSON.stringify({
+    message:'更新 mozi.txt',
+    content:encode(content),
+    sha,
+    branch:BRANCH
+   })
   });
-  sha=result.content.sha;dirty=false;status('已提交至 GitHub mozi 分支');
- }catch(e){console.error(e);status('儲存失敗：'+e.message)}
- finally{saving=false;$('cs').disabled=false}
+
+  sha=result.content.sha;
+  dirty=false;
+  status('已提交至 GitHub mozi 分支');
+ }catch(e){
+  console.error(e);
+  status('儲存失敗：'+e.message);
+ }finally{
+  saving=false;
+  $('cs').disabled=false;
+ }
 };
+
 loadData();
 </script>
 </head>
+
 <body>
+
 <div id="loading" role="status" aria-live="polite">
  <div id="loading-panel">
   <div id="loading-title">說文解字</div>
@@ -350,16 +756,37 @@ loadData();
   <button id="retry" hidden>重新嘗試</button>
  </div>
 </div>
+
 <header>
  <button id="cf" class="char"></button>
- <button id="cfb1">搜尋1</button><button id="cfb2">搜尋2</button><button id="cfb3">搜尋3</button>
- <button id="cp" class="char"></button><button id="cpb">取代</button>
+ <button id="cfb1">搜尋1</button>
+ <button id="cfb2">搜尋2</button>
+ <button id="cfb3">搜尋3</button>
+ <button id="cp" class="char"></button>
+ <button id="cpb">取代</button>
  <button id="reload">重新載入</button>
  <input id="token" type="password" placeholder="GitHub Token" autocomplete="off" aria-label="GitHub Token">
- <button id="cs">儲存至 GitHub</button><span id="status" role="status"></span>
- <div id="results"><table id="cfa"><col><col><col><col><col><col><col></table></div>
+ <button id="cs">儲存至 GitHub</button>
+ <span id="status" role="status"></span>
+ <div id="results">
+  <table id="cfa">
+   <colgroup><col><col><col><col><col><col><col></colgroup>
+  </table>
+ </div>
 </header>
-<main><table id="mozi"><col><col><col><col><col><col><col></table></main>
-<footer><table id="mozi2"><col><col><col><col><col><col></table><p id="bg"></p></footer>
+
+<main>
+ <table id="mozi">
+  <colgroup><col><col><col><col><col><col><col></colgroup>
+ </table>
+</main>
+
+<footer>
+ <table id="mozi2">
+  <colgroup><col><col><col><col><col><col></colgroup>
+ </table>
+ <p id="bg"></p>
+</footer>
+
 </body>
 </html>
