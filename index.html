@@ -25,7 +25,6 @@
  --w4:1ic;
  --w5:2ic;
  --w6:3ic;
- --border:0.03ic solid #aaa;
 }
 
 *{
@@ -58,7 +57,7 @@ header{
  flex-wrap:wrap;
  align-items:center;
  min-width:0;
- border:var(--border);
+ border:solid;
 }
 
 main{
@@ -70,7 +69,7 @@ main{
  position:relative;
  overscroll-behavior:contain;
  overflow-anchor:none;
- border:var(--border);
+ border:solid;
 }
 
 footer{
@@ -80,7 +79,7 @@ footer{
  min-width:0;
  min-height:0;
  overflow:hidden;
- border:var(--border);
+ border:solid;
 }
 
 #results{
@@ -92,21 +91,29 @@ footer{
 }
 
 #mozi2-scroll{
- flex:0 0 50%;
- min-width:0;
+ flex:0 0 auto;
+ width:8ic;
+ min-width:8ic;
  min-height:0;
  overflow-x:hidden;
  overflow-y:auto;
  overscroll-behavior:contain;
- border:var(--border);
+ border:solid;
 }
 
 #mozi,#cfa,#mozi2{
- width:100%;
  table-layout:fixed;
  border-collapse:collapse;
  border-spacing:0;
  font-size:24pt;
+}
+
+#mozi,#cfa{
+ width:100%;
+}
+
+#mozi2{
+ width:8ic;
 }
 
 :is(#mozi,#cfa,#mozi2) col:nth-child(1){
@@ -139,7 +146,7 @@ footer{
 }
 
 :is(#mozi,#cfa,#mozi2) td{
- border:var(--border);
+ border:solid;
  padding:0;
  white-space:normal;
  overflow-wrap:anywhere;
@@ -261,7 +268,7 @@ footer{
  overflow-wrap:anywhere;
  word-break:break-word;
  overscroll-behavior:contain;
- border:var(--border);
+ border:solid;
  font:24pt var(--font);
 }
 
