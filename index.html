@@ -17,6 +17,7 @@
 
 :root{
  --shuowen:"Shuo Wen CBDT";
+ --row-height:56px;
  --w1:3ic;
  --w2:1ic;
  --w3:1ic;
@@ -48,6 +49,9 @@ main{
  flex:1;
  min-height:0;
  overflow:auto;
+ position:relative;
+ overscroll-behavior:contain;
+ -webkit-overflow-scrolling:touch;
 }
 
 footer{
@@ -91,6 +95,7 @@ footer{
 :is(#mozi,#mozi2,#cfa) td{
  overflow:visible;
  white-space:pre;
+ padding:0;
 }
 
 #mozi2 td{border:1px solid #aaa}
@@ -114,7 +119,32 @@ footer{
  font:22pt "Jigmo","Jigmo2","Jigmo3";
 }
 
-button{font:22pt "Jigmo","Jigmo2","Jigmo3"}
+/* 虛擬表格固定行高 */
+#mozi tr.data-row{
+ height:var(--row-height);
+ max-height:var(--row-height);
+}
+
+#mozi tr.data-row td{
+ height:var(--row-height);
+ max-height:var(--row-height);
+ line-height:var(--row-height);
+ white-space:nowrap;
+ overflow:visible;
+ vertical-align:middle;
+}
+
+#mozi tr.spacer td{
+ padding:0;
+ border:0;
+ height:0;
+ line-height:0;
+ font-size:0;
+}
+
+button{
+ font:22pt "Jigmo","Jigmo2","Jigmo3";
+}
 
 .char{
  font:inherit;
@@ -159,6 +189,12 @@ button{font:22pt "Jigmo","Jigmo2","Jigmo3"}
  overflow-wrap:anywhere;
 }
 
+#position{
+ font:12pt sans-serif;
+ color:#555;
+ margin-left:8px;
+}
+
 body:not(.ready)>header,
 body:not(.ready)>main,
 body:not(.ready)>footer{
@@ -179,26 +215,30 @@ body:not(.ready)>footer{
 
 #loading[hidden]{display:none}
 #loading-panel{width:min(440px,85vw)}
-#loading-title{font-size:22px;font-weight:600;margin-bottom:16px}
-#loading-stage{margin-bottom:12px;overflow-wrap:anywhere}
-#loading-bar{width:100%;height:14px;accent-color:#3275bd}
-#loading-detail{margin-top:8px;color:#555;font-size:14px}
+#loading-title{
+ font-size:22px;
+ font-weight:600;
+ margin-bottom:16px;
+}
+#loading-stage{
+ margin-bottom:12px;
+ overflow-wrap:anywhere;
+}
+#loading-bar{
+ width:100%;
+ height:14px;
+ accent-color:#3275bd;
+}
+#loading-detail{
+ margin-top:8px;
+ color:#555;
+ font-size:14px;
+}
 #loading-error{
  white-space:pre-wrap;
  overflow-wrap:anywhere;
  color:#a11;
  margin-top:14px;
-}
-#loading-log{
- margin-top:14px;
- padding:8px;
- max-height:180px;
- overflow:auto;
- white-space:pre-wrap;
- overflow-wrap:anywhere;
- font:12px ui-monospace,monospace;
- background:#f3f3f3;
- color:#444;
 }
 #retry{
  font:16px system-ui,sans-serif;
@@ -213,7 +253,10 @@ body:not(.ready)>footer{
 const API='https://api.github.com/repos/tayloryep777-web/mozi/contents/mozi.txt';
 const BRANCH='mozi';
 const TOTAL=9833;
-const CHUNK=100;
+
+/* 虛擬捲動設定 */
+const ROW_HEIGHT=56;
+const OVERSCAN=20;
 
 const $=id=>document.getElementById(id);
 
@@ -221,6 +264,7 @@ const table=$('mozi');
 const cfa=$('cfa');
 const mozi2=$('mozi2');
 const bg=$('bg');
+const viewport=$('viewport');
 
 const mainBody=table.tBodies[0];
 const searchBody=cfa.tBodies[0];
@@ -244,10 +288,6 @@ const nextFrame=()=>new Promise(resolve=>{
  requestAnimationFrame(resolve);
 });
 
-const pause=()=>new Promise(resolve=>{
- setTimeout(resolve,0);
-});
-
 let sha='';
 let loaded=false;
 let dirty=false;
@@ -259,8 +299,28 @@ let originalNewline='\n';
 let originalBOM='';
 let originalTrailingNewline=false;
 
-let loadStarted=0;
-let lastCheckpoint=0;
+/*
+ mainData 每行格式：
+ {
+   edit:['字1','字2','字3'],
+   seal:['欄5','欄6','欄7']
+ }
+
+ extraData 每行格式：
+ ['字1','字2','字3']
+*/
+let mainData=[];
+let extraData=[];
+
+/* 虛擬捲動狀態 */
+let renderedStart=-1;
+let renderedEnd=-1;
+let renderPending=false;
+let highlightedIndex=-1;
+
+/* 搜尋結果 */
+let searchMatches=[];
+let searchColumns=[];
 
 const apple=/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)||
  (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
@@ -279,38 +339,11 @@ function progress(p,stage,detail=''){
   `${p.toFixed(1)}%${detail?' · '+detail:''}`;
 }
 
-function logStage(stage,detail=''){
- const now=performance.now();
- const total=((now-loadStarted)/1000).toFixed(2);
- const delta=((now-lastCheckpoint)/1000).toFixed(2);
-
- const line=`${total}s (+${delta}s) ${stage}${detail?' · '+detail:''}`;
-
- console.log(line);
-
- const log=$('loading-log');
- log.textContent+=line+'\n';
- log.scrollTop=log.scrollHeight;
-
- lastCheckpoint=now;
-}
-
-async function checkpoint(p,stage,detail=''){
- progress(p,stage,detail);
- logStage(stage,detail);
- await pause();
-}
-
 function showLoading(){
- loadStarted=performance.now();
- lastCheckpoint=loadStarted;
-
  document.body.classList.remove('ready');
  $('loading').hidden=false;
  $('loading-error').textContent='';
- $('loading-log').textContent='';
  $('retry').hidden=true;
-
  progress(0,'準備載入…');
 }
 
@@ -323,9 +356,17 @@ function failLoading(e){
 }
 
 function finishLoading(){
- progress(100,'全部載入完成');
  document.body.classList.add('ready');
- $('loading').hidden=true;
+
+ /* 恢復顯示後再計算可見行 */
+ requestAnimationFrame(()=>{
+  renderedStart=-1;
+  renderedEnd=-1;
+  renderVisible(true);
+
+  $('loading').hidden=true;
+  progress(100,'全部載入完成');
+ });
 }
 
 function changed(){
@@ -368,6 +409,8 @@ const encode=s=>{
  return btoa(binary);
 };
 
+/* 複製與貼上 */
+
 async function copy(s){
  if(!s)return;
 
@@ -392,11 +435,6 @@ async function paste(){
  }
 }
 
-document.addEventListener('click',e=>{
- const b=e.target.closest('button[data-copy]');
- if(b)copy(b.dataset.copy);
-});
-
 function charButtons(el,s){
  const fragment=document.createDocumentFragment();
 
@@ -412,6 +450,87 @@ function charButtons(el,s){
  el.replaceChildren(fragment);
 }
 
+function editableButton(el){
+ el.classList.add('char');
+ el.type='button';
+ el.dataset.edit='1';
+}
+
+function createEditableButton(s,kind,index,column){
+ const b=document.createElement('button');
+
+ editableButton(b);
+
+ b.textContent=s;
+ b.dataset.value=s;
+ b.dataset.kind=kind;
+ b.dataset.index=index;
+ b.dataset.column=column;
+
+ return b;
+}
+
+function control(id){
+ const el=$(id);
+ editableButton(el);
+ el.dataset.kind='control';
+ el.dataset.value='';
+ return ()=>el.dataset.value||'';
+}
+
+const getSearch=control('cf');
+const getReplace=control('cp');
+
+/* 資料修改 */
+
+function getEditValue(kind,index,column){
+ if(kind==='main'){
+  return mainData[index]?.edit[column]??'';
+ }
+
+ if(kind==='extra'){
+  return extraData[index]?.[column]??'';
+ }
+
+ return $(index)?.dataset.value??'';
+}
+
+function setEditValue(kind,index,column,s){
+ s=first(s);
+
+ if(kind==='main'){
+  if(!mainData[index])return;
+  mainData[index].edit[column]=s;
+ }else if(kind==='extra'){
+  if(!extraData[index])return;
+  extraData[index][column]=s;
+ }else{
+  return;
+ }
+
+ changed();
+ updateBg();
+
+ if(kind==='main'){
+  refreshVisibleRow(index);
+ }else{
+  renderExtra();
+ }
+}
+
+function updateFirst(tr,edit){
+ charButtons(tr.cells[0],edit.join(''));
+}
+
+/* 全域按鈕事件 */
+
+document.addEventListener('click',e=>{
+ const b=e.target.closest('button[data-copy]');
+ if(b){
+  copy(b.dataset.copy);
+ }
+});
+
 let pressTimer=null;
 let pressButton=null;
 let pressX=0;
@@ -421,12 +540,6 @@ let longPressed=false;
 function stopPress(){
  clearTimeout(pressTimer);
  pressTimer=null;
-}
-
-function editableButton(el){
- el.classList.add('char');
- el.type='button';
- el.dataset.edit='1';
 }
 
 document.addEventListener('pointerdown',e=>{
@@ -440,22 +553,16 @@ document.addEventListener('pointerdown',e=>{
  pressY=e.clientY;
  longPressed=false;
 
+ const kind=b.dataset.kind;
+ const index=Number(b.dataset.index);
+ const column=Number(b.dataset.column);
+
  pressTimer=setTimeout(async()=>{
   if(pressButton!==b)return;
 
   longPressed=true;
 
-  const td=b.closest('td');
-
-  if(td){
-   if(value(td)){
-    setCell(td,'',true);
-    status('已清空');
-   }else{
-    const s=await paste();
-    if(s)setCell(td,s,true);
-   }
-  }else{
+  if(kind==='control'){
    const s=b.dataset.value||'';
 
    if(s){
@@ -469,6 +576,21 @@ document.addEventListener('pointerdown',e=>{
      b.dataset.value=p;
      b.textContent=p;
     }
+   }
+
+   return;
+  }
+
+  const s=getEditValue(kind,index,column);
+
+  if(s){
+   setEditValue(kind,index,column,'');
+   status('已清空');
+  }else{
+   const p=await paste();
+
+   if(p){
+    setEditValue(kind,index,column,p);
    }
   }
  },600);
@@ -504,129 +626,228 @@ document.addEventListener('click',e=>{
 
  pressButton=null;
 
- const td=b.closest('td');
- const s=td?value(td):(b.dataset.value||'');
+ const kind=b.dataset.kind;
+
+ if(kind==='control'){
+  const s=b.dataset.value||'';
+
+  if(s){
+   copy(s);
+  }else if(clipboard){
+   const v=first(clipboard);
+   b.dataset.value=v;
+   b.textContent=v;
+  }else{
+   status('網頁內部剪貼簿為空');
+  }
+
+  return;
+ }
+
+ const index=Number(b.dataset.index);
+ const column=Number(b.dataset.column);
+ const s=getEditValue(kind,index,column);
 
  if(s){
   copy(s);
  }else if(clipboard){
-  const v=first(clipboard);
-
-  if(td){
-   setCell(td,v,true);
-  }else{
-   b.dataset.value=v;
-   b.textContent=v;
-  }
+  setEditValue(kind,index,column,clipboard);
  }else{
   status('網頁內部剪貼簿為空');
  }
 });
 
-function control(id){
- const el=$(id);
- editableButton(el);
- el.dataset.value='';
- return ()=>el.dataset.value||'';
-}
+/* 建立主表行 */
 
-const getSearch=control('cf');
-const getReplace=control('cp');
-
-function updateFirst(tr){
- charButtons(
-  tr.cells[0],
-  [1,2,3].map(i=>value(tr.cells[i])).join('')
- );
-}
-
-function dataRows(){
- return [...extraBody.rows].filter(
-  tr=>tr.dataset.add!=='1'
- );
-}
-
-function updateBg(){
- const a=new Set();
- const b=new Set();
-
- for(const tr of mainBody.rows){
-  for(const c of chars(value(tr.cells[1]))){
-   a.add(c);
-  }
-
-  for(const c of chars(
-   value(tr.cells[2])+value(tr.cells[3])
-  )){
-   b.add(c);
-  }
- }
-
- for(const tr of dataRows()){
-  for(const c of chars(value(tr.cells[1]))){
-   a.add(c);
-  }
-
-  for(const c of chars(
-   value(tr.cells[2])+value(tr.cells[3])
-  )){
-   b.add(c);
-  }
- }
-
- charButtons(
-  bg,
-  [...b].filter(c=>!a.has(c)).join('')
- );
-}
-
-function setCell(td,s,notify=false,update=true){
- s=first(s);
- td.dataset.value=s;
-
- const b=document.createElement('button');
- b.textContent=s;
- editableButton(b);
-
- td.replaceChildren(b);
-
- if(update){
-  updateFirst(td.parentElement);
- }
-
- if(notify){
-  updateBg();
-  changed();
- }
-}
-
-function moveRow(tr,direction){
- const rows=dataRows();
- const index=rows.indexOf(tr);
- const target=rows[index+direction];
-
- if(!target)return;
-
- if(direction<0){
-  extraBody.insertBefore(tr,target);
- }else{
-  extraBody.insertBefore(target,tr);
- }
-
- changed();
-}
-
-function createExtraRow(s=''){
+function createMainRow(index){
+ const data=mainData[index];
  const tr=document.createElement('tr');
+
+ tr.className='data-row';
+ tr.dataset.index=index;
+
  tr.insertCell();
 
- const m=chars(s);
+ for(let j=0;j<3;j++){
+  const td=tr.insertCell();
 
- for(let i=0;i<3;i++){
-  setCell(tr.insertCell(),m[i]||'',false,false);
+  td.appendChild(
+   createEditableButton(
+    data.edit[j],
+    'main',
+    index,
+    j
+   )
+  );
  }
 
- updateFirst(tr);
+ updateFirst(tr,data.edit);
+
+ for(let j=0;j<3;j++){
+  charButtons(
+   tr.insertCell(),
+   data.seal[j]||''
+  );
+ }
+
+ if(index===highlightedIndex){
+  tr.style.background='#fff2b0';
+ }
+
+ return tr;
+}
+
+/* 虛擬捲動 */
+
+function createSpacer(height){
+ const tr=document.createElement('tr');
+ tr.className='spacer';
+
+ const td=tr.insertCell();
+ td.colSpan=7;
+
+ td.style.height=height+'px';
+ td.style.minHeight=height+'px';
+
+ return tr;
+}
+
+function renderVisible(force=false){
+ if(!loaded)return;
+
+ const scrollTop=viewport.scrollTop;
+ const viewportHeight=viewport.clientHeight;
+
+ const firstVisible=Math.floor(scrollTop/ROW_HEIGHT);
+
+ const start=Math.max(
+  0,
+  firstVisible-OVERSCAN
+ );
+
+ const visibleCount=Math.ceil(
+  viewportHeight/ROW_HEIGHT
+ );
+
+ const end=Math.min(
+  mainData.length,
+  firstVisible+visibleCount+OVERSCAN
+ );
+
+ if(
+  !force&&
+  start===renderedStart&&
+  end===renderedEnd
+ ){
+  return;
+ }
+
+ const fragment=document.createDocumentFragment();
+
+ const topHeight=start*ROW_HEIGHT;
+ const bottomHeight=(mainData.length-end)*ROW_HEIGHT;
+
+ if(topHeight>0){
+  fragment.appendChild(
+   createSpacer(topHeight)
+  );
+ }
+
+ for(let i=start;i<end;i++){
+  fragment.appendChild(
+   createMainRow(i)
+  );
+ }
+
+ if(bottomHeight>0){
+  fragment.appendChild(
+   createSpacer(bottomHeight)
+  );
+ }
+
+ mainBody.replaceChildren(fragment);
+
+ renderedStart=start;
+ renderedEnd=end;
+
+ $('position').textContent=
+  `${Math.min(firstVisible+1,TOTAL)} / ${TOTAL}`;
+}
+
+function scheduleRender(){
+ if(renderPending)return;
+
+ renderPending=true;
+
+ requestAnimationFrame(()=>{
+  renderPending=false;
+  renderVisible();
+ });
+}
+
+viewport.addEventListener('scroll',scheduleRender,{
+ passive:true
+});
+
+window.addEventListener('resize',scheduleRender);
+
+function refreshVisibleRow(index){
+ if(
+  index<renderedStart||
+  index>=renderedEnd
+ ){
+  return;
+ }
+
+ const tr=mainBody.querySelector(
+  `tr[data-index="${index}"]`
+ );
+
+ if(tr){
+  tr.replaceWith(createMainRow(index));
+ }
+}
+
+function jumpToRow(index){
+ if(index<0||index>=mainData.length)return;
+
+ highlightedIndex=index;
+
+ const top=index*ROW_HEIGHT;
+
+ viewport.scrollTop=Math.max(
+  0,
+  top-(viewport.clientHeight-ROW_HEIGHT)/2
+ );
+
+ renderVisible(true);
+
+ status(`已跳至第 ${index+1} 行`);
+}
+
+/* 附加資料 */
+
+function createExtraRow(index){
+ const data=extraData[index];
+ const tr=document.createElement('tr');
+
+ tr.dataset.index=index;
+ tr.insertCell();
+
+ for(let j=0;j<3;j++){
+  const td=tr.insertCell();
+
+  td.appendChild(
+   createEditableButton(
+    data[j],
+    'extra',
+    index,
+    j
+   )
+  );
+ }
+
+ updateFirst(tr,data);
 
  for(const [symbol,direction] of [['↑',-1],['↓',1]]){
   const td=tr.insertCell();
@@ -637,7 +858,7 @@ function createExtraRow(s=''){
   b.title=direction<0?'上移一行':'下移一行';
 
   b.addEventListener('click',()=>{
-   moveRow(tr,direction);
+   moveExtraRow(index,direction);
   });
 
   td.appendChild(b);
@@ -646,22 +867,16 @@ function createExtraRow(s=''){
  return tr;
 }
 
-function addRow(s='',notify=true){
- const tr=createExtraRow(s);
- const add=extraBody.querySelector('tr[data-add="1"]');
+function renderExtra(){
+ const fragment=document.createDocumentFragment();
 
- extraBody.insertBefore(tr,add);
-
- if(notify){
-  updateBg();
-  changed();
+ for(let i=0;i<extraData.length;i++){
+  fragment.appendChild(
+   createExtraRow(i)
+  );
  }
 
- return tr;
-}
-
-function addButton(){
- const tr=extraBody.insertRow();
+ const tr=document.createElement('tr');
  tr.dataset.add='1';
 
  const td=tr.insertCell();
@@ -673,173 +888,221 @@ function addButton(){
  b.title='新增一行';
 
  b.addEventListener('click',()=>{
-  addRow();
+  extraData.push(['','','']);
+  renderExtra();
+  updateBg();
+  changed();
  });
 
  td.appendChild(b);
+ fragment.appendChild(tr);
+
+ extraBody.replaceChildren(fragment);
 }
 
-async function render(text,sw){
- originalBOM=text.startsWith('\uFEFF')?'\uFEFF':'';
+function moveExtraRow(index,direction){
+ const target=index+direction;
 
- if(originalBOM){
-  text=text.slice(1);
+ if(
+  target<0||
+  target>=extraData.length
+ ){
+  return;
  }
 
- originalNewline=text.includes('\r\n')?'\r\n':'\n';
- originalTrailingNewline=/\r?\n$/.test(text);
+ [extraData[index],extraData[target]]=
+ [extraData[target],extraData[index]];
 
- const lines=text.replace(/\r\n/g,'\n').split('\n');
- const seals=sw.replace(/\r\n/g,'\n').split('\n');
+ renderExtra();
+ changed();
+}
 
- if(lines.length<TOTAL||seals.length<TOTAL){
-  throw Error(
-   `資料不足 ${TOTAL} 行（mozi：${lines.length}、shuowen：${seals.length}）`
-  );
+/* 差異字元 */
+
+function updateBg(){
+ const a=new Set();
+ const b=new Set();
+
+ for(const row of mainData){
+  for(const c of chars(row.edit[0])){
+   a.add(c);
+  }
+
+  for(const c of chars(
+   row.edit[1]+row.edit[2]
+  )){
+   b.add(c);
+  }
  }
 
- loaded=false;
+ for(const row of extraData){
+  for(const c of chars(row[0])){
+   a.add(c);
+  }
 
- mainBody.replaceChildren();
+  for(const c of chars(row[1]+row[2])){
+   b.add(c);
+  }
+ }
+
+ charButtons(
+  bg,
+  [...b].filter(c=>!a.has(c)).join('')
+ );
+}
+
+/* 搜尋 */
+
+function rowValues(data){
+ return [
+  data.edit.join(''),
+  ...data.edit,
+  ...data.seal
+ ];
+}
+
+function searchColumn(columns){
  searchBody.replaceChildren();
- extraBody.replaceChildren();
- bg.replaceChildren();
 
- await checkpoint(
-  35,
-  '開始建立主表',
-  `總共 ${TOTAL} 行`
- );
+ const q=getSearch();
+ if(!q)return;
 
- for(let start=0;start<TOTAL;start+=CHUNK){
-  const end=Math.min(start+CHUNK,TOTAL);
-  const batch=document.createDocumentFragment();
+ searchMatches=[];
+ searchColumns=columns;
 
-  for(let i=start;i<end;i++){
-   const m=chars(lines[i]).slice(0,3);
-   const s=seals[i].split('\t');
+ for(let i=0;i<mainData.length;i++){
+  const cells=rowValues(mainData[i]);
 
-   const tr=document.createElement('tr');
-   tr.insertCell();
-
-   for(let j=0;j<3;j++){
-    setCell(
-     tr.insertCell(),
-     m[j]||'',
-     false,
-     false
-    );
-   }
-
-   updateFirst(tr);
-
-   for(let j=0;j<3;j++){
-    charButtons(
-     tr.insertCell(),
-     s[j]||''
-    );
-   }
-
-   batch.appendChild(tr);
+  if(columns.some(
+   n=>cells[n-1].includes(q)
+  )){
+   searchMatches.push(i);
   }
-
-  mainBody.appendChild(batch);
-
-  progress(
-   35+43*end/TOTAL,
-   '正在建立並插入主表',
-   `${end} / ${TOTAL} 行`
-  );
-
-  if(end%1000<CHUNK||end===TOTAL){
-   logStage('主表已插入',`${end} / ${TOTAL} 行`);
-  }
-
-  await nextFrame();
  }
 
- await checkpoint(
-  78,
-  '主表建立完成',
-  `${mainBody.rows.length} 行`
+ /*
+  搜尋結果也分批顯示。
+  避免搜尋常見字時一次建立數千行。
+ */
+ renderSearchResults(0);
+
+ status(`找到 ${searchMatches.length} 行`);
+}
+
+function renderSearchResults(offset){
+ const PAGE=100;
+ const fragment=document.createDocumentFragment();
+
+ const end=Math.min(
+  offset+PAGE,
+  searchMatches.length
  );
 
- const tail=lines.slice(TOTAL);
+ for(let k=offset;k<end;k++){
+  const index=searchMatches[k];
+  const data=mainData[index];
+  const cells=rowValues(data);
 
- if(originalTrailingNewline&&tail.at(-1)===''){
-  tail.pop();
- }
+  const tr=document.createElement('tr');
+  tr.dataset.index=index;
 
- await checkpoint(
-  79,
-  '開始建立附加資料',
-  `總共 ${tail.length} 行`
- );
-
- for(let i=0;i<tail.length;i+=CHUNK){
-  const end=Math.min(i+CHUNK,tail.length);
-  const batch=document.createDocumentFragment();
-
-  for(let j=i;j<end;j++){
-   batch.appendChild(
-    createExtraRow(tail[j])
+  for(const s of cells){
+   charButtons(
+    tr.insertCell(),
+    s
    );
   }
 
-  extraBody.appendChild(batch);
-
-  progress(
-   79+6*end/Math.max(1,tail.length),
-   '正在建立附加資料',
-   `${end} / ${tail.length} 行`
-  );
-
-  await nextFrame();
+  fragment.appendChild(tr);
  }
 
- await checkpoint(
-  85,
-  '附加資料建立完成',
-  `${tail.length} 行`
- );
+ if(end<searchMatches.length){
+  const tr=document.createElement('tr');
+  const td=tr.insertCell();
+  td.colSpan=7;
 
- await checkpoint(
-  86,
-  '準備新增附加行按鈕'
- );
+  const b=document.createElement('button');
+  b.type='button';
+  b.textContent=
+   `顯示更多（${end} / ${searchMatches.length}）`;
 
- console.time('addButton');
- addButton();
- console.timeEnd('addButton');
+  b.addEventListener('click',()=>{
+   tr.remove();
+   renderSearchResults(end);
+  });
 
- await checkpoint(
-  88,
-  '附加行按鈕建立完成'
- );
+  td.appendChild(b);
+  fragment.appendChild(tr);
+ }
 
- await checkpoint(
-  90,
-  '準備計算差異字元'
- );
-
- console.time('updateBg');
- updateBg();
- console.timeEnd('updateBg');
-
- await checkpoint(
-  95,
-  '差異字元計算完成'
- );
-
- loaded=true;
- dirty=false;
- status('已載入 mozi.txt');
-
- await checkpoint(
-  97,
-  '資料初始化完成'
- );
+ searchBody.appendChild(fragment);
 }
+
+cfa.addEventListener('click',e=>{
+ const tr=e.target.closest('tr[data-index]');
+ if(!tr)return;
+
+ jumpToRow(Number(tr.dataset.index));
+});
+
+$('cfb1').addEventListener('click',()=>{
+ searchColumn([2]);
+});
+
+$('cfb2').addEventListener('click',()=>{
+ searchColumn([3,4]);
+});
+
+$('cfb3').addEventListener('click',()=>{
+ searchColumn([6]);
+});
+
+/* 取代 */
+
+$('cpb').addEventListener('click',()=>{
+ const q=getSearch();
+ if(!q)return;
+
+ const replacement=getReplace();
+ let any=false;
+
+ for(const row of mainData){
+  for(let j=0;j<3;j++){
+   const old=row.edit[j];
+
+   if(old.includes(q)){
+    row.edit[j]=first(
+     old.replaceAll(q,replacement)
+    );
+    any=true;
+   }
+  }
+ }
+
+ for(const row of extraData){
+  for(let j=0;j<3;j++){
+   const old=row[j];
+
+   if(old.includes(q)){
+    row[j]=first(
+     old.replaceAll(q,replacement)
+    );
+    any=true;
+   }
+  }
+ }
+
+ if(any){
+  renderVisible(true);
+  renderExtra();
+  updateBg();
+  searchBody.replaceChildren();
+  searchMatches=[];
+  changed();
+ }
+});
+
+/* GitHub */
 
 async function github(options={}){
  const r=await fetch(
@@ -863,6 +1126,8 @@ async function github(options={}){
 
  return r.json();
 }
+
+/* 字型載入 */
 
 async function loadFonts(){
  const families=[
@@ -898,8 +1163,117 @@ async function loadFonts(){
   }
  }
 
- await checkpoint(35,'字型檔案已載入');
+ progress(35,'字型檔案已載入');
 }
+
+/* 資料解析：不建立主表 DOM */
+
+async function parseData(text,sw){
+ originalBOM=text.startsWith('\uFEFF')?'\uFEFF':'';
+
+ if(originalBOM){
+  text=text.slice(1);
+ }
+
+ originalNewline=text.includes('\r\n')?'\r\n':'\n';
+ originalTrailingNewline=/\r?\n$/.test(text);
+
+ const lines=text.replace(/\r\n/g,'\n').split('\n');
+ const seals=sw.replace(/\r\n/g,'\n').split('\n');
+
+ if(lines.length<TOTAL||seals.length<TOTAL){
+  throw Error(
+   `資料不足 ${TOTAL} 行（mozi：${lines.length}、shuowen：${seals.length}）`
+  );
+ }
+
+ loaded=false;
+
+ const nextMain=[];
+
+ progress(35,'正在解析主表資料');
+
+ for(let i=0;i<TOTAL;i++){
+  const m=chars(lines[i]).slice(0,3);
+  const s=seals[i].split('\t');
+
+  nextMain.push({
+   edit:[
+    first(m[0]||''),
+    first(m[1]||''),
+    first(m[2]||'')
+   ],
+   seal:[
+    s[0]||'',
+    s[1]||'',
+    s[2]||''
+   ]
+  });
+
+  if(i%1000===999){
+   progress(
+    35+40*(i+1)/TOTAL,
+    '正在解析主表資料',
+    `${i+1} / ${TOTAL} 行`
+   );
+
+   await nextFrame();
+  }
+ }
+
+ progress(78,'正在解析附加資料');
+
+ const tail=lines.slice(TOTAL);
+
+ if(originalTrailingNewline&&tail.at(-1)===''){
+  tail.pop();
+ }
+
+ const nextExtra=tail.map(line=>{
+  const m=chars(line);
+
+  return [
+   first(m[0]||''),
+   first(m[1]||''),
+   first(m[2]||'')
+  ];
+ });
+
+ mainData=nextMain;
+ extraData=nextExtra;
+
+ progress(85,'正在建立附加資料表');
+
+ mainBody.replaceChildren();
+ searchBody.replaceChildren();
+ renderExtra();
+
+ progress(90,'正在計算差異字元');
+
+ updateBg();
+
+ progress(95,'正在初始化虛擬捲動');
+
+ renderedStart=-1;
+ renderedEnd=-1;
+ highlightedIndex=-1;
+ searchMatches=[];
+
+ viewport.scrollTop=0;
+
+ loaded=true;
+ dirty=false;
+
+ status('已載入 mozi.txt');
+
+ progress(
+  98,
+  '資料初始化完成',
+  `${mainData.length} 行主表、${extraData.length} 行附加資料`
+ );
+}
+
+/* 載入 */
 
 async function loadData(){
  if(loading||saving)return;
@@ -914,7 +1288,7 @@ async function loadData(){
  status('正在載入…');
 
  try{
-  await checkpoint(2,'正在下載 TXT 檔案');
+  progress(2,'正在下載 TXT 檔案');
 
   const [file,sw]=await Promise.all([
    github(),
@@ -927,24 +1301,24 @@ async function loadData(){
    })
   ]);
 
-  await checkpoint(15,'TXT 下載完成');
+  progress(15,'TXT 下載完成');
+  await nextFrame();
 
   await loadFonts();
 
-  await checkpoint(35,'正在解碼 TXT');
+  progress(35,'正在解碼 TXT');
+  await nextFrame();
 
-  await render(decode(file.content),sw);
+  await parseData(
+   decode(file.content),
+   sw
+  );
 
   sha=file.sha;
 
-  await checkpoint(
-   99,
-   '準備顯示完整表格'
-  );
+  progress(99,'正在顯示可見行');
 
   finishLoading();
-
-  console.log('finishLoading 已完成');
  }catch(e){
   failLoading(e);
  }finally{
@@ -955,101 +1329,7 @@ async function loadData(){
 $('reload').addEventListener('click',loadData);
 $('retry').addEventListener('click',loadData);
 
-function searchColumn(columns){
- searchBody.replaceChildren();
-
- const q=getSearch();
- if(!q)return;
-
- const fragment=document.createDocumentFragment();
-
- for(const tr of mainBody.rows){
-  if(!columns.some(
-   n=>value(tr.cells[n-1]).includes(q)
-  )){
-   continue;
-  }
-
-  const row=document.createElement('tr');
-
-  for(const td of tr.cells){
-   charButtons(
-    row.insertCell(),
-    value(td)
-   );
-  }
-
-  row.dataset.index=tr.sectionRowIndex;
-
-  fragment.appendChild(row);
- }
-
- searchBody.appendChild(fragment);
-}
-
-cfa.addEventListener('click',e=>{
- const tr=e.target.closest('tr[data-index]');
- if(!tr)return;
-
- const target=mainBody.rows[Number(tr.dataset.index)];
-
- if(target){
-  target.scrollIntoView({
-   behavior:'smooth',
-   block:'center'
-  });
- }
-});
-
-$('cfb1').addEventListener('click',()=>{
- searchColumn([2]);
-});
-
-$('cfb2').addEventListener('click',()=>{
- searchColumn([3,4]);
-});
-
-$('cfb3').addEventListener('click',()=>{
- searchColumn([6]);
-});
-
-$('cpb').addEventListener('click',()=>{
- const q=getSearch();
- if(!q)return;
-
- const replacement=getReplace();
- let any=false;
-
- for(const tr of [...mainBody.rows,...dataRows()]){
-  let rowChanged=false;
-
-  for(const j of [1,2,3]){
-   const td=tr.cells[j];
-   const old=value(td);
-
-   if(old.includes(q)){
-    setCell(
-     td,
-     old.replaceAll(q,replacement),
-     false,
-     false
-    );
-
-    rowChanged=true;
-    any=true;
-   }
-  }
-
-  if(rowChanged){
-   updateFirst(tr);
-  }
- }
-
- if(any){
-  updateBg();
-  changed();
- }
-});
+/* 儲存 */
 
 $('cs').addEventListener('click',async()=>{
  if(saving||loading)return;
@@ -1067,12 +1347,13 @@ $('cs').addEventListener('click',async()=>{
   return;
  }
 
- const serialize=tr=>[1,2,3]
-  .map(j=>value(tr.cells[j]))
-  .join('');
+ const head=mainData.map(
+  row=>row.edit.join('')
+ );
 
- const head=[...mainBody.rows].map(serialize);
- const tail=dataRows().map(serialize);
+ const tail=extraData.map(
+  row=>row.join('')
+ );
 
  let content=[...head,...tail].join('\n');
 
@@ -1127,7 +1408,6 @@ loadData();
   <div id="loading-stage">準備載入…</div>
   <progress id="loading-bar" max="100" value="0"></progress>
   <div id="loading-detail">0%</div>
-  <div id="loading-log"></div>
   <div id="loading-error"></div>
   <button id="retry" hidden>重新嘗試</button>
  </div>
@@ -1141,6 +1421,7 @@ loadData();
  <button id="cp" class="char"></button>
  <button id="cpb">取代</button>
  <button id="reload">重新載入</button>
+
  <input
   id="token"
   type="password"
@@ -1148,8 +1429,11 @@ loadData();
   autocomplete="off"
   aria-label="GitHub Token"
  >
+
  <button id="cs">儲存至 GitHub</button>
+
  <span id="status" role="status"></span>
+ <span id="position"></span>
 
  <div id="results">
   <table id="cfa">
@@ -1161,7 +1445,7 @@ loadData();
  </div>
 </header>
 
-<main>
+<main id="viewport">
  <table id="mozi">
   <colgroup>
    <col><col><col><col><col><col><col>
@@ -1177,6 +1461,7 @@ loadData();
   </colgroup>
   <tbody></tbody>
  </table>
+
  <p id="bg"></p>
 </footer>
 
