@@ -299,67 +299,16 @@ async function pasteSystem(b){
  if(p)writeButton(b,p);
 }
 
-/* 共用事件：pointerup 判斷長按 */
-const LONG_PRESS_MS=600;
-const MOVE_TOLERANCE=10;
-const activePresses=new Map();
-let suppressClick=null;
-
-function pressTarget(e){
- return e.target instanceof Element
-  ?e.target.closest('button[data-edit]')
-  :null;
-}
-
-document.addEventListener('pointerdown',e=>{
- const b=pressTarget(e);
- if(!b||e.button!==0||!e.isPrimary)return;
- activePresses.set(e.pointerId,{
-  button:b,
-  start:performance.now(),
-  x:e.clientX,
-  y:e.clientY,
-  cancelled:false
- });
-});
-
-document.addEventListener('pointermove',e=>{
- const press=activePresses.get(e.pointerId);
- if(!press)return;
- if(Math.hypot(e.clientX-press.x,e.clientY-press.y)>MOVE_TOLERANCE){
-  press.cancelled=true;
- }
-});
-
-document.addEventListener('pointercancel',e=>{
- activePresses.delete(e.pointerId);
-});
-
-document.addEventListener('pointerup',e=>{
- const press=activePresses.get(e.pointerId);
- if(!press)return;
- activePresses.delete(e.pointerId);
- if(press.cancelled||!press.button.isConnected)return;
- if(performance.now()-press.start<LONG_PRESS_MS)return;
-
- const b=press.button;
- // 長按後瀏覽器仍可能派發 click、先標記以免執行單擊。
- suppressClick={button:b,until:performance.now()+1500};
- if(buttonInfo(b).value)clearValue(b);
- else pasteSystem(b);
-});
-
+/* 共用事件：方法一 contextmenu */
+let suppressedClick=null;
+let suppressedUntil=0;
 document.addEventListener('click',e=>{
- const b=e.target instanceof Element?e.target.closest('button'):null;
+ const b=e.target.closest('button');
  if(!b)return;
- if(suppressClick&&performance.now()<suppressClick.until&&
-    (b===suppressClick.button||b.dataset.edit!==undefined&&
-     b.dataset.kind===suppressClick.button.dataset.kind&&
-     b.dataset.index===suppressClick.button.dataset.index&&
-     b.dataset.column===suppressClick.button.dataset.column)){
+ if(b.dataset.edit!==undefined&&b===suppressedClick&&performance.now()<suppressedUntil){
   e.preventDefault();
   e.stopPropagation();
-  suppressClick=null;
+  suppressedClick=null;
   return;
  }
  if(b.dataset.copy!==undefined){copy(b.dataset.copy);return;}
@@ -367,10 +316,14 @@ document.addEventListener('click',e=>{
  if(buttonInfo(b).value)copyValue(b);
  else pasteInternal(b);
 });
-
-// 僅阻止 Safari 自帶的長按內容選單、不在 contextmenu 執行任何操作。
 document.addEventListener('contextmenu',e=>{
- if(pressTarget(e))e.preventDefault();
+ const b=e.target.closest('button[data-edit]');
+ if(!b)return;
+ e.preventDefault();
+ suppressedClick=b;
+ suppressedUntil=performance.now()+1500;
+ if(buttonInfo(b).value)clearValue(b);
+ else pasteSystem(b);
 });
 
 /* 主表 */
