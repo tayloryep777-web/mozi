@@ -412,6 +412,7 @@ let highlightedIndex=-1;
 let searchMatches=[];
 let searchColumns=[];
 
+
 /* 動態行高索引 */
 
 class FenwickTree{
@@ -519,6 +520,9 @@ document.documentElement.style.setProperty(
  JSON.stringify(sealFamily)
 );
 
+
+/* 載入畫面 */
+
 function progress(p,stage,detail=''){
  $('loading-bar').value=Math.max(0,Math.min(100,p));
  $('loading-stage').textContent=stage;
@@ -559,6 +563,9 @@ function changed(){
  status('尚未儲存');
 }
 
+
+/* GitHub Token */
+
 try{
  tokenInput.value=localStorage.getItem('mozi-github-token')||'';
 }catch(e){
@@ -573,6 +580,9 @@ tokenInput.addEventListener('input',()=>{
   status('瀏覽器無法儲存 Token');
  }
 });
+
+
+/* Base64 */
 
 const decode=s=>new TextDecoder().decode(
  Uint8Array.from(
@@ -594,7 +604,8 @@ const encode=s=>{
  return btoa(binary);
 };
 
-/* 複製與貼上 */
+
+/* 剪貼簿 */
 
 async function copy(s){
  if(!s)return;
@@ -620,15 +631,20 @@ async function paste(){
  }
 }
 
+
+/* 按鈕建立 */
+
 function charButtons(el,s){
  const fragment=document.createDocumentFragment();
 
  for(const c of chars(s)){
   const b=document.createElement('button');
+
   b.type='button';
   b.className='char';
   b.textContent=c;
   b.dataset.copy=c;
+
   fragment.appendChild(b);
  }
 
@@ -657,57 +673,108 @@ function createEditableButton(s,kind,index,column){
 
 function control(id){
  const el=$(id);
+
  editableButton(el);
+
  el.dataset.kind='control';
  el.dataset.value='';
+
  return ()=>el.dataset.value||'';
 }
 
 const getSearch=control('cf');
 const getReplace=control('cp');
 
-/* 資料修改 */
 
-function getEditValue(kind,index,column){
- if(kind==='main'){
-  return mainData[index]?.edit[column]??'';
- }
+/* 統一修改按鈕 */
 
- if(kind==='extra'){
-  return extraData[index]?.[column]??'';
- }
-
- return $(index)?.dataset.value??'';
-}
-
-function setEditValue(kind,index,column,s){
+function setButtonValue(b,s){
  s=first(s);
+
+ const kind=b.dataset.kind;
+ const index=Number(b.dataset.index);
+ const column=Number(b.dataset.column);
 
  if(kind==='main'){
   if(!mainData[index])return;
+
   mainData[index].edit[column]=s;
+
+  changed();
+  updateBg();
+
+  const tr=b.closest('tr');
+
+  if(tr){
+   updateFirst(tr,mainData[index].edit);
+  }
+
  }else if(kind==='extra'){
   if(!extraData[index])return;
+
   extraData[index][column]=s;
- }else{
-  return;
+
+  changed();
+  updateBg();
+
+  const tr=b.closest('tr');
+
+  if(tr){
+   updateFirst(tr,extraData[index]);
+  }
  }
 
- changed();
- updateBg();
-
- if(kind==='main'){
-  refreshVisibleRow(index);
- }else{
-  renderExtra();
- }
+ b.dataset.value=s;
+ b.textContent=s;
 }
 
 function updateFirst(tr,edit){
  charButtons(tr.cells[0],edit.join(''));
 }
 
-/* 按鈕事件 */
+
+/* 四種共用操作 */
+
+/* 1. 單擊複製 */
+
+function copyButton(b){
+ const s=b.dataset.value||'';
+
+ if(s){
+  copy(s);
+ }
+}
+
+/* 2. 單擊貼上：網頁內部剪貼簿 */
+
+function pasteButton(b){
+ if(!clipboard){
+  status('網頁內部剪貼簿為空');
+  return;
+ }
+
+ setButtonValue(b,clipboard);
+}
+
+/* 3. 長按清空 */
+
+function clearButton(b){
+ setButtonValue(b,'');
+ status('已清空');
+}
+
+/* 4. 長按貼上：系統剪貼簿 */
+
+async function pasteSystemButton(b){
+ const s=await paste();
+
+ if(s!==null&&s!==''){
+  setButtonValue(b,s);
+ }
+}
+
+
+/* 普通字元按鈕 */
 
 document.addEventListener('click',e=>{
  const b=e.target.closest('button[data-copy]');
@@ -717,11 +784,15 @@ document.addEventListener('click',e=>{
  }
 });
 
+
+/* 共用點擊與長按 */
+
 let pressTimer=null;
 let pressButton=null;
 let pressX=0;
 let pressY=0;
 let longPressed=false;
+let pressSequence=0;
 
 function stopPress(){
  clearTimeout(pressTimer);
@@ -730,54 +801,28 @@ function stopPress(){
 
 document.addEventListener('pointerdown',e=>{
  const b=e.target.closest('button[data-edit]');
+
  if(!b||e.button!==0)return;
 
  stopPress();
 
+ pressSequence++;
  pressButton=b;
  pressX=e.clientX;
  pressY=e.clientY;
  longPressed=false;
 
- const kind=b.dataset.kind;
- const index=Number(b.dataset.index);
- const column=Number(b.dataset.column);
+ const sequence=pressSequence;
 
  pressTimer=setTimeout(async()=>{
-  if(pressButton!==b)return;
+  if(pressButton!==b||pressSequence!==sequence)return;
 
   longPressed=true;
 
-  if(kind==='control'){
-   const s=b.dataset.value||'';
-
-   if(s){
-    b.dataset.value='';
-    b.textContent='';
-    status('已清空');
-   }else{
-    const p=await paste();
-
-    if(p){
-     b.dataset.value=p;
-     b.textContent=p;
-    }
-   }
-
-   return;
-  }
-
-  const s=getEditValue(kind,index,column);
-
-  if(s){
-   setEditValue(kind,index,column,'');
-   status('已清空');
+  if(b.dataset.value){
+   clearButton(b);
   }else{
-   const p=await paste();
-
-   if(p){
-    setEditValue(kind,index,column,p);
-   }
+   await pasteSystemButton(b);
   }
  },600);
 });
@@ -788,20 +833,22 @@ document.addEventListener('pointermove',e=>{
   Math.hypot(e.clientX-pressX,e.clientY-pressY)>10
  ){
   stopPress();
+  pressButton=null;
+  pressSequence++;
  }
 });
 
 document.addEventListener('pointerup',stopPress);
-document.addEventListener('pointercancel',stopPress);
 
-document.addEventListener('contextmenu',e=>{
- if(e.target.closest('button[data-edit]')){
-  e.preventDefault();
- }
+document.addEventListener('pointercancel',()=>{
+ stopPress();
+ pressButton=null;
+ pressSequence++;
 });
 
 document.addEventListener('click',e=>{
  const b=e.target.closest('button[data-edit]');
+
  if(!b)return;
 
  if(longPressed){
@@ -812,36 +859,13 @@ document.addEventListener('click',e=>{
 
  pressButton=null;
 
- const kind=b.dataset.kind;
-
- if(kind==='control'){
-  const s=b.dataset.value||'';
-
-  if(s){
-   copy(s);
-  }else if(clipboard){
-   const v=first(clipboard);
-   b.dataset.value=v;
-   b.textContent=v;
-  }else{
-   status('網頁內部剪貼簿為空');
-  }
-
-  return;
- }
-
- const index=Number(b.dataset.index);
- const column=Number(b.dataset.column);
- const s=getEditValue(kind,index,column);
-
- if(s){
-  copy(s);
- }else if(clipboard){
-  setEditValue(kind,index,column,clipboard);
+ if(b.dataset.value){
+  copyButton(b);
  }else{
-  status('網頁內部剪貼簿為空');
+  pasteButton(b);
  }
 });
+
 
 /* 主表 */
 
@@ -882,6 +906,7 @@ function createMainRow(index){
 
  return tr;
 }
+
 
 /* 行高測量 */
 
@@ -971,6 +996,7 @@ function applyMeasurements(){
 
  renderVisible(true);
 }
+
 
 /* 虛擬捲動 */
 
@@ -1078,27 +1104,6 @@ window.addEventListener('resize',()=>{
  scheduleRender();
 });
 
-function refreshVisibleRow(index){
- if(
-  index<renderedStart||
-  index>=renderedEnd
- ){
-  return;
- }
-
- const tr=mainBody.querySelector(
-  `tr[data-index="${index}"]`
- );
-
- if(tr){
-  rowObserver?.unobserve(tr);
-
-  const next=createMainRow(index);
-  tr.replaceWith(next);
-  rowObserver?.observe(next);
- }
-}
-
 function jumpToRow(index){
  if(index<0||index>=mainData.length)return;
 
@@ -1116,6 +1121,7 @@ function jumpToRow(index){
 
  status(`已跳至第 ${index+1} 行`);
 }
+
 
 /* 附加資料 */
 
@@ -1204,6 +1210,7 @@ function moveExtraRow(index,direction){
  changed();
 }
 
+
 /* 差異字元 */
 
 function updateBg(){
@@ -1235,6 +1242,7 @@ function updateBg(){
   [...b].filter(c=>!a.has(c)).join('')
  );
 }
+
 
 /* 搜尋 */
 
@@ -1331,6 +1339,7 @@ $('cfb3').addEventListener('click',()=>{
  searchColumn([6]);
 });
 
+
 /* 取代 */
 
 $('cpb').addEventListener('click',()=>{
@@ -1383,6 +1392,7 @@ $('cpb').addEventListener('click',()=>{
  }
 });
 
+
 /* GitHub */
 
 async function github(options={}){
@@ -1407,6 +1417,7 @@ async function github(options={}){
 
  return r.json();
 }
+
 
 /* 字型載入 */
 
@@ -1446,6 +1457,7 @@ async function loadFonts(){
 
  progress(35,'字型檔案已載入');
 }
+
 
 /* 資料解析 */
 
@@ -1561,6 +1573,7 @@ async function parseData(text,sw){
  );
 }
 
+
 /* 載入 */
 
 async function loadData(){
@@ -1611,6 +1624,7 @@ async function loadData(){
 
 $('reload').addEventListener('click',loadData);
 $('retry').addEventListener('click',loadData);
+
 
 /* 儲存 */
 
