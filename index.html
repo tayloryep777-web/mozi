@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -13,22 +12,26 @@
 @font-face{font-family:"Jigmo";src:url("Jigmo.ttf")}
 @font-face{font-family:"Jigmo2";src:url("Jigmo2.ttf")}
 @font-face{font-family:"Jigmo3";src:url("Jigmo3.ttf")}
-:root{--shuowen:"Shuo Wen CBDT";--font:"Jigmo","Jigmo2","Jigmo3";--row-height:2ic;--w1:3ic;--w2:1ic;--w3:1ic;--w4:1ic;--w5:2ic;--w6:3ic}
+:root{--font-size:20pt;--shuowen:"Shuo Wen CBDT";--font:"Jigmo","Jigmo2","Jigmo3";--row-height:2ic;--w1:3ic;--w2:1ic;--w3:1ic;--w4:1ic;--w5:2ic;--w6:3ic}
 *{box-sizing:border-box}
 html{width:100%;height:100%;overflow:hidden}
-body{margin:0;width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;font:24pt var(--font)}
-button,input,progress{font:24pt var(--font)}
+body{margin:0;width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;font:var(--font-size) var(--font)}
+button,input,progress{font:inherit}
 button{appearance:none;-webkit-appearance:none;border:0;background:transparent;color:inherit}
 button:hover,button:active,button:focus{background:transparent}
 button:focus{outline:none}
 header{flex-shrink:0;display:flex;flex-wrap:wrap;align-items:center;min-width:0}
 main{flex:1;min-width:0;min-height:0;overflow-x:auto;overflow-y:auto;position:relative;overscroll-behavior:contain;overflow-anchor:none}
 footer{height:25%;flex-shrink:0;display:flex;min-width:0;min-height:0;overflow:hidden}
-#results{flex-basis:100%;max-height:25%;min-width:0;overflow-x:hidden;overflow-y:auto}
+#results{flex:0 0 100%;height:25vh;max-height:25vh;min-width:0;overflow-x:hidden;overflow-y:auto}
 #mozi2-scroll{flex:0 0 auto;width:8ic;min-width:8ic;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain}
-#mozi,#cfa,#mozi2{table-layout:fixed;border-collapse:collapse;border-spacing:0;font-size:24pt}
+#mozi,#cfa,#mozi2{table-layout:fixed;border-collapse:collapse;border-spacing:0;font-size:inherit}
 #mozi,#cfa{width:100%}
+#cfa{min-height:100%}
 #mozi2{width:8ic}
+#token{
+ width:1ic;
+}
 :is(#mozi,#cfa,#mozi2) col:nth-child(1){width:var(--w1)}
 :is(#mozi,#cfa,#mozi2) col:nth-child(2){width:var(--w2)}
 :is(#mozi,#cfa,#mozi2) col:nth-child(3){width:var(--w3)}
@@ -37,10 +40,10 @@ footer{height:25%;flex-shrink:0;display:flex;min-width:0;min-height:0;overflow:h
 :is(#mozi,#cfa) col:nth-child(6){width:var(--w6)}
 #mozi2 col:nth-child(5),#mozi2 col:nth-child(6){width:1ic}
 :is(#mozi,#cfa,#mozi2) td{padding:0;white-space:normal;overflow-wrap:anywhere;word-break:break-word;vertical-align:middle;min-width:0}
-:is(#mozi,#cfa,#mozi2) td:nth-child(1){font:24pt "華瑞小篆體","Jigmo","Jigmo2","Jigmo3"}
-:is(#mozi,#cfa,#mozi2) td:nth-child(2),:is(#mozi,#cfa,#mozi2) td:nth-child(3),:is(#mozi,#cfa,#mozi2) td:nth-child(4){font:24pt "TW-MOE-Std-Kai","Jigmo","Jigmo2","Jigmo3"}
-:is(#mozi,#cfa) td:nth-child(5){font:24pt var(--shuowen),"Jigmo","Jigmo2","Jigmo3"}
-:is(#mozi,#cfa) td:nth-child(6),:is(#mozi,#cfa) td:nth-child(7){font:24pt var(--font)}
+:is(#mozi,#cfa,#mozi2) td:nth-child(1){font-family:"華瑞小篆體","Jigmo","Jigmo2","Jigmo3"}
+:is(#mozi,#cfa,#mozi2) td:nth-child(2),:is(#mozi,#cfa,#mozi2) td:nth-child(3),:is(#mozi,#cfa,#mozi2) td:nth-child(4){font-family:"TW-MOE-Std-Kai","Jigmo","Jigmo2","Jigmo3"}
+:is(#mozi,#cfa) td:nth-child(5){font-family:var(--shuowen),"Jigmo","Jigmo2","Jigmo3"}
+:is(#mozi,#cfa) td:nth-child(6),:is(#mozi,#cfa) td:nth-child(7){font-family:var(--font)}
 #mozi tr.data-row{min-height:var(--row-height)}
 #mozi tr.data-row td{height:auto;min-height:var(--row-height);white-space:normal;overflow-wrap:anywhere;vertical-align:middle}
 #mozi tr.spacer td{padding:0;height:0;min-height:0;line-height:0;font-size:0;overflow:hidden}
@@ -49,23 +52,22 @@ footer{height:25%;flex-shrink:0;display:flex;min-width:0;min-height:0;overflow:h
 #cf,#cp{min-width:2ic}
 #cfa tr{cursor:pointer}
 #mozi2 td:nth-child(5),#mozi2 td:nth-child(6){text-align:center}
-#mozi2 td:nth-child(5) button,#mozi2 td:nth-child(6) button{font:24pt var(--font)}
+#mozi2 td:nth-child(5) button,#mozi2 td:nth-child(6) button{font:inherit}
 #mozi2 tr:last-child td{text-align:center}
-#mozi2 tr:last-child button{display:block;width:100%;font:24pt var(--font)}
-#bg{flex:1;min-width:0;min-height:0;margin:0;overflow-x:hidden;overflow-y:auto;overflow-wrap:anywhere;word-break:break-word;overscroll-behavior:contain;font:24pt var(--font)}
-#token{width:8ic;max-width:100%;font:24pt var(--font);border:0;outline:none}
-#status{align-self:center;overflow-wrap:anywhere;font:24pt var(--font)}
-#position{margin-left:0.25ic;font:24pt var(--font)}
+#mozi2 tr:last-child button{display:block;width:100%;font:inherit}
+#bg{flex:1;min-width:0;min-height:0;margin:0;overflow-x:hidden;overflow-y:auto;overflow-wrap:anywhere;word-break:break-word;overscroll-behavior:contain;font:inherit}
+#token{width:8ic;max-width:100%;font:inherit;border:0;outline:none}
+#status{align-self:center;overflow-wrap:anywhere;font:inherit}
 body:not(.ready)>header,body:not(.ready)>main,body:not(.ready)>footer{display:none}
-#loading{position:fixed;inset:0;z-index:9999;background:white;color:#222;display:flex;align-items:center;justify-content:center;font:24pt var(--font)}
+#loading{position:fixed;inset:0;z-index:9999;background:white;color:#222;display:flex;align-items:center;justify-content:center;font:var(--font-size) var(--font)}
 #loading[hidden]{display:none}
 #loading-panel{width:85%;max-width:18ic}
-#loading-title{font:24pt var(--font);margin-bottom:0.5ic}
+#loading-title{font:inherit;margin-bottom:0.5ic}
 #loading-stage{margin-bottom:0.5ic;overflow-wrap:anywhere}
 #loading-bar{width:100%;height:0.5ic;accent-color:#3275bd}
 #loading-detail{margin-top:0.25ic}
 #loading-error{white-space:pre-wrap;overflow-wrap:anywhere;color:#a11;margin-top:0.5ic}
-#retry{font:24pt var(--font);margin-top:0.5ic;padding:0.25ic 0.5ic}
+#retry{font:inherit;margin-top:0.5ic;padding:0.25ic 0.5ic}
 </style>
 </head>
 <body>
@@ -76,21 +78,20 @@ body:not(.ready)>header,body:not(.ready)>main,body:not(.ready)>footer{display:no
   <progress id="loading-bar" max="100" value="0"></progress>
   <div id="loading-detail">0%</div>
   <div id="loading-error"></div>
-  <button id="retry" hidden>重新嘗試</button>
+  <button id="retry" hidden>重試</button>
  </div>
 </div>
 <header>
  <button id="cf" class="char"></button>
- <button id="cfb1">搜字頭</button>
- <button id="cfb2">搜偏旁</button>
- <button id="cfb3">搜變體</button>
+ <button id="cfb1">字</button>
+ <button id="cfb2">文</button>
+ <button id="cfb3">重</button>
  <button id="cp" class="char"></button>
- <button id="cpb">取代</button>
- <button id="reload">重新載入</button>
- <input id="token" type="password" placeholder="GitHub Token" autocomplete="off" aria-label="GitHub Token">
- <button id="cs">儲存至 GitHub</button>
+ <button id="cpb">變</button>
+ <button id="reload">新</button>
+ <input id="to" type="password" placeholder="GitHub Token" autocomplete="off" aria-label="GitHub Token">
+ <button id="cs">存</button>
  <span id="status" role="status"></span>
- <span id="position"></span>
  <div id="results">
   <table id="cfa"><colgroup><col><col><col><col><col><col><col></colgroup><tbody></tbody></table>
  </div>
@@ -104,7 +105,6 @@ body:not(.ready)>header,body:not(.ready)>main,body:not(.ready)>footer{display:no
  </div>
  <p id="bg"></p>
 </footer>
-
 <script type="module">
 'use strict';
 const API='https://api.github.com/repos/tayloryep777-web/mozi/contents/mozi.txt';
@@ -126,7 +126,6 @@ const chars=s=>Array.from(s);
 const first=s=>chars(s).find(c=>!(/[\p{White_Space}\p{Cc}\p{Cf}]/u.test(c)))||'';
 const status=s=>{$('status').textContent=s;};
 const nextFrame=()=>new Promise(resolve=>{requestAnimationFrame(resolve);});
-
 let sha='';
 let loaded=false;
 let dirty=false;
@@ -144,8 +143,6 @@ let renderPending=false;
 let highlightedIndex=-1;
 let searchMatches=[];
 let searchColumns=[];
-
-/* 動態行高索引 */
 class FenwickTree{
  constructor(size,initialHeight){
   this.size=size;
@@ -185,26 +182,22 @@ class FenwickTree{
   return Math.min(index,this.size-1);
  }
 }
-
 function estimatedRowHeight(){
  const probe=document.createElement('span');
- probe.style.cssText='position:absolute;visibility:hidden;font:24pt "Jigmo";height:2ic';
+ probe.style.cssText='position:absolute;visibility:hidden;font:var(--font-size) "Jigmo";height:2ic';
  document.body.appendChild(probe);
  const h=probe.getBoundingClientRect().height;
  probe.remove();
  return h||64;
 }
-
 let heightTree=new FenwickTree(TOTAL,64);
 let rowObserver=null;
 let measuring=false;
 let measurementPending=false;
 let measurementChanges=new Map();
-
 const apple=/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 const sealFamily=apple?'Shuo Wen SBIX':'Shuo Wen CBDT';
 document.documentElement.style.setProperty('--shuowen',JSON.stringify(sealFamily));
-
 function progress(p,stage,detail=''){
  $('loading-bar').value=Math.max(0,Math.min(100,p));
  $('loading-stage').textContent=stage;
@@ -235,13 +228,11 @@ function finishLoading(){
  });
 }
 function changed(){dirty=true;status('尚未儲存');}
-
 try{tokenInput.value=localStorage.getItem('mozi-github-token')||'';}catch(e){console.error(e);}
 tokenInput.addEventListener('input',()=>{
  try{localStorage.setItem('mozi-github-token',tokenInput.value);}
  catch(e){console.error(e);status('瀏覽器無法儲存 Token');}
 });
-
 const decode=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g,'')),c=>c.charCodeAt(0)));
 const encode=s=>{
  const bytes=new TextEncoder().encode(s);
@@ -249,8 +240,6 @@ const encode=s=>{
  for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
  return btoa(binary);
 };
-
-/* 複製與貼上 */
 async function copy(s){
  if(!s)return;
  clipboard=s;
@@ -294,8 +283,6 @@ function control(id){
 }
 const getSearch=control('cf');
 const getReplace=control('cp');
-
-/* 資料修改 */
 function getEditValue(kind,index,column){
  if(kind==='main')return mainData[index]?.edit[column]??'';
  if(kind==='extra')return extraData[index]?.[column]??'';
@@ -316,8 +303,6 @@ function setEditValue(kind,index,column,s){
  else renderExtra();
 }
 function updateFirst(tr,edit){charButtons(tr.cells[0],edit.join(''));}
-
-/* 四個獨立共用操作 */
 function buttonInfo(b){
  const kind=b.dataset.kind;
  if(kind==='control')return {kind,value:b.dataset.value||''};
@@ -350,34 +335,20 @@ async function pasteSystem(b){
  const p=await paste();
  if(p)writeButton(b,p);
 }
-
-/* 共用事件：單擊與長按 */
 const LONG_PRESS=500;
 const MOVE_LIMIT=10;
 let activePress=null;
-
 function cancelPress(){
  if(!activePress)return;
  clearTimeout(activePress.timer);
  activePress=null;
 }
-
 document.addEventListener('pointerdown',e=>{
  const b=e.target.closest('button[data-edit]');
  if(!b||e.button!==0||!e.isPrimary)return;
-
  cancelPress();
-
- const p={
-  button:b,
-  pointerId:e.pointerId,
-  x:e.clientX,
-  y:e.clientY,
-  longPressed:false,
-  timer:null
- };
+ const p={button:b,pointerId:e.pointerId,x:e.clientX,y:e.clientY,longPressed:false,timer:null};
  activePress=p;
-
  p.timer=setTimeout(()=>{
   if(activePress!==p)return;
   p.longPressed=true;
@@ -385,49 +356,33 @@ document.addEventListener('pointerdown',e=>{
   else pasteInternal(b);
  },LONG_PRESS);
 });
-
 document.addEventListener('pointermove',e=>{
  const p=activePress;
  if(!p||p.pointerId!==e.pointerId)return;
- if(Math.hypot(e.clientX-p.x,e.clientY-p.y)>MOVE_LIMIT){
-  cancelPress();
- }
+ if(Math.hypot(e.clientX-p.x,e.clientY-p.y)>MOVE_LIMIT)cancelPress();
 });
-
 document.addEventListener('pointerup',e=>{
  const p=activePress;
  if(!p||p.pointerId!==e.pointerId)return;
  clearTimeout(p.timer);
  activePress=null;
  if(p.longPressed)return;
-
  if(buttonInfo(p.button).value)copyValue(p.button);
  else pasteSystem(p.button);
 });
-
 document.addEventListener('pointercancel',e=>{
  if(activePress?.pointerId===e.pointerId)cancelPress();
 });
-
 window.addEventListener('blur',cancelPress);
-
-/* 一般字元按鈕 */
 document.addEventListener('click',e=>{
  const b=e.target.closest('button');
  if(!b)return;
- if(b.dataset.edit!==undefined){
-  e.preventDefault();
-  return;
- }
+ if(b.dataset.edit!==undefined){e.preventDefault();return;}
  if(b.dataset.copy!==undefined)copy(b.dataset.copy);
 });
-
-/* 禁止可編輯按鈕的原生右鍵選單 */
 document.addEventListener('contextmenu',e=>{
  if(e.target.closest('button[data-edit]'))e.preventDefault();
 });
-
-/* 主表 */
 function createMainRow(index){
  const data=mainData[index];
  const tr=document.createElement('tr');
@@ -443,8 +398,6 @@ function createMainRow(index){
  if(index===highlightedIndex)tr.style.background='#fff2b0';
  return tr;
 }
-
-/* 行高測量 */
 function initRowObserver(){
  if(rowObserver)rowObserver.disconnect();
  rowObserver=new ResizeObserver(entries=>{
@@ -489,8 +442,6 @@ function applyMeasurements(){
  if(Math.abs(viewport.scrollTop-newTop)>0.5)viewport.scrollTop=newTop;
  renderVisible(true);
 }
-
-/* 虛擬捲動 */
 function createSpacer(height){
  const tr=document.createElement('tr');
  tr.className='spacer';
@@ -508,10 +459,7 @@ function renderVisible(force=false){
  const lastVisible=heightTree.findIndex(scrollTop+viewportHeight);
  const start=Math.max(0,firstVisible-OVERSCAN);
  const end=Math.min(mainData.length,Math.max(lastVisible+OVERSCAN+1,start+1),start+MAX_RENDER_ROWS);
- if(!force&&start===renderedStart&&end===renderedEnd){
-  $('position').textContent=`${Math.min(firstVisible+1,TOTAL)} / ${TOTAL}`;
-  return;
- }
+ if(!force&&start===renderedStart&&end===renderedEnd)return;
  const fragment=document.createDocumentFragment();
  const topHeight=heightTree.prefix(start);
  const bottomHeight=heightTree.total()-heightTree.prefix(end);
@@ -522,7 +470,6 @@ function renderVisible(force=false){
  mainBody.replaceChildren(fragment);
  renderedStart=start;
  renderedEnd=end;
- $('position').textContent=`${Math.min(firstVisible+1,TOTAL)} / ${TOTAL}`;
  observeRows();
 }
 function scheduleRender(){
@@ -558,8 +505,6 @@ function jumpToRow(index){
  renderVisible(true);
  status(`已跳至第 ${index+1} 行`);
 }
-
-/* 附加資料 */
 function createExtraRow(index){
  const data=extraData[index];
  const tr=document.createElement('tr');
@@ -611,8 +556,6 @@ function moveExtraRow(index,direction){
  renderExtra();
  changed();
 }
-
-/* 差異字元 */
 function updateBg(){
  const a=new Set(),b=new Set();
  for(const row of mainData){
@@ -625,8 +568,6 @@ function updateBg(){
  }
  charButtons(bg,[...b].filter(c=>!a.has(c)).join(''));
 }
-
-/* 搜尋 */
 function rowValues(data){return [data.edit.join(''),...data.edit,...data.seal];}
 function searchColumn(columns){
  searchBody.replaceChildren();
@@ -658,7 +599,7 @@ function renderSearchResults(offset){
   td.colSpan=7;
   const b=document.createElement('button');
   b.type='button';
-  b.textContent=`顯示更多（${end} / ${searchMatches.length}）`;
+  b.textContent=`更多（${end} / ${searchMatches.length}）`;
   b.addEventListener('click',()=>{tr.remove();renderSearchResults(end);});
   td.appendChild(b);
   fragment.appendChild(tr);
@@ -673,8 +614,6 @@ cfa.addEventListener('click',e=>{
 $('cfb1').addEventListener('click',()=>searchColumn([2]));
 $('cfb2').addEventListener('click',()=>searchColumn([3,4]));
 $('cfb3').addEventListener('click',()=>searchColumn([6]));
-
-/* 取代 */
 $('cpb').addEventListener('click',()=>{
  const q=getSearch();
  if(!q)return;
@@ -711,8 +650,6 @@ $('cpb').addEventListener('click',()=>{
   changed();
  }
 });
-
-/* GitHub */
 async function github(options={}){
  const r=await fetch(API+'?ref='+encodeURIComponent(BRANCH),{
   cache:'no-store',
@@ -722,8 +659,6 @@ async function github(options={}){
  if(!r.ok)throw Error('GitHub HTTP '+r.status+'：'+(await r.text()).slice(0,400));
  return r.json();
 }
-
-/* 字型載入 */
 async function loadFonts(){
  const families=['華瑞小篆體','TW-MOE-Std-Kai',sealFamily,'Jigmo','Jigmo2','Jigmo3'];
  for(let i=0;i<families.length;i++){
@@ -736,8 +671,6 @@ async function loadFonts(){
  }
  progress(35,'字型檔案已載入');
 }
-
-/* 資料解析 */
 async function parseData(text,sw){
  originalBOM=text.startsWith('\uFEFF')?'\uFEFF':'';
  if(originalBOM)text=text.slice(1);
@@ -793,8 +726,6 @@ async function parseData(text,sw){
  status('已載入 mozi.txt');
  progress(98,'資料初始化完成',`${mainData.length} 行主表、${extraData.length} 行附加資料`);
 }
-
-/* 載入 */
 async function loadData(){
  if(loading||saving)return;
  if(dirty){
@@ -830,8 +761,6 @@ async function loadData(){
 }
 $('reload').addEventListener('click',loadData);
 $('retry').addEventListener('click',loadData);
-
-/* 儲存 */
 $('cs').addEventListener('click',async()=>{
  if(saving||loading)return;
  if(!loaded){
@@ -855,16 +784,8 @@ $('cs').addEventListener('click',async()=>{
  try{
   const result=await github({
    method:'PUT',
-   headers:{
-    Authorization:'Bearer '+token,
-    'Content-Type':'application/json'
-   },
-   body:JSON.stringify({
-    message:'更新 mozi.txt',
-    content:encode(content),
-    sha,
-    branch:BRANCH
-   })
+   headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+   body:JSON.stringify({message:'更新 mozi.txt',content:encode(content),sha,branch:BRANCH})
   });
   sha=result.content.sha;
   dirty=false;
@@ -877,7 +798,6 @@ $('cs').addEventListener('click',async()=>{
   $('cs').disabled=false;
  }
 });
-
 loadData();
 </script>
 </body>
