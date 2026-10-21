@@ -299,9 +299,11 @@ async function pasteSystem(b){
  if(p)writeButton(b,p);
 }
 
-/* 共用事件：方法一 contextmenu */
+
+/* 共用事件：左右鍵操作反轉 */
 let suppressedClick=null;
 let suppressedUntil=0;
+
 document.addEventListener('click',e=>{
  const b=e.target.closest('button');
  if(!b)return;
@@ -313,18 +315,20 @@ document.addEventListener('click',e=>{
  }
  if(b.dataset.copy!==undefined){copy(b.dataset.copy);return;}
  if(b.dataset.edit===undefined)return;
- if(buttonInfo(b).value)copyValue(b);
- else pasteInternal(b);
+ if(buttonInfo(b).value)clearValue(b);
+ else pasteSystem(b);
 });
+
 document.addEventListener('contextmenu',e=>{
  const b=e.target.closest('button[data-edit]');
  if(!b)return;
  e.preventDefault();
  suppressedClick=b;
  suppressedUntil=performance.now()+1500;
- if(buttonInfo(b).value)clearValue(b);
- else pasteSystem(b);
+ if(buttonInfo(b).value)copyValue(b);
+ else pasteInternal(b);
 });
+
 
 /* 主表 */
 function createMainRow(index){
