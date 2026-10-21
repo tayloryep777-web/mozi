@@ -545,7 +545,6 @@ async function render(text,sw){
  updateBg();
 
  progress(97,'正在完成資料初始化');
- await nextFrame();
 
  loaded=true;
  dirty=false;
@@ -621,10 +620,6 @@ async function loadData(){
   await render(decode(file.content),sw);
   sha=file.sha;
 
-  progress(98,'正在確認完整表格');
-  await nextFrame();
-
-  progress(99,'正在顯示完整介面');
   finishLoading();
  }catch(e){
   failLoading(e);
