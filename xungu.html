@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>訓詁工具書搜尋</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100dvh;display:grid;place-items:center;background:#fafafa;color:#222;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif}
+main{width:min(90vw,620px);text-align:center;transform:translateY(-5vh)}
+h1{font-size:clamp(25px,5vw,38px);font-weight:500;letter-spacing:.12em;margin:0 0 34px}
+form{display:flex;align-items:center;border:1px solid #ddd;border-radius:100px;background:white;padding:7px;box-shadow:0 3px 16px #0000000a}
+input{flex:1;min-width:0;border:0;outline:0;background:transparent;padding:13px 18px;font-size:19px}
+button{border:0;border-radius:100px;padding:13px 24px;background:#263d55;color:white;font-size:16px;cursor:pointer;white-space:nowrap}
+button:hover{background:#405e7b}
+small{display:block;margin-top:20px;color:#888;font-size:13px}
+</style>
+</head>
+<body>
+<main>
+<h1>訓詁工具書查詢</h1>
+<form action="https://www.kaom.net/book_xungu8.php" method="post" accept-charset="UTF-8">
+<input type="search" name="word" placeholder="輸入要查詢的漢字或詞語" aria-label="查詢字詞" required autofocus>
+<input type="hidden" name="bianti" value="yes">
+<input type="hidden" name="page" value="no">
+<button type="submit">搜尋</button>
+</form>
+<small>搜尋後將跳轉至古音小鏡的查詢結果頁面</small>
+</main>
+</body>
+</html>
