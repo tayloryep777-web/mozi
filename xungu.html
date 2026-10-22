@@ -1,42 +1,74 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>訓詁工具書查詢</title>
-<style>
-*{box-sizing:border-box}body{margin:0;min-height:100dvh;display:grid;place-items:center;background:#fafafa;color:#222;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC",system-ui,sans-serif}main{width:min(92vw,620px);text-align:center;transform:translateY(-4vh)}h1{font-size:clamp(25px,5vw,38px);font-weight:500;letter-spacing:.1em;margin:0 0 30px}.search{display:flex;align-items:center;border:1px solid #ddd;border-radius:100px;background:#fff;padding:7px;box-shadow:0 3px 16px #0000000a}input[type=search]{flex:1;min-width:0;border:0;outline:0;background:transparent;padding:13px 18px;font-size:19px;-webkit-appearance:none;appearance:none}button{border:0;border-radius:100px;padding:13px 24px;background:#263d55;color:white;font-size:16px;cursor:pointer;white-space:nowrap}button:hover{background:#405e7b}small{display:block;margin-top:20px;color:#777;font-size:13px;line-height:1.7}details{margin:22px auto 0;text-align:left;max-width:460px;font-size:14px;color:#555}summary{cursor:pointer;text-align:center}label{display:block;margin:12px 0}select{font:inherit;padding:7px;max-width:100%}.note{font-size:12px;color:#777;line-height:1.6}a{color:#263d55}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>訓詁工具書查詢</title>
+  <style>
+    html, body { height: 100%; }
+    body { margin: 0; display: flex; justify-content: center; align-items: center; font-family: system-ui, sans-serif; }
+    main { width: min(90vw, 520px); text-align: center; }
+    h1 { font-size: 26px; font-weight: 600; margin: 0 0 28px; }
+    .search { display: flex; gap: 10px; }
+    input { flex: 1; min-width: 0; padding: 12px 14px; border: 1px solid #aaa; border-radius: 8px; font-size: 18px; }
+    button { padding: 12px 20px; border: 0; border-radius: 8px; background: #222; color: white; font-size: 17px; cursor: pointer; }
+  </style>
 </head>
 <body>
-<main>
-<h1>訓詁工具書查詢</h1>
-<form id="searchForm" class="search" action="http://www.kaom.net/book_xungu8.php" method="post" target="_blank" accept-charset="UTF-8">
-<input id="word" type="search" name="word" placeholder="輸入要查詢的漢字或詞語" aria-label="查詢字詞" enterkeyhint="search" required autofocus>
-<input type="hidden" name="bianti" value="yes">
-<input type="hidden" name="page" value="no">
-<button type="submit">搜尋</button>
-</form>
-<small>搜尋結果將在新標籤頁開啟</small>
-<details><summary>搜尋相容性設定</summary>
-<label>傳送方式 <select id="method"><option value="post">POST（原網站方式）</option><option value="get">GET（實驗性）</option></select></label>
-<label>連線協定 <select id="protocol"><option value="http">HTTP（原網站方式）</option><option value="https">HTTPS（實驗性）</option></select></label>
-<p class="note">iOS Safari 如果搜尋結果仍為空、可以分別測試 GET 或 HTTPS。原網站不一定支援這些組合。純前端無法修改原網站伺服器回應、也無法繞過跨來源限制。</p>
-<p class="note"><a href="http://www.kaom.net/book_xungu.php" target="_blank" rel="noopener noreferrer">在新標籤頁開啟原網站</a></p>
-</details>
-</main>
-<script>
-'use strict';
-const form=document.getElementById('searchForm');
-const method=document.getElementById('method');
-const protocol=document.getElementById('protocol');
-form.addEventListener('submit',function(event){
-  if(!document.getElementById('word').value.trim()){event.preventDefault();return;}
-  form.method=method.value;
-  form.action=protocol.value+'://www.kaom.net/book_xungu8.php';
-  // 保留瀏覽器原生表單提交、由使用者手勢直接打開新標籤頁。
-  // 不使用 fetch：跨來源限制會阻止讀取原網站的搜尋結果。
-});
-</script>
+  <main>
+    <h1>訓詁工具書查詢</h1>
+    <div class="search">
+      <input id="word" type="search" placeholder="輸入漢字或詞語" aria-label="搜尋文字">
+      <button id="searchButton" type="button">搜尋</button>
+    </div>
+  </main>
+  <script>
+    /* 完全沿用提供的網站之 kaom.net POST 查詢函數 */
+    function searchKaom(word) {
+      const form = document.createElement('form');
+
+      form.method = 'post';
+      form.action = 'https://www.kaom.net/book_xungu8.php';
+      form.target = '_blank';
+
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'word';
+      input.value = word;
+
+      const bianti = document.createElement('input');
+      bianti.type = 'hidden';
+      bianti.name = 'bianti';
+      bianti.value = 'yes';
+
+      const page = document.createElement('input');
+      page.type = 'hidden';
+      page.name = 'page';
+      page.value = 'no';
+
+      form.appendChild(input);
+      form.appendChild(bianti);
+      form.appendChild(page);
+
+      document.body.appendChild(form);
+
+      form.submit();
+
+      form.remove();
+    }
+
+    const wordInput = document.getElementById('word');
+    function submitSearch() {
+      const word = wordInput.value.trim();
+      if (word) searchKaom(word);
+    }
+    document.getElementById('searchButton').addEventListener('click', submitSearch);
+    wordInput.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        submitSearch();
+      }
+    });
+  </script>
 </body>
 </html>
