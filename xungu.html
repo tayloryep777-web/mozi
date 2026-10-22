@@ -3,72 +3,243 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>訓詁工具書查詢</title>
+
   <style>
-    html, body { height: 100%; }
-    body { margin: 0; display: flex; justify-content: center; align-items: center; font-family: system-ui, sans-serif; }
-    main { width: min(90vw, 520px); text-align: center; }
-    h1 { font-size: 26px; font-weight: 600; margin: 0 0 28px; }
-    .search { display: flex; gap: 10px; }
-    input { flex: 1; min-width: 0; padding: 12px 14px; border: 1px solid #aaa; border-radius: 8px; font-size: 18px; }
-    button { padding: 12px 20px; border: 0; border-radius: 8px; background: #222; color: white; font-size: 17px; cursor: pointer; }
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: system-ui, sans-serif;
+      background: #ffffff;
+      color: #222222;
+    }
+
+    main {
+      width: 100%;
+      max-width: 560px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 30px;
+      font-weight: 500;
+      margin: 0 0 32px;
+    }
+
+    #searchForm {
+      display: flex;
+      width: 100%;
+      gap: 10px;
+    }
+
+    #searchInput {
+      flex: 1;
+      min-width: 0;
+      height: 48px;
+      padding: 0 14px;
+      border: 1px solid #cccccc;
+      border-radius: 8px;
+      font-size: 18px;
+      outline: none;
+    }
+
+    #searchInput:focus {
+      border-color: #666666;
+    }
+
+    #searchButton {
+      height: 48px;
+      padding: 0 22px;
+      border: none;
+      border-radius: 8px;
+      background: #222222;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #searchButton:hover {
+      background: #444444;
+    }
+
+    #searchButton:active {
+      background: #666666;
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 26px;
+      }
+
+      #searchInput {
+        font-size: 16px;
+      }
+
+      #searchButton {
+        padding: 0 16px;
+      }
+    }
   </style>
 </head>
+
 <body>
+
   <main>
     <h1>訓詁工具書查詢</h1>
-    <div class="search">
-      <input id="word" type="search" placeholder="輸入漢字或詞語" aria-label="搜尋文字">
-      <button id="searchButton" type="button">搜尋</button>
-    </div>
+
+    <form id="searchForm">
+      <input
+        id="searchInput"
+        type="search"
+        placeholder="輸入漢字或詞語"
+        autocomplete="off"
+        required
+      >
+
+      <button id="searchButton" type="submit">
+        搜尋
+      </button>
+    </form>
   </main>
+
   <script>
-    /* 完全沿用提供的網站之 kaom.net POST 查詢函數 */
+    /*
+      kaom.net 訓詁查詢
+    */
     function searchKaom(word) {
       const form = document.createElement('form');
 
+      /*
+        POST 提交
+      */
       form.method = 'post';
-      form.action = 'http://www.kaom.net/book_xungu8.php';
+
+      /*
+        原網站搜尋地址
+      */
+      form.action =
+        'http://www.kaom.net/book_xungu8.php';
+
+      /*
+        新標籤頁開啟
+      */
       form.target = '_blank';
 
+      /*
+        指定 UTF-8 字元編碼
+      */
+      form.acceptCharset = 'UTF-8';
+
+      /*
+        指定表單資料編碼格式
+      */
+      form.enctype =
+        'application/x-www-form-urlencoded';
+
+
+      /*
+        搜尋文字
+      */
       const input = document.createElement('input');
+
       input.type = 'hidden';
       input.name = 'word';
       input.value = word;
 
+
+      /*
+        查詢簡繁及變體字
+      */
       const bianti = document.createElement('input');
+
       bianti.type = 'hidden';
       bianti.name = 'bianti';
       bianti.value = 'yes';
 
+
+      /*
+        不顯示頁碼
+      */
       const page = document.createElement('input');
+
       page.type = 'hidden';
       page.name = 'page';
       page.value = 'no';
 
+
+      /*
+        加入表單欄位
+      */
       form.appendChild(input);
       form.appendChild(bianti);
       form.appendChild(page);
 
+
+      /*
+        將表單加入網頁
+      */
       document.body.appendChild(form);
 
+
+      /*
+        提交搜尋
+      */
       form.submit();
 
+
+      /*
+        移除臨時表單
+      */
       form.remove();
     }
 
-    const wordInput = document.getElementById('word');
-    function submitSearch() {
-      const word = wordInput.value.trim();
-      if (word) searchKaom(word);
-    }
-    document.getElementById('searchButton').addEventListener('click', submitSearch);
-    wordInput.addEventListener('keydown', function(event) {
-      if (event.key === 'Enter') {
+
+    /*
+      搜尋框提交事件
+    */
+    document
+      .getElementById('searchForm')
+      .addEventListener('submit', function(event) {
+
+        /*
+          阻止原本的表單提交
+        */
         event.preventDefault();
-        submitSearch();
-      }
-    });
+
+
+        /*
+          取得搜尋文字
+        */
+        const word = document
+          .getElementById('searchInput')
+          .value
+          .trim();
+
+
+        /*
+          不允許空白搜尋
+        */
+        if (!word) {
+          return;
+        }
+
+
+        /*
+          執行訓詁查詢
+        */
+        searchKaom(word);
+      });
   </script>
+
 </body>
 </html>
