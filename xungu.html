@@ -1,0 +1,123 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>訓詁工具書查詢</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: system-ui, sans-serif;
+      background: #ffffff;
+      color: #222222;
+    }
+
+    main {
+      width: 100%;
+      max-width: 560px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 30px;
+      font-weight: 500;
+      margin: 0 0 32px;
+    }
+
+    #searchForm {
+      display: flex;
+      width: 100%;
+      gap: 10px;
+    }
+
+    #searchInput {
+      flex: 1;
+      min-width: 0;
+      height: 48px;
+      padding: 0 14px;
+      border: 1px solid #cccccc;
+      border-radius: 8px;
+      font-size: 18px;
+      outline: none;
+    }
+
+    #searchInput:focus {
+      border-color: #666666;
+    }
+
+    #searchButton {
+      height: 48px;
+      padding: 0 22px;
+      border: none;
+      border-radius: 8px;
+      background: #222222;
+      color: #ffffff;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #searchButton:hover {
+      background: #444444;
+    }
+
+    #searchButton:active {
+      background: #666666;
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 26px;
+      }
+
+      #searchInput {
+        font-size: 16px;
+      }
+
+      #searchButton {
+        padding: 0 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <main>
+    <h1>訓詁工具書查詢</h1>
+
+    <form
+      id="searchForm"
+      action="https://xungu-proxy.tayloryep777.workers.dev/search"
+      method="get"
+      target="_blank"
+    >
+      <input
+        id="searchInput"
+        type="search"
+        name="word"
+        placeholder="輸入漢字或詞語"
+        autocomplete="off"
+        required
+      >
+
+      <button id="searchButton" type="submit">
+        搜尋
+      </button>
+    </form>
+  </main>
+
+</body>
+</html>
