@@ -5,13 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>說文解字</title>
 <style>
-@font-face{font-family:"華瑞小篆體";src:url("華瑞小篆體.ttf")}
-@font-face{font-family:"TW-MOE-Std-Kai";src:url("TW-MOE-Std-Kai.ttf")}
-@font-face{font-family:"Shuo Wen SBIX";src:url("Shuo Wen SBIX.ttf")}
-@font-face{font-family:"Shuo Wen CBDT";src:url("Shuo Wen CBDT.ttf")}
-@font-face{font-family:"Jigmo";src:url("Jigmo.ttf")}
-@font-face{font-family:"Jigmo2";src:url("Jigmo2.ttf")}
-@font-face{font-family:"Jigmo3";src:url("Jigmo3.ttf")}
 :root{--font-size:20pt;--shuowen:"Shuo Wen CBDT";--font:"Jigmo","Jigmo2","Jigmo3";--row-height:2ic;--w1:3ic;--w2:1ic;--w3:1ic;--w4:1ic;--w5:2ic;--w6:3ic}
 *{box-sizing:border-box}
 html{width:100%;height:100%;overflow:hidden}
@@ -656,16 +649,80 @@ async function github(options={}){
  if(!r.ok)throw Error('GitHub HTTP '+r.status+'：'+(await r.text()).slice(0,400));
  return r.json();
 }
+function openFontCache(){
+ return new Promise((resolve,reject)=>{
+  let blocked=false;
+  const request=indexedDB.open('mozi-font-cache',1);
+  request.onupgradeneeded=()=>{
+   const db=request.result;
+   if(!db.objectStoreNames.contains('fonts'))db.createObjectStore('fonts');
+  };
+  request.onsuccess=()=>{
+   const db=request.result;
+   if(blocked){db.close();return;}
+   db.onversionchange=()=>db.close();
+   resolve(db);
+  };
+  request.onerror=()=>reject(request.error);
+  request.onblocked=()=>{
+   blocked=true;
+   reject(Error('字型快取資料庫無法開啟'));
+  };
+ });
+}
+function fontCacheRequest(db,mode,key,data){
+ return new Promise((resolve,reject)=>{
+  const transaction=db.transaction('fonts',mode);
+  const store=transaction.objectStore('fonts');
+  const request=mode==='readonly'?store.get(key):store.put(data,key);
+  transaction.oncomplete=()=>resolve(request.result);
+  transaction.onabort=()=>reject(transaction.error||request.error||Error('字型快取操作失敗'));
+  request.onerror=()=>reject(request.error);
+ });
+}
 async function loadFonts(){
  const families=['華瑞小篆體','TW-MOE-Std-Kai',sealFamily,'Jigmo','Jigmo2','Jigmo3'];
- for(let i=0;i<families.length;i++){
-  const family=families[i];
-  progress(15+20*i/families.length,'正在載入字型',`${i+1}/${families.length}：${family}`);
-  const face=[...document.fonts].find(f=>f.family.replace(/^['"]|['"]$/g,'')===family);
-  if(!face)throw Error('找不到字型宣告：'+family);
-  await face.load();
-  if(face.status!=='loaded')throw Error('字型載入失敗：'+family);
- }
+ let db=null;
+ try{db=await openFontCache();}
+ catch(e){console.warn('無法開啟字型快取、改用網路載入',e);}
+ try{
+  for(let i=0;i<families.length;i++){
+   const family=families[i];
+   progress(15+20*i/families.length,'正在載入字型',`${i+1}/${families.length}：${family}`);
+   const existing=[...document.fonts].find(f=>f.family.replace(/^['"]|['"]$/g,'')===family&&f.status==='loaded');
+   if(existing)continue;
+   // 以完整網址為索引、只在沒有可用快取時下載。需要更新字型時可修改版本。
+   const key='v1:'+new URL(family+'.ttf',document.baseURI).href;
+   let data=null;
+   let face=null;
+   if(db){
+    try{data=await fontCacheRequest(db,'readonly',key);}
+    catch(e){console.warn('無法讀取字型快取：'+family,e);}
+   }
+   if(data instanceof ArrayBuffer&&data.byteLength){
+    try{
+     face=new FontFace(family,data);
+     await face.load();
+    }catch(e){
+     console.warn('字型快取無法使用、重新下載：'+family,e);
+     face=null;
+    }
+   }
+   if(!face){
+    const response=await fetch(new URL(family+'.ttf',document.baseURI));
+    if(!response.ok)throw Error(family+' HTTP '+response.status);
+    data=await response.arrayBuffer();
+    face=new FontFace(family,data);
+    await face.load();
+    if(db){
+     try{await fontCacheRequest(db,'readwrite',key,data);}
+     catch(e){console.warn('無法儲存字型快取：'+family,e);}
+    }
+   }
+   if(face.status!=='loaded')throw Error('字型載入失敗：'+family);
+   document.fonts.add(face);
+  }
+ }finally{db?.close();}
  progress(35,'字型檔案已載入');
 }
 async function parseData(text,sw){
