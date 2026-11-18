@@ -590,7 +590,7 @@ function updateBg(){
   if(second&&second===third&&!fourth){
    for(const c of rowChars)zgnChars.add(c);
   }
-  if(second&&!fourth&&second!==third){
+  if(second&&third&&!fourth&&second!==third){
    for(const c of rowChars)differentChars.add(c);
   }
  }
