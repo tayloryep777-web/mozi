@@ -13,10 +13,11 @@ button,input,progress{font:inherit}
 button{appearance:none;-webkit-appearance:none;border:0;background:transparent;color:inherit}
 button:hover,button:active,button:focus{background:transparent}
 button:focus{outline:none}
-header{flex-shrink:0;display:flex;flex-wrap:wrap;align-items:center;min-width:0}
+header{flex-shrink:0;display:flex;flex-wrap:nowrap;align-items:center;min-width:0;white-space:nowrap;overflow-x:auto;overflow-y:hidden}
+header>button,header>input{flex-shrink:0}
 main{flex:1;min-width:0;min-height:0;overflow-x:auto;overflow-y:auto;position:relative;overscroll-behavior:contain;overflow-anchor:none}
 footer{height:25%;flex-shrink:0;display:flex;min-width:0;min-height:0;overflow:hidden}
-#results{flex:0 0 100%;max-height:25vh;min-width:0;overflow-x:hidden;overflow-y:auto}
+#results{flex:0 0 auto;max-height:25vh;min-width:0;overflow-x:hidden;overflow-y:auto}
 #mozi2-scroll{flex:0 0 auto;width:6ic;min-width:6ic;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;overflow-anchor:none}
 #mozi,#cfa,#mozi2{table-layout:fixed;border-collapse:collapse;border-spacing:0;font-size:inherit}
 #mozi,#cfa{width:100%}
@@ -43,14 +44,15 @@ footer{height:25%;flex-shrink:0;display:flex;min-width:0;min-height:0;overflow:h
 #mozi2 tr[data-add] td{text-align:center}
 #mozi2 tr[data-add] button{display:block;width:100%;font:inherit}
 .char-list{min-width:0;min-height:0;margin:0;overflow-x:hidden;overflow-y:auto;overflow-wrap:anywhere;word-break:break-word;overscroll-behavior:contain;font:inherit}
-#header-chars{display:flex;flex:1;min-width:2ic;max-height:2ic;align-self:stretch;margin-left:auto}
+#header-chars{display:flex;flex:0 1 auto;min-width:2ic;max-width:50%;align-items:center;margin-left:auto}
+#header-chars .char-list{white-space:nowrap;overflow-x:auto;overflow-y:hidden;overflow-wrap:normal;word-break:normal}
 #cp{flex:0 1 auto;max-width:50%}
-#bg{flex:1}
+#bg{flex:0 1 auto}
 #cp:not(:empty)+#bg{margin-inline-start:1ic}
 #shw,#zgn{flex:1 1 0}
 #token{width:1ic;max-width:100%;font:inherit;border:0;outline:none}
-#status{align-self:center;overflow-wrap:anywhere;font:inherit}
-body:not(.ready)>header,body:not(.ready)>main,body:not(.ready)>footer{display:none}
+#status{align-self:center;flex:0 1 auto;min-width:0;max-width:20%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:inherit}
+body:not(.ready)>header,body:not(.ready)>#results,body:not(.ready)>main,body:not(.ready)>footer{display:none}
 #loading{position:fixed;inset:0;z-index:9999;background:white;color:#222;display:flex;align-items:center;justify-content:center;font:var(--font-size) var(--font)}
 #loading[hidden]{display:none}
 #loading-panel{width:85%;max-width:18ic}
@@ -85,10 +87,10 @@ body:not(.ready)>header,body:not(.ready)>main,body:not(.ready)>footer{display:no
  <button id="cs">存</button>
  <span id="status" role="status"></span>
  <div id="header-chars"><div id="cp" class="char-list"></div><div id="bg" class="char-list"></div></div>
- <div id="results">
-  <table id="cfa"><colgroup><col><col><col><col><col><col><col></colgroup><tbody></tbody></table>
- </div>
 </header>
+<div id="results">
+ <table id="cfa"><colgroup><col><col><col><col><col><col><col></colgroup><tbody></tbody></table>
+</div>
 <main id="viewport">
  <table id="mozi"><colgroup><col><col><col><col><col><col><col></colgroup><tbody></tbody></table>
 </main>
@@ -598,7 +600,7 @@ function rowValues(data){return [data.edit.join(''),...data.edit,...data.seal];}
 function searchValue(data,column){
  return rowValues(data)[column-1]??'';
 }
-function searchColumn(columns){
+function searchColumn(columns,includeExtra=false){
  searchBody.replaceChildren();
  summarySearch='';
  const q=getSearch();
@@ -607,6 +609,11 @@ function searchColumn(columns){
  searchColumns=columns;
  for(let i=0;i<mainData.length;i++){
   if(columns.some(n=>searchValue(mainData[i],n).includes(q)))searchMatches.push({kind:'main',index:i});
+ }
+ if(includeExtra){
+  for(let i=0;i<extraData.length;i++){
+   if(columns.some(n=>(extraData[i][n-2]??'').includes(q)))searchMatches.push({kind:'extra',index:i});
+  }
  }
  renderSearchResults(0);
  status(`找到 ${searchMatches.length} 行`);
@@ -658,8 +665,8 @@ shw.addEventListener('click',e=>{
   status(`找到 ${matches.length} 行`);
  }
 });
-$('cfb1').addEventListener('click',()=>searchColumn([2]));
-$('cfb2').addEventListener('click',()=>searchColumn([3,4]));
+$('cfb1').addEventListener('click',()=>searchColumn([2],true));
+$('cfb2').addEventListener('click',()=>searchColumn([3,4],true));
 $('cfb3').addEventListener('click',()=>searchColumn([6]));
 $('cfb4').addEventListener('click',()=>searchColumn([7]));
 $('cpb').addEventListener('click',()=>{
