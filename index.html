@@ -45,9 +45,8 @@ footer{height:25%;flex-shrink:0;display:flex;min-width:0;min-height:0;overflow:h
 .char-list{min-width:0;min-height:0;margin:0;overflow-x:hidden;overflow-y:auto;overflow-wrap:anywhere;word-break:break-word;overscroll-behavior:contain;font:inherit}
 #header-chars{display:flex;flex:1;min-width:2ic;max-height:2ic;align-self:stretch;margin-left:auto}
 #cp{flex:0 1 auto;max-width:50%}
-#cp:empty+.summary-gap{display:none}
-.summary-gap{flex:none;white-space:pre}
 #bg{flex:1}
+#cp:not(:empty)+#bg{margin-inline-start:1ic}
 #shw,#zgn{flex:1 1 0}
 #token{width:1ic;max-width:100%;font:inherit;border:0;outline:none}
 #status{align-self:center;overflow-wrap:anywhere;font:inherit}
@@ -85,7 +84,7 @@ body:not(.ready)>header,body:not(.ready)>main,body:not(.ready)>footer{display:no
  <input id="token" type="password" placeholder="钥" autocomplete="off">
  <button id="cs">存</button>
  <span id="status" role="status"></span>
- <div id="header-chars"><div id="cp" class="char-list"></div><span class="summary-gap" aria-hidden="true">　</span><div id="bg" class="char-list"></div></div>
+ <div id="header-chars"><div id="cp" class="char-list"></div><div id="bg" class="char-list"></div></div>
  <div id="results">
   <table id="cfa"><colgroup><col><col><col><col><col><col><col></colgroup><tbody></tbody></table>
  </div>
@@ -227,7 +226,7 @@ function finishLoading(){
   renderVisible(true);
   extraScroll.scrollTop=extraScroll.scrollHeight;
   $('loading').hidden=true;
-  progress(100,'全部載入完成');
+  progress(100,'載入完成');
  });
 }
 function changed(){dirty=true;status('尚未儲存');}
@@ -251,7 +250,7 @@ async function copy(s){
 }
 async function paste(){
  try{return first(await navigator.clipboard.readText());}
- catch(e){console.error(e);status('無法讀取系統剪貼簿');return null;}
+ catch(e){console.error(e);status('無法讀取剪貼簿');return null;}
 }
 function charButtons(el,s,separator=''){
  const fragment=document.createDocumentFragment();
@@ -328,12 +327,12 @@ function copyValue(b){
  if(value)copy(value);
 }
 function pasteInternal(b){
- if(!clipboard){status('網頁內部剪貼簿為空');return;}
+ if(!clipboard){status('剪貼簿為空');return;}
  writeButton(b,first(clipboard));
 }
 function clearValue(b){
  writeButton(b,'');
- if(b.dataset.kind==='control')status('已清空');
+ if(b.dataset.kind==='control')status('已空');
 }
 async function pasteSystem(b){
  const p=await paste();
@@ -507,7 +506,7 @@ function jumpToRow(index){
  const height=heightTree.heights[index];
  viewport.scrollTop=Math.max(0,top-(viewport.clientHeight-height)/2);
  renderVisible(true);
- status(`已跳至第 ${index+1} 行`);
+ status(`已跳`);
 }
 function jumpToExtraRow(index){
  if(index<0||index>=extraData.length)return;
@@ -519,7 +518,7 @@ function jumpToExtraRow(index){
   const scrollRect=extraScroll.getBoundingClientRect();
   extraScroll.scrollTop+=rowRect.top-scrollRect.top-(extraScroll.clientHeight-rowRect.height)/2;
  }
- status(`已跳至附表第 ${index+1} 行`);
+ status(`已跳`);
 }
 function jumpToMatch(match){
  if(match.kind==='extra')jumpToExtraRow(match.index);
@@ -586,7 +585,7 @@ function updateBg(){
  mainData.forEach((row,index)=>collect(row.edit,'main',index));
  extraData.forEach((row,index)=>collect(row,'extra',index));
  charButtons(bg,[...b].filter(c=>!a.has(c)).join(''));
- charButtons(cp,[...counts].filter(([,count])=>count>1).map(([c])=>c).join(''),'　');
+ charButtons(cp,[...counts].filter(([,count])=>count>1).map(([c])=>c).join(''));
  charButtons(shw,[...shwMatches.keys()].join(''));
  charButtons(zgn,[...zgnChars].join(''));
  if(summarySearch){
@@ -751,7 +750,6 @@ async function loadFonts(){
    progress(15+20*i/families.length,'正在載入字型',`${i+1}/${families.length}：${family}`);
    const existing=[...document.fonts].find(f=>f.family.replace(/^['"]|['"]$/g,'')===family&&f.status==='loaded');
    if(existing)continue;
-   // 以完整網址為索引、只在沒有可用快取時下載。需要更新字型時可修改版本。
    const key='v1:'+new URL(family+'.ttf',document.baseURI).href;
    let data=null;
    let face=null;
@@ -895,16 +893,16 @@ $('cs').addEventListener('click',async()=>{
  content=originalBOM+content.replace(/\n/g,originalNewline);
  saving=true;
  $('cs').disabled=true;
- status('正在儲存…');
+ status('儲存中');
  try{
   const result=await github({
    method:'PUT',
    headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
-   body:JSON.stringify({message:'更新 mozi.txt',content:encode(content),sha,branch:BRANCH})
+   body:JSON.stringify({message:'更新txt',content:encode(content),sha,branch:BRANCH})
   });
   sha=result.content.sha;
   dirty=false;
-  status('已提交至 GitHub mozi 分支');
+  status('已提交);
  }catch(e){
   console.error(e);
   status('儲存失敗：'+e.message);
