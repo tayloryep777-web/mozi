@@ -17,18 +17,17 @@ header{flex-shrink:0;display:flex;flex-wrap:wrap;align-items:center;min-width:0}
 main{flex:1;min-width:0;min-height:0;overflow-x:auto;overflow-y:auto;position:relative;overscroll-behavior:contain;overflow-anchor:none}
 footer{height:25%;flex-shrink:0;display:flex;min-width:0;min-height:0;overflow:hidden}
 #results{flex:0 0 100%;max-height:25vh;min-width:0;overflow-x:hidden;overflow-y:auto}
-#mozi2-scroll{flex:0 0 auto;width:8ic;min-width:8ic;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain}
+#mozi2-scroll{flex:0 0 auto;width:6ic;min-width:6ic;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;overflow-anchor:none}
 #mozi,#cfa,#mozi2{table-layout:fixed;border-collapse:collapse;border-spacing:0;font-size:inherit}
 #mozi,#cfa{width:100%}
 #cfa{min-height:100%}
-#mozi2{width:8ic}
+#mozi2{width:6ic}
 :is(#mozi,#cfa,#mozi2) col:nth-child(1){width:var(--w1)}
 :is(#mozi,#cfa,#mozi2) col:nth-child(2){width:var(--w2)}
 :is(#mozi,#cfa,#mozi2) col:nth-child(3){width:var(--w3)}
 :is(#mozi,#cfa,#mozi2) col:nth-child(4){width:var(--w4)}
 :is(#mozi,#cfa) col:nth-child(5){width:var(--w5)}
 :is(#mozi,#cfa) col:nth-child(6){width:var(--w6)}
-#mozi2 col:nth-child(5),#mozi2 col:nth-child(6){width:1ic}
 :is(#mozi,#cfa,#mozi2) td{padding:0;white-space:normal;overflow-wrap:anywhere;word-break:break-word;vertical-align:middle;min-width:0}
 :is(#mozi,#cfa,#mozi2) td:nth-child(1){font-family:"華瑞小篆體","Jigmo","Jigmo2","Jigmo3"}
 :is(#mozi,#cfa,#mozi2) td:nth-child(2),:is(#mozi,#cfa,#mozi2) td:nth-child(3),:is(#mozi,#cfa,#mozi2) td:nth-child(4){font-family:"TW-MOE-Std-Kai","Jigmo","Jigmo2","Jigmo3"}
@@ -39,13 +38,17 @@ footer{height:25%;flex-shrink:0;display:flex;min-width:0;min-height:0;overflow:h
 #mozi tr.spacer td{padding:0;height:0;min-height:0;line-height:0;font-size:0;overflow:hidden}
 .char{font:inherit;padding:0;margin:0;background:transparent;cursor:pointer;color:inherit;touch-action:manipulation;user-select:none;-webkit-user-select:none;min-width:1ic;min-height:1ic;white-space:normal;overflow-wrap:anywhere;word-break:break-word;vertical-align:middle}
 :is(#mozi,#mozi2) td:has(>button[data-edit])>button{display:block;width:100%;min-height:1.5ic;text-align:center}
-#cf,#cp{min-width:2ic}
+#cf,#replace-char{min-width:2ic}
 #cfa tr{cursor:pointer}
-#mozi2 td:nth-child(5),#mozi2 td:nth-child(6){text-align:center}
-#mozi2 td:nth-child(5) button,#mozi2 td:nth-child(6) button{font:inherit}
-#mozi2 tr:last-child td{text-align:center}
-#mozi2 tr:last-child button{display:block;width:100%;font:inherit}
-#bg{flex:1;min-width:0;min-height:0;margin:0;overflow-x:hidden;overflow-y:auto;overflow-wrap:anywhere;word-break:break-word;overscroll-behavior:contain;font:inherit}
+#mozi2 tr[data-add] td{text-align:center}
+#mozi2 tr[data-add] button{display:block;width:100%;font:inherit}
+.char-list{min-width:0;min-height:0;margin:0;overflow-x:hidden;overflow-y:auto;overflow-wrap:anywhere;word-break:break-word;overscroll-behavior:contain;font:inherit}
+#header-chars{display:flex;flex:1;min-width:2ic;max-height:2ic;align-self:stretch;margin-left:auto}
+#cp{flex:0 1 auto;max-width:50%}
+#cp:empty+.summary-gap{display:none}
+.summary-gap{flex:none;white-space:pre}
+#bg{flex:1}
+#shw,#zgn{flex:1 1 0}
 #token{width:1ic;max-width:100%;font:inherit;border:0;outline:none}
 #status{align-self:center;overflow-wrap:anywhere;font:inherit}
 body:not(.ready)>header,body:not(.ready)>main,body:not(.ready)>footer{display:none}
@@ -76,12 +79,13 @@ body:not(.ready)>header,body:not(.ready)>main,body:not(.ready)>footer{display:no
  <button id="cfb1">字</button>
  <button id="cfb2">文</button>
  <button id="cfb3">重</button>
- <button id="cp" class="char"></button>
+ <button id="cfb4">釋</button>
+ <button id="replace-char" class="char"></button>
  <button id="cpb">變</button>
- <button id="reload">新</button>
  <input id="token" type="password" placeholder="钥" autocomplete="off">
  <button id="cs">存</button>
  <span id="status" role="status"></span>
+ <div id="header-chars"><div id="cp" class="char-list"></div><span class="summary-gap" aria-hidden="true">　</span><div id="bg" class="char-list"></div></div>
  <div id="results">
   <table id="cfa"><colgroup><col><col><col><col><col><col><col></colgroup><tbody></tbody></table>
  </div>
@@ -91,9 +95,10 @@ body:not(.ready)>header,body:not(.ready)>main,body:not(.ready)>footer{display:no
 </main>
 <footer>
  <div id="mozi2-scroll">
-  <table id="mozi2"><colgroup><col><col><col><col><col><col></colgroup><tbody></tbody></table>
+  <table id="mozi2"><colgroup><col><col><col><col></colgroup><tbody></tbody></table>
  </div>
- <p id="bg"></p>
+ <div id="shw" class="char-list"></div>
+ <div id="zgn" class="char-list"></div>
 </footer>
 <script type="module">
 'use strict';
@@ -107,6 +112,10 @@ const table=$('mozi');
 const cfa=$('cfa');
 const mozi2=$('mozi2');
 const bg=$('bg');
+const cp=$('cp');
+const shw=$('shw');
+const zgn=$('zgn');
+const extraScroll=$('mozi2-scroll');
 const viewport=$('viewport');
 const mainBody=table.tBodies[0];
 const searchBody=cfa.tBodies[0];
@@ -131,8 +140,11 @@ let renderedStart=-1;
 let renderedEnd=-1;
 let renderPending=false;
 let highlightedIndex=-1;
+let highlightedExtraIndex=-1;
 let searchMatches=[];
 let searchColumns=[];
+let summarySearch='';
+let shwMatches=new Map();
 class FenwickTree{
  constructor(size,initialHeight){
   this.size=size;
@@ -213,6 +225,7 @@ function finishLoading(){
   renderedStart=-1;
   renderedEnd=-1;
   renderVisible(true);
+  extraScroll.scrollTop=extraScroll.scrollHeight;
   $('loading').hidden=true;
   progress(100,'全部載入完成');
  });
@@ -240,9 +253,10 @@ async function paste(){
  try{return first(await navigator.clipboard.readText());}
  catch(e){console.error(e);status('無法讀取系統剪貼簿');return null;}
 }
-function charButtons(el,s){
+function charButtons(el,s,separator=''){
  const fragment=document.createDocumentFragment();
  for(const c of chars(s)){
+  if(separator&&fragment.childNodes.length)fragment.appendChild(document.createTextNode(separator));
   const b=document.createElement('button');
   b.type='button';b.className='char';b.textContent=c;b.dataset.copy=c;
   fragment.appendChild(b);
@@ -272,7 +286,7 @@ function control(id){
  return ()=>el.dataset.value||'';
 }
 const getSearch=control('cf');
-const getReplace=control('cp');
+const getReplace=control('replace-char');
 function getEditValue(kind,index,column){
  if(kind==='main')return mainData[index]?.edit[column]??'';
  if(kind==='extra')return extraData[index]?.[column]??'';
@@ -495,6 +509,22 @@ function jumpToRow(index){
  renderVisible(true);
  status(`已跳至第 ${index+1} 行`);
 }
+function jumpToExtraRow(index){
+ if(index<0||index>=extraData.length)return;
+ highlightedExtraIndex=index;
+ renderExtra();
+ const tr=extraBody.querySelector(`tr[data-index="${index}"]`);
+ if(tr){
+  const rowRect=tr.getBoundingClientRect();
+  const scrollRect=extraScroll.getBoundingClientRect();
+  extraScroll.scrollTop+=rowRect.top-scrollRect.top-(extraScroll.clientHeight-rowRect.height)/2;
+ }
+ status(`已跳至附表第 ${index+1} 行`);
+}
+function jumpToMatch(match){
+ if(match.kind==='extra')jumpToExtraRow(match.index);
+ else jumpToRow(match.index);
+}
 function createExtraRow(index){
  const data=extraData[index];
  const tr=document.createElement('tr');
@@ -505,25 +535,17 @@ function createExtraRow(index){
   td.appendChild(createEditableButton(data[j],'extra',index,j));
  }
  updateFirst(tr,data);
- for(const [symbol,direction] of [['↑',-1],['↓',1]]){
-  const td=tr.insertCell();
-  const b=document.createElement('button');
-  b.type='button';
-  b.className='char';
-  b.textContent=symbol;
-  b.title=direction<0?'上移一行':'下移一行';
-  b.addEventListener('click',()=>moveExtraRow(index,direction));
-  td.appendChild(b);
- }
+ if(index===highlightedExtraIndex)tr.style.background='#fff2b0';
  return tr;
 }
 function renderExtra(){
+ const scrollTop=extraScroll.scrollTop;
  const fragment=document.createDocumentFragment();
  for(let i=0;i<extraData.length;i++)fragment.appendChild(createExtraRow(i));
  const tr=document.createElement('tr');
  tr.dataset.add='1';
  const td=tr.insertCell();
- td.colSpan=6;
+ td.colSpan=4;
  const b=document.createElement('button');
  b.type='button';
  b.className='char';
@@ -532,42 +554,60 @@ function renderExtra(){
  b.addEventListener('click',()=>{
   extraData.push(['','','']);
   renderExtra();
+  extraScroll.scrollTop=extraScroll.scrollHeight;
   updateBg();
   changed();
  });
  td.appendChild(b);
  fragment.appendChild(tr);
  extraBody.replaceChildren(fragment);
-}
-function moveExtraRow(index,direction){
- const target=index+direction;
- if(target<0||target>=extraData.length)return;
- [extraData[index],extraData[target]]=[extraData[target],extraData[index]];
- renderExtra();
- changed();
+ extraScroll.scrollTop=scrollTop;
 }
 function updateBg(){
  const a=new Set(),b=new Set();
- for(const row of mainData){
-  for(const c of chars(row.edit[0]))a.add(c);
-  for(const c of chars(row.edit[1]+row.edit[2]))b.add(c);
+ const counts=new Map(),zgnChars=new Set();
+ shwMatches=new Map();
+ function collect(edit,kind,index){
+  for(const c of chars(edit[0]))a.add(c);
+  for(const c of chars(edit[1]+edit[2]))b.add(c);
+  const [second,third,fourth]=edit;
+  const rowChars=new Set(chars(second));
+  for(const c of chars(second))counts.set(c,(counts.get(c)||0)+1);
+  if(second&&!third&&!fourth){
+   for(const c of rowChars){
+    if(!shwMatches.has(c))shwMatches.set(c,[]);
+    shwMatches.get(c).push({kind,index});
+   }
+  }
+  if(second&&second===third&&!fourth){
+   for(const c of rowChars)zgnChars.add(c);
+  }
  }
- for(const row of extraData){
-  for(const c of chars(row[0]))a.add(c);
-  for(const c of chars(row[1]+row[2]))b.add(c);
- }
+ mainData.forEach((row,index)=>collect(row.edit,'main',index));
+ extraData.forEach((row,index)=>collect(row,'extra',index));
  charButtons(bg,[...b].filter(c=>!a.has(c)).join(''));
+ charButtons(cp,[...counts].filter(([,count])=>count>1).map(([c])=>c).join(''),'　');
+ charButtons(shw,[...shwMatches.keys()].join(''));
+ charButtons(zgn,[...zgnChars].join(''));
+ if(summarySearch){
+  searchMatches=shwMatches.get(summarySearch)||[];
+  searchBody.replaceChildren();
+  renderSearchResults(0);
+ }
 }
 function rowValues(data){return [data.edit.join(''),...data.edit,...data.seal];}
+function searchValue(data,column){
+ return rowValues(data)[column-1]??'';
+}
 function searchColumn(columns){
  searchBody.replaceChildren();
+ summarySearch='';
  const q=getSearch();
  if(!q)return;
  searchMatches=[];
  searchColumns=columns;
  for(let i=0;i<mainData.length;i++){
-  const cells=rowValues(mainData[i]);
-  if(columns.some(n=>cells[n-1].includes(q)))searchMatches.push(i);
+  if(columns.some(n=>searchValue(mainData[i],n).includes(q)))searchMatches.push({kind:'main',index:i});
  }
  renderSearchResults(0);
  status(`找到 ${searchMatches.length} 行`);
@@ -576,9 +616,10 @@ function renderSearchResults(offset){
  const PAGE=100,fragment=document.createDocumentFragment();
  const end=Math.min(offset+PAGE,searchMatches.length);
  for(let k=offset;k<end;k++){
-  const index=searchMatches[k];
-  const cells=rowValues(mainData[index]);
+  const {kind,index}=searchMatches[k];
+  const cells=kind==='extra'?[extraData[index].join(''),...extraData[index],'','','']:rowValues(mainData[index]);
   const tr=document.createElement('tr');
+  tr.dataset.kind=kind;
   tr.dataset.index=index;
   for(const s of cells)charButtons(tr.insertCell(),s);
   fragment.appendChild(tr);
@@ -599,11 +640,29 @@ function renderSearchResults(offset){
 cfa.addEventListener('click',e=>{
  const tr=e.target.closest('tr[data-index]');
  if(!tr)return;
- jumpToRow(Number(tr.dataset.index));
+ jumpToMatch({kind:tr.dataset.kind,index:Number(tr.dataset.index)});
+});
+shw.addEventListener('click',e=>{
+ const button=e.target.closest('button[data-copy]');
+ if(!button)return;
+ const q=button.dataset.copy;
+ const matches=shwMatches.get(q)||[];
+ if(matches.length===1){
+  summarySearch='';
+  jumpToMatch(matches[0]);
+ }else if(matches.length>1){
+  summarySearch=q;
+  searchColumns=[];
+  searchMatches=matches;
+  searchBody.replaceChildren();
+  renderSearchResults(0);
+  status(`找到 ${matches.length} 行`);
+ }
 });
 $('cfb1').addEventListener('click',()=>searchColumn([2]));
 $('cfb2').addEventListener('click',()=>searchColumn([3,4]));
 $('cfb3').addEventListener('click',()=>searchColumn([6]));
+$('cfb4').addEventListener('click',()=>searchColumn([7]));
 $('cpb').addEventListener('click',()=>{
  const q=getSearch();
  if(!q)return;
@@ -634,6 +693,7 @@ $('cpb').addEventListener('click',()=>{
   renderedEnd=-1;
   renderVisible(true);
   renderExtra();
+  summarySearch='';
   updateBg();
   searchBody.replaceChildren();
   searchMatches=[];
@@ -759,6 +819,8 @@ async function parseData(text,sw){
  });
  mainData=nextMain;
  extraData=nextExtra;
+ highlightedExtraIndex=-1;
+ summarySearch='';
  heightTree=new FenwickTree(mainData.length,estimatedRowHeight());
  measurementChanges.clear();
  progress(85,'正在建立附加資料表');
@@ -813,7 +875,6 @@ async function loadData(){
   loading=false;
  }
 }
-$('reload').addEventListener('click',loadData);
 $('retry').addEventListener('click',loadData);
 $('cs').addEventListener('click',async()=>{
  if(saving||loading)return;
