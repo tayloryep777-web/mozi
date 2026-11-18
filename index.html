@@ -13,8 +13,11 @@ button,input,progress{font:inherit}
 button{appearance:none;-webkit-appearance:none;border:0;background:transparent;color:inherit}
 button:hover,button:active,button:focus{background:transparent}
 button:focus{outline:none}
-header{flex-shrink:0;display:flex;flex-wrap:nowrap;align-items:center;min-width:0;white-space:nowrap;overflow-x:auto;overflow-y:hidden}
-header>button,header>input{flex-shrink:0}
+header{flex-shrink:0;display:flex;flex-direction:column;min-width:0}
+#header-top{display:flex;align-items:center;min-width:0}
+#header-controls{display:flex;flex:1;align-items:center;min-width:0;white-space:nowrap;overflow-x:auto;overflow-y:hidden}
+#header-controls>button,#header-controls>input{flex-shrink:0}
+#header-counts{display:flex;flex:none;gap:1ic;margin-inline-start:auto;white-space:nowrap}
 main{flex:1;min-width:0;min-height:0;overflow-x:auto;overflow-y:auto;position:relative;overscroll-behavior:contain;overflow-anchor:none}
 footer{height:25%;flex-shrink:0;display:flex;min-width:0;min-height:0;overflow:hidden}
 #results{flex:0 0 auto;max-height:25vh;min-width:0;overflow-x:hidden;overflow-y:auto}
@@ -44,11 +47,9 @@ footer{height:25%;flex-shrink:0;display:flex;min-width:0;min-height:0;overflow:h
 #mozi2 tr[data-add] td{text-align:center}
 #mozi2 tr[data-add] button{display:block;width:100%;font:inherit}
 .char-list{min-width:0;min-height:0;margin:0;overflow-x:hidden;overflow-y:auto;overflow-wrap:anywhere;word-break:break-word;overscroll-behavior:contain;font:inherit}
-#header-chars{display:flex;flex:0 1 auto;min-width:2ic;max-width:50%;align-items:center;margin-left:auto}
+#header-chars{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr);min-width:0;min-height:1lh}
 #header-chars .char-list{white-space:nowrap;overflow-x:auto;overflow-y:hidden;overflow-wrap:normal;word-break:normal}
-#cp{flex:0 1 auto;max-width:50%}
-#bg{flex:0 1 auto}
-#cp:not(:empty)+#bg{margin-inline-start:1ic}
+#cp{padding-inline-end:1ic}
 #shw,#zgn{flex:1 1 0}
 #token{width:1ic;max-width:100%;font:inherit;border:0;outline:none}
 #status{align-self:center;flex:0 1 auto;min-width:0;max-width:20%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:inherit}
@@ -76,6 +77,8 @@ body:not(.ready)>header,body:not(.ready)>#results,body:not(.ready)>main,body:not
  </div>
 </div>
 <header>
+ <div id="header-top">
+ <div id="header-controls">
  <button id="cf" class="char"></button>
  <button id="cfb1">字</button>
  <button id="cfb2">文</button>
@@ -86,7 +89,10 @@ body:not(.ready)>header,body:not(.ready)>#results,body:not(.ready)>main,body:not
  <input id="token" type="password" placeholder="钥" autocomplete="off">
  <button id="cs">存</button>
  <span id="status" role="status"></span>
- <div id="header-chars"><div id="cp" class="char-list"></div><div id="bg" class="char-list"></div></div>
+ </div>
+ <div id="header-counts"><span id="shw-count" title="shw 字符數" aria-label="shw 字符數">0</span><span id="zgn-count" title="zgn 字符數" aria-label="zgn 字符數">0</span></div>
+ </div>
+ <div id="header-chars"><div id="cp" class="char-list"></div><div id="bg" class="char-list"></div><div id="diff" class="char-list"></div></div>
 </header>
 <div id="results">
  <table id="cfa"><colgroup><col><col><col><col><col><col><col></colgroup><tbody></tbody></table>
@@ -116,6 +122,7 @@ const bg=$('bg');
 const cp=$('cp');
 const shw=$('shw');
 const zgn=$('zgn');
+const different=$('diff');
 const extraScroll=$('mozi2-scroll');
 const viewport=$('viewport');
 const mainBody=table.tBodies[0];
@@ -566,7 +573,7 @@ function renderExtra(){
 }
 function updateBg(){
  const a=new Set(),b=new Set();
- const counts=new Map(),zgnChars=new Set();
+ const counts=new Map(),zgnChars=new Set(),differentChars=new Set();
  shwMatches=new Map();
  function collect(edit,kind,index){
   for(const c of chars(edit[0]))a.add(c);
@@ -583,6 +590,9 @@ function updateBg(){
   if(second&&second===third&&!fourth){
    for(const c of rowChars)zgnChars.add(c);
   }
+  if(second&&!fourth&&second!==third){
+   for(const c of rowChars)differentChars.add(c);
+  }
  }
  mainData.forEach((row,index)=>collect(row.edit,'main',index));
  extraData.forEach((row,index)=>collect(row,'extra',index));
@@ -590,6 +600,9 @@ function updateBg(){
  charButtons(cp,[...counts].filter(([,count])=>count>1).map(([c])=>c).join(''));
  charButtons(shw,[...shwMatches.keys()].join(''));
  charButtons(zgn,[...zgnChars].join(''));
+ charButtons(different,[...differentChars].join(''));
+ $('shw-count').textContent=shwMatches.size;
+ $('zgn-count').textContent=zgnChars.size;
  if(summarySearch){
   searchMatches=shwMatches.get(summarySearch)||[];
   searchBody.replaceChildren();
