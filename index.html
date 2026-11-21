@@ -390,7 +390,10 @@ document.addEventListener('click',e=>{
  const b=e.target.closest('button');
  if(!b)return;
  if(b.dataset.edit!==undefined){e.preventDefault();return;}
- if(b.dataset.copy!==undefined)copy(b.dataset.copy);
+ if(b.dataset.copy!==undefined){
+  if(b.closest('#header-chars,#shw'))searchSecondColumn(b.dataset.copy);
+  else copy(b.dataset.copy);
+ }
 });
 document.addEventListener('contextmenu',e=>{
  if(e.target.closest('button[data-edit]'))e.preventDefault();
@@ -604,7 +607,7 @@ function updateBg(){
  $('shw-count').textContent=shwMatches.size;
  $('zgn-count').textContent=zgnChars.size;
  if(summarySearch){
-  searchMatches=shwMatches.get(summarySearch)||[];
+  searchMatches=findSecondColumnMatches(summarySearch);
   searchBody.replaceChildren();
   renderSearchResults(0);
  }
@@ -661,23 +664,33 @@ cfa.addEventListener('click',e=>{
  if(!tr)return;
  jumpToMatch({kind:tr.dataset.kind,index:Number(tr.dataset.index)});
 });
-shw.addEventListener('click',e=>{
- const button=e.target.closest('button[data-copy]');
- if(!button)return;
- const q=button.dataset.copy;
- const matches=shwMatches.get(q)||[];
- if(matches.length===1){
-  summarySearch='';
-  jumpToMatch(matches[0]);
- }else if(matches.length>1){
-  summarySearch=q;
-  searchColumns=[];
-  searchMatches=matches;
-  searchBody.replaceChildren();
-  renderSearchResults(0);
-  status(`找到 ${matches.length} 行`);
+function findSecondColumnMatches(q){
+ if(!q)return [];
+ const matches=[];
+ for(let i=0;i<mainData.length;i++){
+  if(mainData[i].edit[0].includes(q))matches.push({kind:'main',index:i});
  }
-});
+ for(let i=0;i<extraData.length;i++){
+  if(extraData[i][0].includes(q))matches.push({kind:'extra',index:i});
+ }
+ return matches;
+}
+function searchSecondColumn(q){
+ summarySearch='';
+ searchColumns=[2];
+ searchMatches=findSecondColumnMatches(q);
+ searchBody.replaceChildren();
+ $('results').scrollTop=0;
+ if(searchMatches.length===1){
+  jumpToMatch(searchMatches[0]);
+ }else{
+  if(searchMatches.length>1){
+   summarySearch=q;
+   renderSearchResults(0);
+  }
+  status(`找到 ${searchMatches.length} 行`);
+ }
+}
 $('cfb1').addEventListener('click',()=>searchColumn([2],true));
 $('cfb2').addEventListener('click',()=>searchColumn([3,4],true));
 $('cfb3').addEventListener('click',()=>searchColumn([6]));
