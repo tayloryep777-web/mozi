@@ -41,9 +41,8 @@ footer{height:25%;flex-shrink:0;display:flex;min-width:0;min-height:0;overflow:h
 #mozi tr.data-row td{height:auto;min-height:var(--row-height);white-space:normal;overflow-wrap:anywhere;vertical-align:middle}
 #mozi tr.spacer td{padding:0;height:0;min-height:0;line-height:0;font-size:0;overflow:hidden}
 .char{font:inherit;padding:0;margin:0;background:transparent;cursor:pointer;color:inherit;touch-action:manipulation;user-select:none;-webkit-user-select:none;min-width:1ic;min-height:1ic;white-space:normal;overflow-wrap:anywhere;word-break:break-word;vertical-align:middle}
-:is(#mozi,#mozi2) td:has(>button[data-edit])>button{display:block;width:100%;min-height:1.5ic;text-align:center}
+:is(#mozi,#cfa,#mozi2) td:has(>button[data-edit])>button{display:block;width:100%;min-height:1.5ic;text-align:center}
 #cf,#replace-char{min-width:2ic}
-#cfa tr{cursor:pointer}
 #mozi2 tr[data-add] td{text-align:center}
 #mozi2 tr[data-add] button{display:block;width:100%;font:inherit}
 .char-list{min-width:0;min-height:0;margin:0;overflow-x:hidden;overflow-y:auto;overflow-wrap:anywhere;word-break:break-word;overscroll-behavior:contain;font:inherit}
@@ -310,9 +309,12 @@ function setEditValue(kind,index,column,s){
   extraData[index][column]=s;
  }else{return;}
  changed();
+ // 編輯時保留目前結果行，避免清空查詢字後該行消失。
+ summarySearch='';
  updateBg();
  if(kind==='main')refreshVisibleRow(index);
  else renderExtra();
+ refreshSearchRow(kind,index);
 }
 function updateFirst(tr,edit){charButtons(tr.cells[0],edit.join(''));}
 function buttonInfo(b){
@@ -634,17 +636,32 @@ function searchColumn(columns,includeExtra=false){
  renderSearchResults(0);
  status(`找到 ${searchMatches.length} 行`);
 }
+function createSearchRow(kind,index){
+ const edit=kind==='extra'?extraData[index]:mainData[index].edit;
+ const seal=kind==='extra'?['','','']:mainData[index].seal;
+ const tr=document.createElement('tr');
+ tr.dataset.kind=kind;
+ tr.dataset.index=index;
+ tr.insertCell();
+ for(let j=0;j<3;j++){
+  const td=tr.insertCell();
+  td.appendChild(createEditableButton(edit[j],kind,index,j));
+ }
+ updateFirst(tr,edit);
+ for(let j=0;j<3;j++)charButtons(tr.insertCell(),seal[j]||'');
+ return tr;
+}
+function refreshSearchRow(kind,index){
+ for(const tr of searchBody.querySelectorAll(`tr[data-kind="${kind}"][data-index="${index}"]`)){
+  tr.replaceWith(createSearchRow(kind,index));
+ }
+}
 function renderSearchResults(offset){
  const PAGE=100,fragment=document.createDocumentFragment();
  const end=Math.min(offset+PAGE,searchMatches.length);
  for(let k=offset;k<end;k++){
   const {kind,index}=searchMatches[k];
-  const cells=kind==='extra'?[extraData[index].join(''),...extraData[index],'','','']:rowValues(mainData[index]);
-  const tr=document.createElement('tr');
-  tr.dataset.kind=kind;
-  tr.dataset.index=index;
-  for(const s of cells)charButtons(tr.insertCell(),s);
-  fragment.appendChild(tr);
+  fragment.appendChild(createSearchRow(kind,index));
  }
  if(end<searchMatches.length){
   const tr=document.createElement('tr');
@@ -659,11 +676,6 @@ function renderSearchResults(offset){
  }
  searchBody.appendChild(fragment);
 }
-cfa.addEventListener('click',e=>{
- const tr=e.target.closest('tr[data-index]');
- if(!tr)return;
- jumpToMatch({kind:tr.dataset.kind,index:Number(tr.dataset.index)});
-});
 function findSecondColumnMatches(q){
  if(!q)return [];
  const matches=[];
